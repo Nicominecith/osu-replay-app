@@ -38,6 +38,7 @@ canvas{width:100%;max-width:min(100%,calc((100vh - 190px)*4/3));aspect-ratio:4/3
 #ctl input[type=range]{flex:1;accent-color:var(--pink);height:32px}
 #ctl button,#ctl select{background:var(--panel);border:1px solid var(--line);border-radius:10px;height:44px;min-width:44px;padding:0 10px;color:var(--tx)}
 #time{color:var(--dim);font-variant-numeric:tabular-nums;font-size:.85rem}
+video{width:100%;max-width:min(100%,calc((100vh - 190px)*16/9));border-radius:12px;background:#000}
 .msg{color:var(--dim);text-align:center;padding:8px}
 </style>
 </head>
@@ -58,8 +59,9 @@ canvas{width:100%;max-width:min(100%,calc((100vh - 190px)*4/3));aspect-ratio:4/3
 </main>
 
 <section id="viewer" hidden>
-  <div id="vbar"><div id="title"></div><button class="ghost" id="close">Schließen</button></div>
-  <div id="stage"><canvas id="cv" width="960" height="720"></canvas></div>
+  <div id="vbar"><div id="title"></div><div style="display:flex;gap:8px"><button class="ghost" id="mp4">mp4 rendern</button><button class="ghost" id="close">Schließen</button></div></div>
+  <div id="stage"><canvas id="cv" width="960" height="720"></canvas>
+  <video id="vid" controls playsinline hidden></video></div>
   <div id="msg" class="msg"></div>
   <div id="ctl">
     <button id="pp" aria-label="Abspielen oder pausieren">▶</button>
@@ -106,29 +108,30 @@ function parseOsr(buf) {
   const d = new DataView(buf), u = new Uint8Array(buf); let p = 0;
   const b = () => d.getUint8(p++), sh = () => (p += 2, d.getUint16(p - 2, true)), i = () => (p += 4, d.getInt32(p - 4, true));
   const str = () => { if (b() !== 11) return ''; let n = 0, s = 0, c; do { c = b(); n |= (c & 127) << s; s += 7; } while (c & 128); const t = new TextDecoder().decode(u.subarray(p, p + n)); p += n; return t; };
-  const mode = b(); i(); str(); str(); str(); p += 12; i(); sh(); b();
+  const mode = b(); i(); str(); str(); str(); p += 12; const score = i(); sh(); b();
   const mods = i(); str(); p += 8; const len = i();
   return new Promise((res, rej) => LZMA.decompress(Array.from(u.subarray(p, p + len), x => x << 24 >> 24), t => {
     if (t == null) return rej(new Error('LZMA'));
     if (typeof t !== 'string') t = new TextDecoder().decode(new Uint8Array(t));
     let ms = 0; const F = [];
     for (const f of t.split(',')) { const [w, x, y, z] = f.split('|'); if (z === undefined || w === '-12345') continue; ms += +w; F.push({ t: ms, x: +x, y: +y, k: (+z) & 15 }); }
-    res({ mode, mods, F });
+    res({ mode, mods, F, score });
   }));
 }
 
 /* ---------- .osu lesen ---------- */
 function parseMap(txt, mods) {
-  const m = { d: {}, tp: [], ho: [] }; let sec = '';
+  const m = { d: {}, tp: [], ho: [], br: [] }; let sec = '';
   for (let l of txt.split('\n')) {
     l = l.trim(); if (!l || l.startsWith('//')) continue;
     if (l[0] === '[') { sec = l; continue; }
     if (sec === '[General]' && l.startsWith('AudioFilename:')) m.audio = l.slice(14).trim();
     else if (sec === '[Difficulty]') { const [k, v] = l.split(':'); m.d[k] = +v; }
+    else if (sec === '[Events]') { const bm = /^0,0,"([^"]+)"/.exec(l); if (bm) m.bg = bm[1]; else if (l.startsWith('2,')) { const q = l.split(','); m.br.push([+q[1], +q[2]]); } }
     else if (sec === '[TimingPoints]') { const a = l.split(','); m.tp.push({ t: +a[0], bl: +a[1], un: a[6] !== '0' }); }
     else if (sec === '[HitObjects]') {
-      const a = l.split(','), o = { x: +a[0], y: +a[1], t: +a[2], type: +a[3] };
-      if (o.type & 2) { o.pts = [[o.x, o.y], ...a[5].split('|').slice(1).map(q => q.split(':').map(Number))]; o.slides = +a[6]; o.len = +a[7]; }
+      const a = l.split(','), o = { x: +a[0], y: +a[1], t: +a[2], type: +a[3], hs: +a[4] };
+      if (o.type & 2) { o.ct = a[5][0]; o.pts = [[o.x, o.y], ...a[5].split('|').slice(1).map(q => q.split(':').map(Number))]; o.slides = +a[6]; o.len = +a[7]; }
       if (o.type & 8) o.end = +a[5];
       m.ho.push(o);
     }
@@ -142,7 +145,7 @@ function parseMap(txt, mods) {
     if (o.pts) {
       let bl = 500, sv = 1;
       for (const tp of m.tp) { if (tp.t > o.t) break; if (tp.un) { bl = tp.bl; sv = 1; } else sv = -100 / tp.bl; }
-      o.end = o.t + o.len / (SM * 100 * sv) * bl * o.slides;
+      o.bl = bl; o.end = o.t + o.len / (SM * 100 * sv) * bl * o.slides;
     } else if (!o.end) o.end = o.t;
   }
   let ar = m.d.ApproachRate ?? m.d.OverallDifficulty, cs = m.d.CircleSize;
@@ -154,12 +157,38 @@ function parseMap(txt, mods) {
 }
 
 /* ---------- Player ---------- */
-let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false, audio = null;
+let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false, audio = null, bgImg = null, actx = null, sI = 0, sT = -1e9;
 const cv = $('#cv'), g = cv.getContext('2d');
+
+let osrBuf = null;
+$('#mp4').onclick = async () => {
+  if (!osrBuf) return;
+  const msg = x => ($('#msg').textContent = x), btn = $('#mp4');
+  btn.disabled = true; playing = false; msg('Sende Replay an o!rdr…');
+  try {
+    const r = await fetch('/.netlify/functions/render?username=' + encodeURIComponent(me.username), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: osrBuf });
+    const j = await r.json();
+    if (!r.ok || !j.renderID) throw new Error(j.message || j.error || r.status);
+    for (let n = 0; n < 180; n++) {
+      await new Promise(res => setTimeout(res, 5000));
+      const x = ((await (await fetch('/.netlify/functions/render?id=' + j.renderID)).json()).renders || [])[0];
+      if (x && x.errorMessage) throw new Error(x.errorMessage);
+      if (x && x.videoUrl) {
+        if (audio) audio.pause();
+        const v = $('#vid'); v.src = x.videoUrl; v.hidden = false; cv.hidden = true; $('#ctl').hidden = true; msg('');
+        v.play().catch(() => {}); btn.disabled = false; return;
+      }
+      msg('Rendert… ' + ((x && x.progress) || 'wartet in der Warteschlange'));
+    }
+    throw new Error('Zeitüberschreitung');
+  } catch (err) { msg('Render fehlgeschlagen: ' + err.message); }
+  btn.disabled = false;
+};
 
 async function openReplay(s) {
   $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
+  $('#vid').pause(); $('#vid').removeAttribute('src'); $('#vid').hidden = true; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
   $('#title').textContent = `${s.beatmapset.title} [${s.beatmap.version}]`;
   const msg = x => ($('#msg').textContent = x);
   try {
@@ -167,14 +196,16 @@ async function openReplay(s) {
     let r = await api(`/scores/${s.id}/download`);
     if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
     if (!r.ok) return msg(`Replay-Download fehlgeschlagen (${r.status}).`);
-    const osr = await parseOsr(await r.arrayBuffer());
+    osrBuf = await r.arrayBuffer();
+    const osr = await parseOsr(osrBuf.slice(0));
     if (osr.mode !== 0) return msg('Aktuell wird nur osu!standard unterstützt.');
     msg('Lade Beatmap…');
     const b = await fetch('/.netlify/functions/beatmap?id=' + s.beatmap.id);
     if (!b.ok) return msg('Beatmap konnte nicht geladen werden.');
-    M = parseMap(await b.text(), osr.mods); F = osr.F;
+    M = parseMap(await b.text(), osr.mods); F = osr.F; prep(M, F, osr.mods, osr.score);
     msg('Lade Ton…');
-    audio = M.audio ? await loadAudio(s.beatmapset.id, M.audio) : null;
+    const pk = M.audio ? await loadAudio(s.beatmapset.id, M.audio, M.bg) : null;
+    audio = pk && pk.audio; bgImg = pk && pk.bg;
     if (audio) audio.preservesPitch = !(osr.mods & 512);
     rate = osr.mods & (64 | 512) ? 1.5 : osr.mods & 256 ? 0.75 : 1;
     end = Math.max(F[F.length - 1].t, M.ho.at(-1).end) + 500;
@@ -184,14 +215,18 @@ async function openReplay(s) {
   } catch (err) { msg('Replay konnte nicht gelesen werden.'); }
 }
 
-async function loadAudio(setId, file) {
+async function loadAudio(setId, file, bgName) {
   const mime = { mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' }[file.split('.').pop().toLowerCase()] || 'audio/mpeg';
-  for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&noBg=true&NoHitsound=true&NoStoryboard=true`, `https://catboy.best/d/${setId}`]) {
+  const find = (z, n) => z.file(n) || Object.values(z.files).find(x => x.name.toLowerCase() === n.toLowerCase());
+  for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&NoHitsound=true&NoStoryboard=true`, `https://catboy.best/d/${setId}`]) {
     try {
       const r = await fetch(u); if (!r.ok) continue;
-      const z = await JSZip.loadAsync(await r.arrayBuffer());
-      const f = z.file(file) || Object.values(z.files).find(x => x.name.toLowerCase() === file.toLowerCase());
-      if (f) return new Audio(URL.createObjectURL(new Blob([await f.async('arraybuffer')], { type: mime })));
+      const z = await JSZip.loadAsync(await r.arrayBuffer()), f = find(z, file);
+      if (!f) continue;
+      const audio = new Audio(URL.createObjectURL(new Blob([await f.async('arraybuffer')], { type: mime })));
+      let bg = null; const bf = bgName && find(z, bgName);
+      if (bf) { bg = new Image(); bg.src = URL.createObjectURL(await bf.async('blob')); }
+      return { audio, bg };
     } catch {}
   }
   return null;
@@ -209,31 +244,194 @@ function syncAudio() {
 function tick(n) {
   if (!$('#viewer').hidden && M) {
     if (playing) { t += (n - last) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
-    draw(t); syncAudio(); $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
+    draw(t); syncAudio(); schedSnd(); $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
     const sec = Math.max(0, t / 1000 / rate) | 0; $('#time').textContent = `${sec / 60 | 0}:${String(sec % 60).padStart(2, '0')}`;
   }
   last = n; requestAnimationFrame(tick);
 }
 
+/* ---------- Slider-Kurven, Stacking, Treffer-Auswertung ---------- */
+const bez = P => { const N = Math.min(120, Math.max(30, P.length * 20)), out = []; for (let i = 0; i <= N; i++) { const u = i / N, q = P.map(a => a.slice()); for (let k = q.length - 1; k > 0; k--) for (let j = 0; j < k; j++) q[j] = [q[j][0] + (q[j + 1][0] - q[j][0]) * u, q[j][1] + (q[j + 1][1] - q[j][1]) * u]; out.push(q[0]); } return out; };
+function arc(A, B, C) {
+  const [ax, ay] = A, [bx, by] = B, [cx, cy] = C, d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+  if (Math.abs(d) < 1e-3) return null;
+  const a2 = ax * ax + ay * ay, b2 = bx * bx + by * by, c2 = cx * cx + cy * cy;
+  const ux = (a2 * (by - cy) + b2 * (cy - ay) + c2 * (ay - by)) / d, uy = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d;
+  const r = Math.hypot(ax - ux, ay - uy), T = Math.PI * 2, nz = x => ((x % T) + T) % T;
+  const a0 = Math.atan2(ay - uy, ax - ux), d1 = nz(Math.atan2(by - uy, bx - ux) - a0), d2 = nz(Math.atan2(cy - uy, cx - ux) - a0);
+  const sw = d1 < d2 ? d2 : d2 - T, n = Math.max(8, Math.ceil(Math.abs(sw) * r / 4)), out = [];
+  for (let i = 0; i <= n; i++) { const an = a0 + sw * i / n; out.push([ux + r * Math.cos(an), uy + r * Math.sin(an)]); }
+  return out;
+}
+function buildPath(o) {
+  if (!(o.len > 0)) { o.path = null; return; }
+  const P = o.pts; let pts = o.ct === 'P' && P.length === 3 ? arc(...P) : null;
+  if (!pts) {
+    if (o.ct === 'L') pts = P;
+    else {
+      pts = []; let seg = [P[0]];
+      for (let i = 1; i < P.length; i++) {
+        if (P[i][0] === P[i - 1][0] && P[i][1] === P[i - 1][1]) { pts.push(...bez(seg)); seg = [P[i]]; } else seg.push(P[i]);
+      }
+      pts.push(...bez(seg));
+    }
+  }
+  let d = [0]; for (let i = 1; i < pts.length; i++) d.push(d[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = d[d.length - 1];
+  if (L > o.len) {
+    const k = d.findIndex(x => x >= o.len), a = pts[k - 1], b = pts[k], f = (o.len - d[k - 1]) / ((d[k] - d[k - 1]) || 1);
+    pts = pts.slice(0, k); pts.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]); d = d.slice(0, k); d.push(o.len);
+  } else if (L < o.len && pts.length > 1) {
+    const a = pts[pts.length - 2], b = pts[pts.length - 1], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, e = o.len - L;
+    pts = pts.concat([[b[0] + (b[0] - a[0]) / l * e, b[1] + (b[1] - a[1]) / l * e]]); d.push(o.len);
+  }
+  o.path = pts; o.d = d;
+}
+function posAt(o, f) {
+  const L = o.len * f, d = o.d; let k = 1; while (k < d.length - 1 && d[k] < L) k++;
+  const u = (L - d[k - 1]) / ((d[k] - d[k - 1]) || 1), a = o.path[k - 1], b = o.path[k];
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+}
+function slideFrac(o, t) {
+  const p = Math.min(o.slides, Math.max(0, (t - o.t) / (o.end - o.t) * o.slides)), s = Math.floor(p), f = p - s;
+  return s % 2 ? 1 - f : f;
+}
+function prep(m, F, mods, real) {
+  const n = m.ho.length, R = m.r;
+  for (let i = n - 1; i >= 0; i--) {
+    const o = m.ho[i], q = m.ho[i + 1]; o.stack = 0;
+    if (q && !(o.type & 8) && !(q.type & 8) && Math.hypot(q.x - o.x, q.y - o.y) < 3 && q.t - o.end < m.pre * .7) o.stack = q.stack + 1;
+  }
+  for (const o of m.ho) {
+    if (o.pts) buildPath(o);
+    const sft = -o.stack * R / 10; o.x += sft; o.y += sft;
+    if (o.path) o.path = o.path.map(([x, y]) => [x + sft, y + sft]);
+  }
+  m.ds = m.ho[0].t; m.de = m.ho.reduce((x, o) => Math.max(x, o.end), 0);
+  const drainMs = (a, b) => { const L = Math.max(a, m.ds), E = Math.min(b, m.de); if (E <= L) return 0; let d = E - L; for (const [bs, be] of m.br) d -= Math.max(0, Math.min(E, be) - Math.max(L, bs)); return d; };
+  m.drain = drainMs;
+  /* Treffer */
+  let od = m.d.OverallDifficulty; if (mods & 16) od = Math.min(10, od * 1.4); if (mods & 2) od /= 2;
+  const w3 = 80 - 6 * od, w1 = 140 - 8 * od, w5 = 200 - 10 * od, pr = []; let pk = 0, pi = 0;
+  for (const f of F) { if ((f.k & 5 && !(pk & 5)) || (f.k & 10 && !(pk & 10))) pr.push({ t: f.t, x: f.x, y: f.y, u: 0 }); pk = f.k; }
+  for (const o of m.ho) {
+    if (o.type & 8) { o.res = 3; o.hitT = o.end; continue; }
+    while (pi < pr.length && pr[pi].t < o.t - w5) pi++;
+    o.res = 0; o.hitT = o.t + w5;
+    for (let j = pi; j < pr.length && pr[j].t <= o.t + w5; j++) {
+      const p = pr[j]; if (p.u || Math.hypot(p.x - o.x, p.y - o.y) > R) continue;
+      const e = Math.abs(p.t - o.t); p.u = 1; o.res = e <= w3 ? 3 : e <= w1 ? 2 : 1; o.hitT = p.t; break;
+    }
+  }
+  /* Cursor + Slider-Tracking */
+  const cur = tt => {
+    let lo = 0, hi = F.length - 1; while (lo < hi) { const q = (lo + hi + 1) >> 1; F[q].t <= tt ? lo = q : hi = q - 1; }
+    const a = F[lo], b = F[lo + 1]; if (!b || tt <= a.t) return a;
+    const u = (tt - a.t) / ((b.t - a.t) || 1); return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, k: a.k };
+  };
+  const tracked = (o, tt) => { const c = cur(tt); if (!(c.k & 15)) return false; const [bx, by] = posAt(o, slideFrac(o, tt)); return Math.hypot(c.x - bx, c.y - by) <= 2.4 * R; };
+  /* Einzelne Wertungs-Elemente (Atome) */
+  const atoms = [], snd = [];
+  for (const o of m.ho) {
+    if (o.type & 8) { atoms.push({ t: o.end, k: 'sp' }); continue; }
+    if (!o.path) { atoms.push({ t: o.hitT, k: 'c', r: o.res }); if (o.res) snd.push({ t: o.hitT, hs: o.hs }); continue; }
+    const span = (o.end - o.t) / o.slides, ti = o.bl / (m.d.SliderTickRate || 1); o.ticks = [];
+    let hits = +(o.res > 0), tot = 1;
+    atoms.push({ t: o.hitT, k: 'sh', r: o.res > 0 }); if (o.res) snd.push({ t: o.hitT, hs: o.hs });
+    const el = (tt, k, tick) => { const r = tracked(o, tt); atoms.push({ t: tt, k, r }); tot++; hits += r; if (r) snd.push({ t: tt, hs: o.hs, tick }); return r; };
+    for (let sl = 0; sl < o.slides; sl++) {
+      for (let q = 1; q * ti < span - 10; q++) {
+        const tt = o.t + sl * span + q * ti, fr = q * ti / span, [x, y] = posAt(o, sl % 2 ? 1 - fr : fr);
+        o.ticks.push({ t: tt, x, y, hit: el(tt, 'st', 1) });
+      }
+      if (sl < o.slides - 1) el(o.t + (sl + 1) * span, 'sr', 0);
+    }
+    el(Math.max(o.end - 36, o.t + (o.end - o.t) / 2), 'se', 0);
+    const ratio = hits / tot; atoms.push({ t: o.end, k: 'sj', r: ratio >= 1 ? 3 : ratio >= .5 ? 2 : ratio > 0 ? 1 : 0 });
+  }
+  atoms.sort((a, b) => a.t - b.t); snd.sort((a, b) => a.t - b.t); m.snd = snd;
+  /* Health: Drain so kalibriert, dass perfektes Spielen nie unter das Ziel faellt */
+  const HP = m.d.HPDrainRate ?? 5, md = .03 + .0045 * HP, target = HP < 5 ? .95 - .05 * HP : .7 - .08 * (HP - 5);
+  const dh = (a, perf) => {
+    const r = perf ? (a.k === 'c' ? 3 : true) : a.r;
+    if (a.k === 'c') return [-md, .002, .011, .03][r];
+    if (a.k === 'sh') return r ? .015 : -md * .5;
+    if (a.k === 'st') return r ? .01 : -md * .3;
+    if (a.k === 'sr' || a.k === 'se') return r ? .02 : -md * .3;
+    return a.k === 'sp' ? .04 : 0;
+  };
+  const sim = dr => { let h = 1, pt = m.ds, mn = 1; for (const a of atoms) { h -= dr * drainMs(pt, a.t); pt = a.t; mn = Math.min(mn, h); h = Math.min(1, h + dh(a, 1)); } return mn; };
+  let lo = 0, hi = 1e-3; for (let i = 0; i < 20; i++) { const mid = (lo + hi) / 2; sim(mid) < target ? hi = mid : lo = mid; } m.dr = lo;
+  /* Score (ScoreV1), Combo, Accuracy, Health */
+  const drainLen = Math.max(1, (m.de - m.ds - m.br.reduce((x, [a, b]) => x + b - a, 0)) / 1000);
+  const dm = Math.round(((m.d.HPDrainRate || 0) + (m.d.CircleSize || 0) + (m.d.OverallDifficulty || 0) + Math.min(16, Math.max(0, n / drainLen * 8))) / 38 * 5);
+  const mm2 = mods & 512 ? mods & ~64 : mods;
+  const mm = [[1, .5], [2, .5], [8, 1.06], [16, 1.06], [64, 1.12], [256, .3], [512, 1.12], [1024, 1.12], [4096, .9]].reduce((x, [b, v]) => mm2 & b ? x * v : x, 1);
+  const val = [0, 50, 100, 300];
+  let h = 1, pt = m.ds, c = 0, sc = 0, n3 = 0, n1 = 0, n5 = 0, cnt = 0; m.ev = [];
+  const add = v => v + v * (Math.max(c - 1, 0) * dm * mm / 25), tally = r => { cnt++; if (r === 3) n3++; else if (r === 2) n1++; else if (r === 1) n5++; };
+  for (const a of atoms) {
+    h = Math.max(0, h - m.dr * drainMs(pt, a.t)); pt = a.t; h = Math.min(1, h + dh(a));
+    if (a.k === 'c') { if (a.r) { sc += add(val[a.r]); c++; } else c = 0; tally(a.r); }
+    else if (a.k === 'sh') { if (a.r) { sc += 30; c++; } else c = 0; }
+    else if (a.k === 'st') { if (a.r) { sc += 10; c++; } else c = 0; }
+    else if (a.k === 'sr') { if (a.r) { sc += 30; c++; } else c = 0; }
+    else if (a.k === 'se') { if (a.r) { sc += 30; c++; } }
+    else if (a.k === 'sj') { if (a.r) sc += add(val[a.r]); tally(a.r); }
+    else { sc += add(300); c++; tally(3); }
+    m.ev.push({ t: a.t, c, a: cnt ? (300 * n3 + 100 * n1 + 50 * n5) / (300 * cnt) : 1, s: sc, h });
+  }
+  const fin = m.ev.length ? m.ev[m.ev.length - 1].s : 0; m.k = real > 0 && fin > 0 ? real / fin : 1;
+}
+
 function draw(t) {
-  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720); g.globalAlpha = 1;
+  if (bgImg && bgImg.naturalWidth) {
+    const k = Math.max(960 / bgImg.naturalWidth, 720 / bgImg.naturalHeight), w = bgImg.naturalWidth * k, hh = bgImg.naturalHeight * k;
+    g.globalAlpha = .22; g.drawImage(bgImg, (960 - w) / 2, (720 - hh) / 2, w, hh); g.globalAlpha = 1;
+  }
   g.setTransform(1.5, 0, 0, 1.5, 96, 72);
   g.lineWidth = 1; g.strokeStyle = '#2f2850'; g.strokeRect(0, 0, 512, 384);
   const R = M.r, P = M.pre;
-  g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `bold ${R}px Sora,sans-serif`;
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineCap = g.lineJoin = 'round';
   for (let i = M.ho.length - 1; i >= 0; i--) {
-    const o = M.ho[i], dt = o.t - t;
-    if (dt > P || t > o.end + 150) continue;
-    g.globalAlpha = Math.min(1, (P - dt) / (P * .4)) * (t > o.end ? Math.max(0, 1 - (t - o.end) / 150) : 1);
-    if (o.type & 8) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(256, 192, 150 * Math.max(0, (o.end - t) / (o.end - o.t)), 0, 7); g.stroke(); continue; }
-    if (o.pts) {
-      g.lineWidth = R * 2; g.lineCap = g.lineJoin = 'round'; g.strokeStyle = 'rgba(255,255,255,.28)'; g.beginPath();
-      o.pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    const o = M.ho[i], dt = o.t - t, fin = Math.max(o.end, o.hitT);
+    if (dt > P || t > fin + 600) continue;
+    const a = Math.min(1, (P - dt) / (P * .4));
+    if (o.type & 8) {
+      if (t > o.end) continue;
+      g.globalAlpha = a; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath();
+      g.arc(256, 192, 150 * Math.max(0, (o.end - t) / (o.end - o.t)), 0, 7); g.stroke(); continue;
     }
-    g.lineWidth = 3; g.fillStyle = o.col; g.strokeStyle = '#fff';
-    g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
-    g.fillStyle = '#12091a'; g.fillText(o.n, o.x, o.y);
-    if (dt > 0) { g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(o.x, o.y, R * (1 + 3 * dt / P), 0, 7); g.stroke(); }
+    if (o.path && t <= o.end + 200) {
+      g.globalAlpha = a * (t > o.end ? 1 - (t - o.end) / 200 : 1);
+      g.beginPath(); o.path.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y));
+      g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke();
+      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke();
+      for (const q of o.ticks) {
+        if (t < q.t) { g.globalAlpha = a * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
+        else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
+      }
+      if (t >= o.t && t <= o.end) {
+        const [bx, by] = posAt(o, slideFrac(o, t));
+        g.globalAlpha = .7; g.lineWidth = 3; g.strokeStyle = '#fff'; g.beginPath(); g.arc(bx, by, R * 2.2, 0, 7); g.stroke();
+        g.globalAlpha = 1; g.fillStyle = o.col; g.beginPath(); g.arc(bx, by, R * .9, 0, 7); g.fill();
+      }
+    }
+    const k = (t - o.hitT) / 200;
+    g.lineWidth = 3; g.strokeStyle = '#fff';
+    if (t < o.hitT) {
+      g.globalAlpha = a; g.fillStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = '#12091a'; g.font = `bold ${R}px Sora,sans-serif`; g.fillText(o.n, o.x, o.y);
+      if (dt > 0) { g.lineWidth = 2; g.beginPath(); g.arc(o.x, o.y, R * (1 + 3 * dt / P), 0, 7); g.stroke(); }
+    } else if (k < 1) {
+      g.globalAlpha = 1 - k; g.fillStyle = o.res ? o.col : '#555';
+      g.beginPath(); g.arc(o.x, o.y, R * (o.res ? 1 + .4 * k : 1), 0, 7); g.fill(); g.stroke();
+    }
+    if (t >= o.hitT && t < o.hitT + 600 && o.res < 3) {
+      g.globalAlpha = 1 - (t - o.hitT) / 600; g.font = 'bold 22px Sora,sans-serif';
+      g.fillStyle = ['#ff4d6d', '#7de3d0', '#ffd166'][o.res]; g.fillText(['✕', '50', '100'][o.res], o.x, o.y + R + 14);
+    }
   }
   g.globalAlpha = 1;
   let lo = 0, hi = F.length - 1;
@@ -245,9 +443,39 @@ function draw(t) {
   }
   g.globalAlpha = 1; const c = F[lo];
   g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, c.k ? 9 : 7, 0, 7); g.fill();
+  let x0 = 0, x1 = M.ev.length; while (x0 < x1) { const m = (x0 + x1) >> 1; M.ev[m].t <= t ? x0 = m + 1 : x1 = m; }
+  const e = x0 ? M.ev[x0 - 1] : { t: M.ds, c: 0, a: 1, s: 0, h: 1 }, hp = Math.max(0, e.h - M.dr * M.drain(e.t, t));
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#2f2850'; g.fillRect(24, 18, 380, 14);
+  g.fillStyle = hp > .5 ? '#7de3d0' : hp > .25 ? '#ffd166' : '#ff4d6d'; g.fillRect(24, 18, 380 * hp, 14);
+  g.fillStyle = '#f1ecff';
+  g.textAlign = 'left'; g.font = '800 48px Sora,sans-serif'; g.fillText(e.c + 'x', 24, 686);
+  g.textAlign = 'right'; g.font = '800 32px Sora,sans-serif'; g.fillText(String(Math.round(e.s * M.k)).padStart(8, '0'), 936, 30);
+  g.font = '600 22px Sora,sans-serif'; g.fillText((e.a * 100).toFixed(2) + '%', 936, 60);
 }
 
-$('#pp').onclick = cv.onclick = () => { if (!M) return; $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing; };
+function hsound(at, hs, tick) {
+  const c = actx, mk = (type, f, dur, vol) => {
+    const o = c.createOscillator(), gn = c.createGain(); o.type = type;
+    o.frequency.setValueAtTime(f, at); o.frequency.exponentialRampToValueAtTime(f / 2, at + dur);
+    gn.gain.setValueAtTime(vol, at); gn.gain.exponentialRampToValueAtTime(.001, at + dur);
+    o.connect(gn); gn.connect(c.destination); o.start(at); o.stop(at + dur);
+  };
+  if (tick) return mk('sine', 1400, .05, .12);
+  mk('triangle', 600, .09, .35);
+  if (hs & 2) mk('sine', 2400, .18, .15);
+  if (hs & 4) mk('sawtooth', 300, .3, .12);
+  if (hs & 8) mk('square', 900, .1, .1);
+}
+function schedSnd() {
+  if (!actx || !playing || !M.snd) return;
+  const sp = rate * +$('#spd').value, hz = t + 100 * sp, S = M.snd;
+  if (t > sT + 50 || t < sT - 100 * sp - 100) { let a = 0, b = S.length; while (a < b) { const q = (a + b) >> 1; S[q].t <= t ? a = q + 1 : b = q; } sI = a; }
+  while (sI < S.length && S[sI].t <= hz) { const e = S[sI++]; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
+  sT = hz;
+}
+
+$('#pp').onclick = cv.onclick = () => { if (!M) return; if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing; };
 $('#seek').oninput = e => { t = +e.target.value; };
 $('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); };
 init();
