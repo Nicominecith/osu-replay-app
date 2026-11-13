@@ -44,14 +44,14 @@ input[type=search]{flex:1;min-width:160px;background:var(--panel);border:1px sol
 .end small{color:var(--dim);font-size:.75rem;white-space:nowrap}
 .play{flex:none;width:48px;height:48px;border-radius:50%;border:0;background:var(--pink);color:#1a0b14;display:grid;place-items:center}
 .more{display:block;margin:16px auto}
-#viewer{position:fixed;inset:0;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
+#viewer{position:fixed;inset:0;height:100dvh;width:100%;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
 #title{font-weight:600;padding:10px 0 4px;overflow-wrap:anywhere}
 #vbar{display:flex;gap:8px;padding:4px 0 8px;flex-wrap:wrap}
 .vb{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 14px;height:44px;font-size:.9rem}
 .vb:disabled{opacity:.5}
 #stage{flex:1;display:grid;place-items:center;min-height:0}
-canvas{width:100%;max-width:min(100%,calc((100vh - 230px)*4/3));aspect-ratio:4/3;background:#0b0914;border-radius:12px;touch-action:manipulation}
-video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));border-radius:12px;background:#000}
+canvas{width:100%;max-width:min(100%,calc((100vh - 230px)*4/3));max-width:min(100%,calc((100dvh - 230px)*4/3));aspect-ratio:4/3;background:#0b0914;border-radius:12px;touch-action:manipulation}
+video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(100%,calc((100dvh - 230px)*16/9));border-radius:12px;background:#000}
 #ctl{display:flex;align-items:center;gap:10px;padding:12px 0}
 #ctl input[type=range]{flex:1;accent-color:var(--pink);height:32px}
 #ctl button,#ctl select{background:var(--panel);border:1px solid var(--line);border-radius:10px;height:44px;min-width:44px;padding:0 10px;color:var(--tx)}
@@ -109,6 +109,14 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));border-radius:12
 #vvol{width:80px!important}
 #vc select{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;height:34px;padding:0 6px}
 @media(max-width:520px){#vvol{display:none}}
+#ctl{max-width:1100px;width:100%;margin:0 auto}
+#ctl button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+#pp{width:56px;font-size:1.1rem}
+#vbar{justify-content:flex-start;max-width:1100px;width:100%;margin:0 auto}
+#title{max-width:1100px;width:100%;margin:0 auto}
+#msg{min-height:1.4em}
+@media(max-height:560px) and (orientation:landscape){#vbar{flex-wrap:nowrap;overflow-x:auto}#title{font-size:.9rem;padding:4px 0}canvas{max-width:min(100%,calc((100dvh - 150px)*4/3))}#ctl{padding:6px 0}}
+@media(min-width:900px){#title{font-size:1.25rem}}
 </style>
 </style>
 </head>
@@ -525,7 +533,8 @@ function syncAudio() {
 function tick(n) {
   if (!$('#viewer').hidden && M) {
     if (playing) { t += (n - last) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
-    draw(t); syncAudio(); schedSnd(); $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
+    try { draw(t); syncAudio(); schedSnd(); } catch (e) { console.error(e); }
+    $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
     const sec = Math.max(0, t / 1000 / rate) | 0; $('#time').textContent = `${sec / 60 | 0}:${String(sec % 60).padStart(2, '0')}`;
   }
   last = n; requestAnimationFrame(tick);
@@ -754,9 +763,9 @@ function hsound(at, hs, tick) {
 }
 function schedSnd() {
   if (!actx || !playing || !M.snd || !S.hitsounds) return;
-  const sp = rate * +$('#spd').value, hz = t + 100 * sp, S = M.snd;
-  if (t > sT + 50 || t < sT - 100 * sp - 100) { let a = 0, b = S.length; while (a < b) { const q = (a + b) >> 1; S[q].t <= t ? a = q + 1 : b = q; } sI = a; }
-  while (sI < S.length && S[sI].t <= hz) { const e = S[sI++]; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
+  const sp = rate * +$('#spd').value, hz = t + 100 * sp, SN = M.snd;
+  if (t > sT + 50 || t < sT - 100 * sp - 100) { let a = 0, b = SN.length; while (a < b) { const q = (a + b) >> 1; SN[q].t <= t ? a = q + 1 : b = q; } sI = a; }
+  while (sI < SN.length && SN[sI].t <= hz) { const e = SN[sI++]; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
   sT = hz;
 }
 
