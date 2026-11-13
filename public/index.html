@@ -70,6 +70,7 @@ canvas{width:100%;max-width:min(100%,calc((100vh - 190px)*4/3));aspect-ratio:4/3
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma-d-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const api = (p, q = {}) => fetch('/.netlify/functions/api?' + new URLSearchParams({ path: p, ...q }));
@@ -122,7 +123,8 @@ function parseMap(txt, mods) {
   for (let l of txt.split('\n')) {
     l = l.trim(); if (!l || l.startsWith('//')) continue;
     if (l[0] === '[') { sec = l; continue; }
-    if (sec === '[Difficulty]') { const [k, v] = l.split(':'); m.d[k] = +v; }
+    if (sec === '[General]' && l.startsWith('AudioFilename:')) m.audio = l.slice(14).trim();
+    else if (sec === '[Difficulty]') { const [k, v] = l.split(':'); m.d[k] = +v; }
     else if (sec === '[TimingPoints]') { const a = l.split(','); m.tp.push({ t: +a[0], bl: +a[1], un: a[6] !== '0' }); }
     else if (sec === '[HitObjects]') {
       const a = l.split(','), o = { x: +a[0], y: +a[1], t: +a[2], type: +a[3] };
@@ -152,11 +154,12 @@ function parseMap(txt, mods) {
 }
 
 /* ---------- Player ---------- */
-let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false;
+let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false, audio = null;
 const cv = $('#cv'), g = cv.getContext('2d');
 
 async function openReplay(s) {
   $('#viewer').hidden = false; playing = false; M = null;
+  if (audio) { audio.pause(); audio = null; }
   $('#title').textContent = `${s.beatmapset.title} [${s.beatmap.version}]`;
   const msg = x => ($('#msg').textContent = x);
   try {
@@ -170,18 +173,43 @@ async function openReplay(s) {
     const b = await fetch('/.netlify/functions/beatmap?id=' + s.beatmap.id);
     if (!b.ok) return msg('Beatmap konnte nicht geladen werden.');
     M = parseMap(await b.text(), osr.mods); F = osr.F;
+    msg('Lade Ton…');
+    audio = M.audio ? await loadAudio(s.beatmapset.id, M.audio) : null;
+    if (audio) audio.preservesPitch = !(osr.mods & 512);
     rate = osr.mods & (64 | 512) ? 1.5 : osr.mods & 256 ? 0.75 : 1;
     end = Math.max(F[F.length - 1].t, M.ho.at(-1).end) + 500;
-    t = Math.max(0, M.ho[0].t - 2000); playing = true;
-    $('#seek').max = end; msg('');
+    t = Math.max(0, M.ho[0].t - 2000); playing = false;
+    $('#seek').max = end; msg(audio ? 'Tippe ▶ zum Start' : 'Kein Ton: Beatmap-Audio nicht erreichbar. Tippe ▶ zum Start');
     if (!running) { running = true; requestAnimationFrame(tick); }
   } catch (err) { msg('Replay konnte nicht gelesen werden.'); }
+}
+
+async function loadAudio(setId, file) {
+  const mime = { mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' }[file.split('.').pop().toLowerCase()] || 'audio/mpeg';
+  for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&noBg=true&NoHitsound=true&NoStoryboard=true`, `https://catboy.best/d/${setId}`]) {
+    try {
+      const r = await fetch(u); if (!r.ok) continue;
+      const z = await JSZip.loadAsync(await r.arrayBuffer());
+      const f = z.file(file) || Object.values(z.files).find(x => x.name.toLowerCase() === file.toLowerCase());
+      if (f) return new Audio(URL.createObjectURL(new Blob([await f.async('arraybuffer')], { type: mime })));
+    } catch {}
+  }
+  return null;
+}
+
+function syncAudio() {
+  if (!audio) return;
+  const want = t / 1000; audio.playbackRate = rate * +$('#spd').value;
+  if (playing) {
+    if (audio.paused) { audio.currentTime = want; audio.play().catch(() => { playing = false; }); }
+    else if (Math.abs(audio.currentTime - want) > .2) audio.currentTime = want;
+  } else if (!audio.paused) audio.pause();
 }
 
 function tick(n) {
   if (!$('#viewer').hidden && M) {
     if (playing) { t += (n - last) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
-    draw(t); $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
+    draw(t); syncAudio(); $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
     const sec = Math.max(0, t / 1000 / rate) | 0; $('#time').textContent = `${sec / 60 | 0}:${String(sec % 60).padStart(2, '0')}`;
   }
   last = n; requestAnimationFrame(tick);
@@ -219,9 +247,9 @@ function draw(t) {
   g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, c.k ? 9 : 7, 0, 7); g.fill();
 }
 
-$('#pp').onclick = cv.onclick = () => { if (!M) return; if (t >= end) t = 0; playing = !playing; };
+$('#pp').onclick = cv.onclick = () => { if (!M) return; $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing; };
 $('#seek').oninput = e => { t = +e.target.value; };
-$('#close').onclick = () => { $('#viewer').hidden = true; playing = false; };
+$('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); };
 init();
 </script>
 </body>
