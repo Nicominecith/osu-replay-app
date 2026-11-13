@@ -15,6 +15,8 @@ exports.handler = async (e) => {
   f.append('replayFile', new Blob([buf]), 'replay.osr');
   f.append('username', (q.username || 'osu-replay-app').slice(0, 25));
   f.append('resolution', '1280x720');
+  f.append('skin', process.env.ORDR_SKIN || 'default');
+  f.append('customSkin', 'false');
   if (process.env.ORDR_KEY) f.append('verificationKey', process.env.ORDR_KEY);
   const r = await fetch(API, { method: 'POST', body: f });
   return { statusCode: r.status, headers: J, body: await r.text() };
