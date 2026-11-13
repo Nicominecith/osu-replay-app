@@ -118,6 +118,65 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(10
 @media(max-height:560px) and (orientation:landscape){#vbar{flex-wrap:nowrap;overflow-x:auto}#title{font-size:.9rem;padding:4px 0}canvas{max-width:min(100%,calc((100dvh - 150px)*4/3))}#ctl{padding:6px 0}}
 @media(min-width:900px){#title{font-size:1.25rem}}
 </style>
+
+/* ===== osu!lazer-Stil ===== */
+.skin{position:relative}.lsdel{position:absolute;top:4px;right:6px;color:var(--dim);padding:4px 8px}
+.lsup{display:block;text-align:center;cursor:pointer;margin-top:4px}
+#wosuBtn{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;border:0;font-weight:800}
+#wosuFrame{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 0}
+#wosuFrame iframe{flex:1;border:0;width:100%;min-height:0}
+#wosuFrame .wbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;background:#120f1d;color:var(--dim);font-size:.85rem}
+:root{--lz:#ff66ab;--lz2:#b266ff;--card:#2a2140}
+body{background:radial-gradient(1200px 600px at 80% -10%,#3a1f5c55,transparent),var(--bg)}
+.wrap{max-width:1000px}
+header{background:linear-gradient(90deg,#2b1d4a,#1d1830);border:1px solid var(--line);border-radius:16px;padding:10px 14px}
+#who img{width:44px;height:44px;border-radius:12px;object-fit:cover}
+.tabs{background:#00000040;border-radius:14px;padding:4px;width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{border:0;border-radius:11px;padding:9px 18px;white-space:nowrap}
+.tabs button[aria-pressed=true]{background:var(--lz);color:#1a0b14}
+input[type=search]{border-radius:999px;padding:12px 18px}
+#list{display:grid;gap:8px;margin-top:6px}
+.row{position:relative;overflow:hidden;border:1px solid var(--line);border-left:5px solid var(--sc,var(--lz));border-radius:14px;padding:0;min-height:76px;background:var(--card);cursor:pointer;isolation:isolate;transition:transform .15s,border-color .15s;-webkit-tap-highlight-color:transparent}
+.row::before{content:"";position:absolute;inset:0;background:var(--bgi) center/cover;opacity:.38;z-index:-2}
+.row::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#150f26ee 30%,#150f2699);z-index:-1}
+.row:hover,.row:focus-visible{transform:translateX(6px);border-color:var(--lz)}
+.row .thumb{display:none}
+.row .mid{padding:10px 0 10px 14px}
+.row .mid b{font-size:1.02rem}
+.row .end{padding:10px 14px}
+.row .play{width:36px;height:36px;margin-right:12px;background:#ffffff1c;color:#fff}
+.row .play svg{width:18px;height:18px}
+.chip.star{background:var(--sc);color:#150f26;border-color:transparent;font-weight:800}
+@media(max-width:520px){.row .end small:last-child{display:none}.row .play{display:none}}
+/* Map-Ansicht */
+#mapview{position:fixed;inset:0;z-index:4;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#mvh{position:relative;min-height:260px;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;background:var(--bgi) center/cover;isolation:isolate}
+#mvh::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 20%,var(--bg));z-index:-1}
+#mvh .back{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;background:#0009;backdrop-filter:blur(6px);border-color:#ffffff30}
+#mvh h2{margin:0;font-size:clamp(1.3rem,5vw,2.2rem);line-height:1.15;text-shadow:0 2px 10px #000}
+#mvh p{margin:2px 0 0;color:#e8e2ff;text-shadow:0 1px 6px #000}
+#mvb{max-width:1000px;margin:0 auto;padding:4px 16px 110px;display:grid;gap:14px;grid-template-columns:1fr 1fr;align-items:start}
+@media(max-width:760px){#mvb{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card h3{margin:0 0 8px;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.diff{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem}
+.diff .st{border-radius:999px;padding:2px 12px;color:#150f26}
+.bar{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:10px;font-size:.85rem;color:var(--dim);margin:7px 0}
+.bar i{height:8px;border-radius:4px;background:#00000050;overflow:hidden;display:block}
+.bar i u{display:block;height:100%;background:linear-gradient(90deg,var(--lz2),var(--lz));border-radius:4px}
+.bar b{color:var(--tx);text-align:right}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;text-align:center}
+.mini div{background:#00000040;border-radius:10px;padding:8px 4px}.mini b{display:block;font-size:1.05rem}.mini small{color:var(--dim)}
+.sc{display:flex;align-items:center;gap:14px}
+.sc .rk{font-size:3rem;font-weight:800;line-height:1}
+.sc .tot{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
+.hits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;text-align:center}
+.hits div{background:#00000040;border-radius:10px;padding:8px 2px}.hits b{display:block}
+#mvgo{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 40%);display:flex;justify-content:center;gap:10px}
+#mvgo button{border:0;border-radius:999px;height:54px;padding:0 34px;font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:10px}
+#mvplay{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;box-shadow:0 6px 24px #ff66ab55;flex:1;max-width:420px;justify-content:center}
+#mvplay:disabled{opacity:.5;filter:grayscale(.6)}
+#mvinfo{background:var(--panel);color:var(--tx);border:1px solid var(--line)!important}
 </style>
 </head>
 <body>
@@ -132,6 +191,7 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(10
     <div id="who"></div>
     <div class="hbtns">
       <button class="icon" id="gear1" data-ic="gear" aria-label="Einstellungen"></button>
+      <button class="ghost" id="wosuBtn">▶ Spielen (wosu!)</button>
       <a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a>
     </div>
   </header>
@@ -146,6 +206,14 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(10
   <div id="list"></div>
   <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
+
+<section id="wosuFrame" hidden><div class="wbar"><span>wosu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="wosuClose">✕ Schließen</button></div><iframe id="wosuIf" title="wosu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
+
+<section id="mapview" hidden>
+  <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
+  <div id="mvb"></div>
+  <div id="mvgo"><button id="mvinfo">Details</button><button id="mvplay" data-ic="play"><span>Replay ansehen</span></button></div>
+</section>
 
 <section id="viewer" hidden>
   <div id="title"></div>
@@ -217,16 +285,16 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { b.clo
 /* ---------- Einstellungen ---------- */
 const DEF = {
   bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80,
-  skin: '', skinName: '', resolution: '1280x720', globalVolume: 60, musicVolume: 60, hitsoundVolume: 60, useSkinHitsounds: true,
+  skin: '', skinName: '', liveSkin: '', resolution: '1280x720', globalVolume: 60, musicVolume: 60, hitsoundVolume: 60, useSkinHitsounds: true,
   inGameBGDim: 80, introBGDim: 60, breakBGDim: 70, cursorSize: 1, cursorTrail: true, cursorRainbow: false, showBorders: true, loadStoryboard: false, loadVideo: false,
   showScore: true, showHPBar: true, showComboCounter: true, showPPCounter: true, showHitErrorMeter: true, showUnstableRate: true, showSliderBreaks: true, showMods: true, showScoreboard: false, showResultScreen: false
 };
 let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('osuSet') || '{}')); } catch {}
 const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); } catch {} };
-const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName'].includes(k));
+const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName', 'liveSkin'].includes(k));
 const pct = [0, 100, 5, '%'];
 const SCH = [
-  ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
+  ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
   ['Live-Ansicht · Ton', [['hitsounds', 'Hitsounds', 't'], ['hsVol', 'Hitsound-Lautstärke', 'r', ...pct], ['musicVol', 'Musik-Lautstärke', 'r', ...pct]]],
   ['mp4-Render · Allgemein', [['resolution', 'Auflösung', 's', [['960x540', '540p'], ['1280x720', '720p'], ['1920x1080', '1080p (braucht o!rdr-Freigabe)']]], ['skin', 'Skin', 'k'], ['globalVolume', 'Gesamtlautstärke', 'r', ...pct], ['musicVolume', 'Musiklautstärke', 'r', ...pct], ['hitsoundVolume', 'Hitsound-Lautstärke', 'r', ...pct], ['useSkinHitsounds', 'Hitsounds des Skins nutzen', 't']]],
   ['mp4-Render · Bild', [['inGameBGDim', 'Hintergrund im Spiel abdunkeln', 'r', ...pct], ['introBGDim', 'Hintergrund im Intro abdunkeln', 'r', ...pct], ['breakBGDim', 'Hintergrund in Pausen abdunkeln', 'r', ...pct], ['cursorSize', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['cursorTrail', 'Cursor-Trail', 't'], ['cursorRainbow', 'Regenbogen-Cursor', 't'], ['showBorders', 'Spielfeld-Rahmen', 't'], ['loadStoryboard', 'Storyboard laden', 't'], ['loadVideo', 'Hintergrundvideo laden', 't']]],
@@ -237,9 +305,10 @@ function openSettings() {
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label></div>`;
     return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
   }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert. Die mp4-Optionen gelten für den nächsten Render bei o!rdr.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
-  $('#settings').hidden = false; loadSkins('');
+  $('#settings').hidden = false; loadSkins(''); lsPaint();
 }
 async function loadSkins(q) {
   const box = $('#skinList'); if (!box) return;
@@ -258,13 +327,80 @@ setBody.addEventListener('input', e => {
   saveS();
 });
 setBody.addEventListener('click', e => {
+  const del = e.target.closest('[data-lsdel]'); if (del) { e.stopPropagation(); lsDel(del.dataset.lsdel); return; }
+  const lb = e.target.closest('[data-ls]'); if (lb) { lsUse(lb.dataset.ls); return; }
   if (e.target.id === 'reset') { S = { ...DEF }; saveS(); return openSettings(); }
   const b = e.target.closest('.skin'); if (!b) return;
   S.skin = b.dataset.s; S.skinName = b.dataset.n; saveS();
   $('#skinName').textContent = S.skinName || 'Automatisch (beliebtester Skin)';
   document.querySelectorAll('.skin').forEach(x => x.classList.toggle('on', x === b));
 });
+setBody.addEventListener('change', async e => {
+  if (e.target.id !== 'lsFile') return;
+  for (const f of e.target.files) { try { await lsAdd(f); } catch (x) { alert('Skin konnte nicht gelesen werden: ' + f.name); } }
+  e.target.value = ''; lsPaint();
+});
 $('#gear1').onclick = $('#gear2').onclick = openSettings;
+
+/* ---------- Eigener Live-Skin (.osk) ---------- */
+const IDB = () => new Promise((ok, no) => { const r = indexedDB.open('osuLiveSkins', 1); r.onupgradeneeded = () => r.result.createObjectStore('skins', { keyPath: 'name' }); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+const idb = async (m, fn) => { const d = await IDB(); return new Promise((ok, no) => { const q = fn(d.transaction('skins', m).objectStore('skins')); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); };
+let SK = null, lsNames = [];
+async function lsPaint() {
+  const box = $('#lsList'); if (!box) return;
+  try { lsNames = (await idb('readonly', st => st.getAllKeys())).sort(); } catch { lsNames = []; }
+  box.innerHTML = `<button class="skin ${S.liveSkin ? '' : 'on'}" data-ls=""><b>Standard</b><small>ohne Skin</small></button>` + lsNames.map(n => `<button class="skin ${S.liveSkin === n ? 'on' : ''}" data-ls="${esc(n)}"><b>${esc(n)}</b><small>Tippen zum Aktivieren</small><span class="lsdel" data-lsdel="${esc(n)}" role="button" aria-label="Löschen">✕</span></button>`).join('');
+}
+async function lsAdd(f) {
+  const z = await JSZip.loadAsync(await f.arrayBuffer());
+  if (!Object.values(z.files).some(x => /skin\.ini$|\.png$/i.test(x.name))) throw 0;
+  const ini = Object.values(z.files).find(x => /(^|\/)skin\.ini$/i.test(x.name));
+  let nm = f.name.replace(/\.(osk|zip)$/i, ''); const m = ini && /^\s*Name\s*:\s*(.+)$/im.exec(await ini.async('string')); if (m) nm = m[1].trim() || nm;
+  await idb('readwrite', st => st.put({ name: nm, blob: f })); S.liveSkin = nm; saveS(); await lsLoad(nm);
+}
+async function lsDel(n) { await idb('readwrite', st => st.delete(n)); if (S.liveSkin === n) { S.liveSkin = ''; saveS(); SK = null; } lsPaint(); $('#lsName') && ($('#lsName').textContent = S.liveSkin || 'Standard'); }
+async function lsUse(n) { S.liveSkin = n; saveS(); await lsLoad(n); $('#lsName').textContent = n || 'Standard'; lsPaint(); }
+async function lsLoad(n) {
+  SK = null; if (!n) return;
+  try {
+    const rec = await idb('readonly', st => st.get(n)); if (!rec) return;
+    const z = await JSZip.loadAsync(rec.blob), files = {};
+    for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split('/').pop().toLowerCase()] = f;
+    const sk = { img: {}, snd: {}, col: [], pre: 'default', ov: -2 };
+    const ini = files['skin.ini'] ? await files['skin.ini'].async('string') : '';
+    for (const ln of ini.split(/\r?\n/)) {
+      const m = /^\s*([A-Za-z0-9]+)\s*:\s*(.*?)\s*$/.exec(ln); if (!m) continue;
+      if (/^Combo\d$/i.test(m[1])) { const c = m[2].split(',').map(Number); if (c.length >= 3) sk.col[+m[1].slice(5) - 1] = `rgb(${c[0]},${c[1]},${c[2]})`; }
+      else if (/^HitCirclePrefix$/i.test(m[1])) sk.pre = m[2].replace(/\\/g, '/').split('/').pop();
+      else if (/^HitCircleOverlap$/i.test(m[1])) sk.ov = +m[2];
+    }
+    sk.col = sk.col.filter(Boolean);
+    const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1]]) if (files[fn]) { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } return null; };
+    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle'];
+    for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
+    for (const w of want) sk.img[w] = await img(w);
+    if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
+    const dc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
+    for (const b of ['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick']) for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } }
+    SK = sk; tintC.clear();
+  } catch (e) { console.error(e); SK = null; }
+}
+const tintC = new Map();
+function tinted(im, col) {
+  const k = im.src + col; let c = tintC.get(k); if (c) return c;
+  c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext('2d');
+  x.drawImage(im, 0, 0); x.globalCompositeOperation = 'multiply'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'destination-in'; x.drawImage(im, 0, 0); tintC.set(k, c); return c;
+}
+const colOf = o => SK && SK.col.length ? SK.col[(o.ci || 0) % SK.col.length] : o.col;
+function dImg(im, x, y, d, al) { if (!im) return; g.globalAlpha = al; g.drawImage(im, x - d / 2, y - d / 2, d, d * im.naturalHeight / im.naturalWidth); }
+function skinCircle(o, d, al, num) {
+  const c = colOf(o); dImg(tinted(SK.img.hitcircle, c), o.x, o.y, d, al); dImg(SK.img.hitcircleoverlay, o.x, o.y, d, al);
+  if (!num) return;
+  const ds = String(o.n).split('').map(ch => SK.img[SK.pre + '-' + ch]); if (ds.some(x => !x)) return;
+  const sc = d / 128 * .8 / (ds[0].hd || 1), ov = (SK.ov === -2 ? 0 : SK.ov) * d / 128 / 1; let tw = ds.reduce((a, im) => a + im.naturalWidth * sc - ov, ov);
+  let x = o.x - tw / 2; g.globalAlpha = al; for (const im of ds) { const w = im.naturalWidth * sc, h = im.naturalHeight * sc; g.drawImage(im, x, o.y - h / 2, w, h); x += w - ov; }
+}
 
 /* ---------- Score-Liste ---------- */
 let me, tab = 'recent', scores = [], more = true, curScore = null;
@@ -275,6 +411,7 @@ const starCol = r => r < 2 ? '#7de3d0' : r < 4 ? '#ffd166' : r < 6 ? '#ff7aa8' :
 const rel = d => { if (!d) return ''; const m = (Date.now() - new Date(d)) / 6e4; return m < 60 ? `vor ${m | 0} Min.` : m < 1440 ? `vor ${m / 60 | 0} Std.` : m < 43200 ? `vor ${m / 1440 | 0} Tg.` : new Date(d).toLocaleDateString('de-DE'); };
 
 async function init() {
+  lsLoad(S.liveSkin);
   const r = await api('/me/osu');
   if (!r.ok) return ($('#login').hidden = false);
   me = await r.json();
@@ -290,7 +427,8 @@ async function load(reset) {
 }
 function rowHtml(s, i) {
   const bs = s.beatmapset, b = s.beatmap, cov = bs.covers || {}, rp = s.has_replay || s.replay, mods = (s.mods || []).map(m => m.acronym || m);
-  return `<div class="row"><img class="thumb" loading="lazy" alt="" src="${esc(cov['list@2x'] || cov.list || cov.card || '')}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip" style="color:${starCol(b.difficulty_rating)}">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div>${rp ? `<button class="play" data-i="${i}" aria-label="Replay ansehen">${ICON.play}</button>` : ''}</div>`;
+  const img = cov['card@2x'] || cov.card || cov['list@2x'] || cov.list || '', sc = starCol(b.difficulty_rating);
+  return `<div class="row" tabindex="0" role="button" data-i="${i}" style="--bgi:url('${esc(img)}');--sc:${sc}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip star">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}${rp ? '' : '<span class="chip">kein Replay</span>'}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div><span class="play" aria-hidden="true">${ICON.play}</span></div>`;
 }
 function paint() {
   const q = $('#q').value.trim().toLowerCase(), only = $('#onlyRp').checked;
@@ -305,7 +443,35 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 });
 $('#q').oninput = $('#onlyRp').onchange = paint;
 $('#more').onclick = () => load(false);
-$('#list').onclick = e => { const b = e.target.closest('button[data-i]'); if (b) openReplay(scores[b.dataset.i]); };
+$('#list').onclick = e => { const b = e.target.closest('[data-i]'); if (b) openMap(scores[b.dataset.i]); };
+$('#list').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); openMap(scores[b.dataset.i]); } } };
+
+/* ---------- Map-Ansicht (erst Infos, dann Replay) ---------- */
+function openMap(s) {
+  curScore = s; const bs = s.beatmapset, b = s.beatmap, cov = bs.covers || {}, rp = s.has_replay || s.replay, st = s.statistics || {};
+  const mods = (s.mods || []).map(m => m.acronym || m), sc = starCol(b.difficulty_rating);
+  const n = (...k) => { for (const x of k) if (st[x] != null) return st[x]; return 0; };
+  const bar = (l, v, mx = 10) => `<div class="bar"><span>${l}</span><i><u style="width:${Math.min(100, (+v || 0) / mx * 100)}%"></u></i><b>${(+v || 0).toFixed(1)}</b></div>`;
+  const len = x => `${x / 60 | 0}:${String(Math.round(x) % 60).padStart(2, '0')}`;
+  const total = s.total_score ?? s.score ?? 0;
+  $('#mvh').style.setProperty('--bgi', `url('${cov['cover@2x'] || cov.cover || cov.card || ''}')`);
+  $('#mvt').textContent = bs.title; $('#mva').textContent = `${bs.artist} · Mapper: ${bs.creator}`;
+  $('#mvb').innerHTML = `
+  <div class="card"><h3>Beatmap</h3><div class="diff"><span class="st" style="background:${sc}">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span>${esc(b.version)}</div>
+    ${bar('CS', b.cs)}${bar('AR', b.ar)}${bar('OD', b.accuracy)}${bar('HP', b.drain)}
+    <div class="mini"><div><b>${Math.round(b.bpm || 0)}</b><small>BPM</small></div><div><b>${len(b.total_length || 0)}</b><small>Länge</small></div><div><b>${b.count_circles + b.count_sliders + b.count_spinners || '–'}</b><small>Objekte</small></div></div></div>
+  <div class="card"><h3>Dein Score</h3>
+    <div class="sc"><span class="rk" style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</span><div><div class="tot">${Number(total).toLocaleString('de-DE')}</div><small style="color:var(--dim)">${(s.accuracy * 100).toFixed(2)}% · ${s.max_combo || 0}x${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small></div></div>
+    <div class="chips" style="margin-top:10px">${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('') || '<span class="chip">Keine Mods</span>'}<span class="chip">${rel(s.ended_at || s.created_at)}</span></div>
+    <div class="hits"><div><b style="color:#6ea8ff">${n('great', 'count_300')}</b><small>300</small></div><div><b style="color:#7de3d0">${n('ok', 'count_100')}</b><small>100</small></div><div><b style="color:#ffd166">${n('meh', 'count_50')}</b><small>50</small></div><div><b style="color:#ff4d6d">${n('miss', 'count_miss')}</b><small>Miss</small></div></div></div>`;
+  const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? 'Replay ansehen' : 'Kein Replay verfügbar';
+  $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
+}
+$('#wosuBtn').onclick = () => { const f = $('#wosuIf'); if (!f.src) f.src = '/wosu/index.html'; $('#wosuFrame').hidden = false; };
+$('#wosuClose').onclick = () => { $('#wosuFrame').hidden = true; $('#wosuIf').removeAttribute('src'); };
+$('#mvback').onclick = () => { $('#mapview').hidden = true; };
+$('#mvplay').onclick = () => { if (curScore) openReplay(curScore); };
+$('#mvinfo').onclick = () => showInfo();
 
 /* ---------- Map- & Score-Details ---------- */
 function showInfo() {
@@ -364,7 +530,7 @@ function parseMap(txt, mods) {
   for (const o of m.ho) {
     if (HR) { o.y = 384 - o.y; if (o.pts) o.pts = o.pts.map(([x, y]) => [x, 384 - y]); }
     if (o.type & 4 || o.type & 8) { n = 0; col++; }
-    o.n = ++n; o.col = pal[col % 4];
+    o.n = ++n; o.col = pal[col % 4]; o.ci = col;
     if (o.pts) {
       let bl = 500, sv = 1;
       for (const tp of m.tp) { if (tp.t > o.t) break; if (tp.un) { bl = tp.bl; sv = 1; } else sv = -100 / tp.bl; }
@@ -707,13 +873,18 @@ function draw(t) {
       }
       if (t >= o.t && t <= o.end) {
         const [bx, by] = posAt(o, slideFrac(o, t));
+        if (SK && SK.img.sliderb0) { dImg(SK.img.sliderfollowcircle, bx, by, R * 4.2, .8); dImg(SK.img.sliderb0, bx, by, R * 2, 1); }
+        else {
         g.globalAlpha = .7; g.lineWidth = 3; g.strokeStyle = '#fff'; g.beginPath(); g.arc(bx, by, R * 2.2, 0, 7); g.stroke();
-        g.globalAlpha = 1; g.fillStyle = o.col; g.beginPath(); g.arc(bx, by, R * .9, 0, 7); g.fill();
+        g.globalAlpha = 1; g.fillStyle = o.col; g.beginPath(); g.arc(bx, by, R * .9, 0, 7); g.fill(); }
       }
     }
     const k = (t - o.hitT) / 200;
     g.lineWidth = 3; g.strokeStyle = '#fff';
-    if (t < o.hitT) {
+    if (SK && SK.img.hitcircle) {
+      if (t < o.hitT) { skinCircle(o, R * 2, a, true); if (dt > 0) dImg(tinted(SK.img.approachcircle || SK.img.hitcircle, colOf(o)), o.x, o.y, R * 2 * (1 + 3 * dt / P), a); }
+      else if (k < 1) { if (o.res) skinCircle(o, R * 2 * (1 + .4 * k), 1 - k, false); else { g.filter = 'grayscale(1)'; skinCircle(o, R * 2, 1 - k, false); g.filter = 'none'; } }
+    } else if (t < o.hitT) {
       g.globalAlpha = a; g.fillStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
       g.fillStyle = '#12091a'; g.font = `bold ${R}px Sora,sans-serif`; g.fillText(o.n, o.x, o.y);
       if (dt > 0) { g.lineWidth = 2; g.beginPath(); g.arc(o.x, o.y, R * (1 + 3 * dt / P), 0, 7); g.stroke(); }
@@ -735,7 +906,11 @@ function draw(t) {
     g.beginPath(); g.moveTo(F[j - 1].x, F[j - 1].y); g.lineTo(F[j].x, F[j].y); g.stroke();
   }
   g.globalAlpha = 1; const c = F[lo];
-  g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, (c.k ? 9 : 7) * S.cursor, 0, 7); g.fill();
+  if (SK && SK.img.cursor) {
+    if (S.trail && SK.img.cursortrail) for (let j = lo; j > 0 && F[j].t > t - 140; j -= 1) dImg(SK.img.cursortrail, F[j].x, F[j].y, 30 * S.cursor, Math.max(0, 1 - (t - F[j].t) / 140) * .5);
+    dImg(SK.img.cursor, c.x, c.y, 34 * S.cursor, 1);
+  } else {
+  g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, (c.k ? 9 : 7) * S.cursor, 0, 7); g.fill(); }
   let x0 = 0, x1 = M.ev.length; while (x0 < x1) { const m = (x0 + x1) >> 1; M.ev[m].t <= t ? x0 = m + 1 : x1 = m; }
   const e = x0 ? M.ev[x0 - 1] : { t: M.ds, c: 0, a: 1, s: 0, h: 1 }, hp = Math.max(0, e.h - M.dr * M.drain(e.t, t));
   if (!S.hud) return;
@@ -748,7 +923,9 @@ function draw(t) {
   g.font = '600 22px Sora,sans-serif'; g.fillText((e.a * 100).toFixed(2) + '%', 936, 60);
 }
 
+function skinSnd(b, at) { const bf = SK && SK.snd[b]; if (!bf) return false; const s = actx.createBufferSource(), gn = actx.createGain(); s.buffer = bf; gn.gain.value = S.hsVol / 100; s.connect(gn); gn.connect(actx.destination); s.start(at); return true; }
 function hsound(at, hs, tick) {
+  if (SK && SK.snd.hitnormal) { if (tick) { if (skinSnd('slidertick', at)) return; } else { skinSnd('hitnormal', at); if (hs & 2) skinSnd('hitwhistle', at); if (hs & 4) skinSnd('hitfinish', at); if (hs & 8) skinSnd('hitclap', at); return; } }
   const c = actx, mk = (type, f, dur, vol) => {
     const o = c.createOscillator(), gn = c.createGain(); o.type = type;
     o.frequency.setValueAtTime(f, at); o.frequency.exponentialRampToValueAtTime(f / 2, at + dur);
