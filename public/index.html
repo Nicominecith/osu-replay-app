@@ -19,27 +19,69 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 #login p{color:var(--dim);margin:0}
 .btn{background:var(--pink);color:#1a0b14;border:0;border-radius:999px;padding:14px 26px;font-weight:800;text-decoration:none;display:inline-block;width:max-content}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-#who{display:flex;align-items:center;gap:10px}
+.hbtns{display:flex;gap:8px;align-items:center}
+#who{display:flex;align-items:center;gap:10px;min-width:0}
 #who img{width:40px;height:40px;border-radius:50%}
 .ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:8px 16px;color:var(--dim);text-decoration:none;font-size:.9rem}
+.icon{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;color:var(--tx);padding:0}
 .tabs{display:flex;gap:8px;margin-bottom:12px}
 .tabs button{background:none;border:1px solid var(--line);border-radius:999px;padding:8px 18px;color:var(--dim)}
 .tabs button[aria-pressed=true]{background:var(--mint);color:#07241f;border-color:var(--mint);font-weight:600}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.row b{display:block;overflow-wrap:anywhere}
-.row small{color:var(--dim)}
-.row button{flex:none;width:48px;height:48px;border-radius:50%;border:0;background:var(--pink);color:#1a0b14;font-size:1.1rem}
+.tools{display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+input[type=search]{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:var(--tx);font:inherit}
+.chk{color:var(--dim);font-size:.9rem;display:flex;gap:6px;align-items:center}
+.row{display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid var(--line)}
+.thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--panel);flex:none}
+.mid{flex:1;min-width:0}
+.mid b,.mid small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mid small{color:var(--dim)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:.75rem}
+.chip.mod{color:var(--pink);border-color:#5b2a49}
+.end{text-align:right;flex:none;display:grid;gap:1px}
+.end b{font-size:1.2rem;line-height:1}
+.end small{color:var(--dim);font-size:.75rem;white-space:nowrap}
+.play{flex:none;width:48px;height:48px;border-radius:50%;border:0;background:var(--pink);color:#1a0b14;display:grid;place-items:center}
+.more{display:block;margin:16px auto}
 #viewer{position:fixed;inset:0;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
-#vbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0}
-#title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#title{font-weight:600;padding:10px 0 4px;overflow-wrap:anywhere}
+#vbar{display:flex;gap:8px;padding:4px 0 8px;flex-wrap:wrap}
+.vb{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 14px;height:44px;font-size:.9rem}
+.vb:disabled{opacity:.5}
 #stage{flex:1;display:grid;place-items:center;min-height:0}
-canvas{width:100%;max-width:min(100%,calc((100vh - 190px)*4/3));aspect-ratio:4/3;background:#0b0914;border-radius:12px;touch-action:manipulation}
+canvas{width:100%;max-width:min(100%,calc((100vh - 230px)*4/3));aspect-ratio:4/3;background:#0b0914;border-radius:12px;touch-action:manipulation}
+video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));border-radius:12px;background:#000}
 #ctl{display:flex;align-items:center;gap:10px;padding:12px 0}
 #ctl input[type=range]{flex:1;accent-color:var(--pink);height:32px}
 #ctl button,#ctl select{background:var(--panel);border:1px solid var(--line);border-radius:10px;height:44px;min-width:44px;padding:0 10px;color:var(--tx)}
 #time{color:var(--dim);font-variant-numeric:tabular-nums;font-size:.85rem}
-video{width:100%;max-width:min(100%,calc((100vh - 190px)*16/9));border-radius:12px;background:#000}
 .msg{color:var(--dim);text-align:center;padding:8px}
+.sheet{position:fixed;inset:0;z-index:9;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);font-weight:800;font-size:1.1rem}
+.sb{overflow-y:auto;padding:8px 16px 40px;max-width:720px;width:100%;margin:0 auto;flex:1}
+.sb h3{color:var(--mint);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin:24px 0 4px}
+.ir,.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ir span{color:var(--dim)}
+.ir b,.ir a{text-align:right;overflow-wrap:anywhere}
+.ir a{color:var(--mint)}
+.srow.col{flex-direction:column;align-items:stretch;gap:6px}
+.srow.col>span{display:flex;justify-content:space-between}
+.sb input[type=range]{width:100%;accent-color:var(--pink);height:32px}
+.sb select{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit;max-width:60%}
+.sw{appearance:none;-webkit-appearance:none;width:46px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:none;cursor:pointer;margin:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--tx);transition:transform .2s}
+.sw:checked{background:var(--pink)}
+.sw:checked::after{transform:translateX(18px)}
+.hero{height:170px;border-radius:16px;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;margin-top:8px}
+.hero b{font-size:1.3rem}
+.hero span{color:var(--dim)}
+.skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:340px;overflow-y:auto}
+.skin{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:6px;text-align:left;display:grid;gap:3px;align-content:start}
+.skin.on{border-color:var(--pink)}
+.skin img{width:100%;border-radius:8px;aspect-ratio:16/9;object-fit:cover;background:#000}
+.skin small{color:var(--dim)}
+.note{color:var(--dim);font-size:.85rem;padding:8px 0}
+</style>
 </style>
 </head>
 <body>
@@ -50,16 +92,33 @@ video{width:100%;max-width:min(100%,calc((100vh - 190px)*16/9));border-radius:12
 </section>
 
 <main id="app" class="wrap" hidden>
-  <header><div id="who"></div><a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a></header>
+  <header>
+    <div id="who"></div>
+    <div class="hbtns">
+      <button class="icon" id="gear1" data-ic="gear" aria-label="Einstellungen"></button>
+      <a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a>
+    </div>
+  </header>
   <div class="tabs">
     <button aria-pressed="true" data-t="recent">Zuletzt gespielt</button>
     <button aria-pressed="false" data-t="best">Beste Plays</button>
   </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Titel, Artist, Mapper oder Difficulty suchen" aria-label="Scores durchsuchen">
+    <label class="chk"><input type="checkbox" id="onlyRp" checked> nur mit Replay</label>
+  </div>
   <div id="list"></div>
+  <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
 
 <section id="viewer" hidden>
-  <div id="vbar"><div id="title"></div><div style="display:flex;gap:8px"><button class="ghost" id="mp4">mp4 rendern</button><button class="ghost" id="close">Schließen</button></div></div>
+  <div id="title"></div>
+  <div id="vbar">
+    <button class="vb" id="infoBtn" data-ic="info"><span>Details</span></button>
+    <button class="vb" id="gear2" data-ic="gear"><span>Einstellungen</span></button>
+    <button class="vb" id="mp4" data-ic="video"><span>mp4 rendern</span></button>
+    <button class="vb" id="close" data-ic="x"><span>Schließen</span></button>
+  </div>
   <div id="stage"><canvas id="cv" width="960" height="720"></canvas>
   <video id="vid" controls playsinline hidden></video></div>
   <div id="msg" class="msg"></div>
@@ -71,13 +130,91 @@ video{width:100%;max-width:min(100%,calc((100vh - 190px)*16/9));border-radius:12
   </div>
 </section>
 
+<section id="info" class="sheet" hidden>
+  <div class="sh">Map- &amp; Score-Details<button class="icon" data-close data-ic="x" aria-label="Schließen"></button></div>
+  <div class="sb" id="infoBody"></div>
+</section>
+<section id="settings" class="sheet" hidden>
+  <div class="sh">Einstellungen<button class="icon" data-close data-ic="x" aria-label="Schließen"></button></div>
+  <div class="sb" id="setBody"></div>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma-d-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const api = (p, q = {}) => fetch('/.netlify/functions/api?' + new URLSearchParams({ path: p, ...q }));
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let me, tab = 'recent', scores = [];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const svg = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  info: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
+  video: svg('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>'),
+  x: svg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
+  play: svg('<polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>')
+};
+document.querySelectorAll('[data-ic]').forEach(e => e.insertAdjacentHTML('afterbegin', ICON[e.dataset.ic]));
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { b.closest('.sheet').hidden = true; });
+
+/* ---------- Einstellungen ---------- */
+const DEF = {
+  bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80,
+  skin: '', skinName: '', resolution: '1280x720', globalVolume: 60, musicVolume: 60, hitsoundVolume: 60, useSkinHitsounds: true,
+  inGameBGDim: 80, introBGDim: 60, breakBGDim: 70, cursorSize: 1, cursorTrail: true, cursorRainbow: false, showBorders: true, loadStoryboard: false, loadVideo: false,
+  showScore: true, showHPBar: true, showComboCounter: true, showPPCounter: true, showHitErrorMeter: true, showUnstableRate: true, showSliderBreaks: true, showMods: true, showScoreboard: false, showResultScreen: false
+};
+let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('osuSet') || '{}')); } catch {}
+const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); } catch {} };
+const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName'].includes(k));
+const pct = [0, 100, 5, '%'];
+const SCH = [
+  ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
+  ['Live-Ansicht · Ton', [['hitsounds', 'Hitsounds', 't'], ['hsVol', 'Hitsound-Lautstärke', 'r', ...pct], ['musicVol', 'Musik-Lautstärke', 'r', ...pct]]],
+  ['mp4-Render · Allgemein', [['resolution', 'Auflösung', 's', [['960x540', '540p'], ['1280x720', '720p'], ['1920x1080', '1080p (braucht o!rdr-Freigabe)']]], ['skin', 'Skin', 'k'], ['globalVolume', 'Gesamtlautstärke', 'r', ...pct], ['musicVolume', 'Musiklautstärke', 'r', ...pct], ['hitsoundVolume', 'Hitsound-Lautstärke', 'r', ...pct], ['useSkinHitsounds', 'Hitsounds des Skins nutzen', 't']]],
+  ['mp4-Render · Bild', [['inGameBGDim', 'Hintergrund im Spiel abdunkeln', 'r', ...pct], ['introBGDim', 'Hintergrund im Intro abdunkeln', 'r', ...pct], ['breakBGDim', 'Hintergrund in Pausen abdunkeln', 'r', ...pct], ['cursorSize', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['cursorTrail', 'Cursor-Trail', 't'], ['cursorRainbow', 'Regenbogen-Cursor', 't'], ['showBorders', 'Spielfeld-Rahmen', 't'], ['loadStoryboard', 'Storyboard laden', 't'], ['loadVideo', 'Hintergrundvideo laden', 't']]],
+  ['mp4-Render · Anzeige', [['showScore', 'Score', 't'], ['showHPBar', 'Health-Bar', 't'], ['showComboCounter', 'Combo', 't'], ['showPPCounter', 'PP-Zähler', 't'], ['showHitErrorMeter', 'Hit-Error-Meter', 't'], ['showUnstableRate', 'Unstable Rate', 't'], ['showSliderBreaks', 'Slider-Breaks', 't'], ['showMods', 'Mods', 't'], ['showScoreboard', 'Scoreboard', 't'], ['showResultScreen', 'Ergebnis-Bildschirm', 't']]]
+];
+function openSettings() {
+  $('#setBody').innerHTML = SCH.map(([h, rows]) => `<h3>${h}</h3>` + rows.map(([k, l, t, a, b, st, u]) => {
+    if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
+    if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
+    if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
+  }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert. Die mp4-Optionen gelten für den nächsten Render bei o!rdr.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
+  $('#settings').hidden = false; loadSkins('');
+}
+async function loadSkins(q) {
+  const box = $('#skinList'); if (!box) return;
+  try {
+    const j = await (await fetch('/.netlify/functions/render?skins=1&search=' + encodeURIComponent(q))).json();
+    box.innerHTML = `<button class="skin ${S.skin ? '' : 'on'}" data-s="" data-n=""><b>Automatisch</b><small>beliebtester Skin</small></button>` + (j.skins || []).map(k => `<button class="skin ${S.skin === k.skin ? 'on' : ''}" data-s="${esc(k.skin)}" data-n="${esc(k.presentationName)}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('');
+  } catch { box.innerHTML = '<div class="note">Skin-Liste nicht erreichbar.</div>'; }
+}
+const setBody = $('#setBody'); let skinT;
+setBody.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'skinQ') { clearTimeout(skinT); skinT = setTimeout(() => loadSkins(el.value), 400); return; }
+  const k = el.dataset.k; if (!k) return;
+  S[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
+  if (el.type === 'range') $('#v_' + k).textContent = el.value + el.dataset.u;
+  saveS();
+});
+setBody.addEventListener('click', e => {
+  if (e.target.id === 'reset') { S = { ...DEF }; saveS(); return openSettings(); }
+  const b = e.target.closest('.skin'); if (!b) return;
+  S.skin = b.dataset.s; S.skinName = b.dataset.n; saveS();
+  $('#skinName').textContent = S.skinName || 'Automatisch (beliebtester Skin)';
+  document.querySelectorAll('.skin').forEach(x => x.classList.toggle('on', x === b));
+});
+$('#gear1').onclick = $('#gear2').onclick = openSettings;
+
+/* ---------- Score-Liste ---------- */
+let me, tab = 'recent', scores = [], more = true, curScore = null;
+const LIM = 30;
+const RC = { X: '#ffd166', XH: '#e6e6f5', S: '#ffd166', SH: '#e6e6f5', A: '#7de3d0', B: '#6ea8ff', C: '#c084fc', D: '#ff4d6d', F: '#9b92c4' };
+const lab = r => ({ X: 'SS', XH: 'SS', SH: 'S' }[r] || r);
+const starCol = r => r < 2 ? '#7de3d0' : r < 4 ? '#ffd166' : r < 6 ? '#ff7aa8' : '#a78bfa';
+const rel = d => { if (!d) return ''; const m = (Date.now() - new Date(d)) / 6e4; return m < 60 ? `vor ${m | 0} Min.` : m < 1440 ? `vor ${m / 60 | 0} Std.` : m < 43200 ? `vor ${m / 1440 | 0} Tg.` : new Date(d).toLocaleDateString('de-DE'); };
 
 async function init() {
   const r = await api('/me/osu');
@@ -85,23 +222,51 @@ async function init() {
   me = await r.json();
   $('#app').hidden = false;
   $('#who').innerHTML = `<img src="${esc(me.avatar_url)}" alt=""><b>${esc(me.username)}</b>`;
-  load();
+  load(true);
 }
-
-async function load() {
-  $('#list').innerHTML = '<div class="msg">Lade Scores…</div>';
-  const r = await api(`/users/${me.id}/scores/${tab}`, { mode: 'osu', limit: tab === 'best' ? 50 : 30, include_fails: 1 });
+async function load(reset) {
+  if (reset) { scores = []; more = true; $('#list').innerHTML = '<div class="msg">Lade Scores…</div>'; }
+  const r = await api(`/users/${me.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 });
   if (!r.ok) return ($('#list').innerHTML = `<div class="msg">Scores konnten nicht geladen werden (${r.status}).</div>`);
-  scores = await r.json();
-  $('#list').innerHTML = scores.map((s, i) => `<div class="row"><div><b>${esc(s.beatmapset.title)} [${esc(s.beatmap.version)}]</b><small>${s.rank} · ${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}${(s.mods || []).length ? ' · ' + s.mods.map(m => m.acronym || m).join('') : ''}</small></div>${s.has_replay || s.replay ? `<button data-i="${i}" aria-label="Replay ansehen">▶</button>` : ''}</div>`).join('') || '<div class="msg">Noch keine Scores in osu!standard.</div>';
+  const a = await r.json(); scores = scores.concat(a); more = a.length === LIM; paint();
 }
-
+function rowHtml(s, i) {
+  const bs = s.beatmapset, b = s.beatmap, cov = bs.covers || {}, rp = s.has_replay || s.replay, mods = (s.mods || []).map(m => m.acronym || m);
+  return `<div class="row"><img class="thumb" loading="lazy" alt="" src="${esc(cov['list@2x'] || cov.list || cov.card || '')}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip" style="color:${starCol(b.difficulty_rating)}">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div>${rp ? `<button class="play" data-i="${i}" aria-label="Replay ansehen">${ICON.play}</button>` : ''}</div>`;
+}
+function paint() {
+  const q = $('#q').value.trim().toLowerCase(), only = $('#onlyRp').checked;
+  const h = scores.map((s, i) => [s, i]).filter(([s]) => (!only || s.has_replay || s.replay) && (!q || `${s.beatmapset.title} ${s.beatmapset.artist} ${s.beatmap.version} ${s.beatmapset.creator}`.toLowerCase().includes(q)));
+  $('#list').innerHTML = h.map(([s, i]) => rowHtml(s, i)).join('') || '<div class="msg">Keine passenden Scores.</div>';
+  $('#more').hidden = !more;
+}
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   tab = b.dataset.t;
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  load();
+  load(true);
 });
+$('#q').oninput = $('#onlyRp').onchange = paint;
+$('#more').onclick = () => load(false);
 $('#list').onclick = e => { const b = e.target.closest('button[data-i]'); if (b) openReplay(scores[b.dataset.i]); };
+
+/* ---------- Map- & Score-Details ---------- */
+function showInfo() {
+  const s = curScore; if (!s) return;
+  const b = s.beatmap || {}, bs = s.beatmapset || {}, cov = bs.covers || {}, st = s.statistics || {}, ms = M && M.stats;
+  const R = (l, v) => `<div class="ir"><span>${l}</span><b>${esc(v == null || v === '' ? '–' : v)}</b></div>`;
+  const len = x => x ? `${x / 60 | 0}:${String(x % 60).padStart(2, '0')}` : null;
+  const num = v => v == null ? null : (+v).toFixed(1).replace(/\.0$/, '');
+  const mods = (s.mods || []).map(m => m.acronym || m).join(' ') || 'Keine';
+  const sgn = v => (v >= 0 ? '+' : '') + v.toFixed(1) + ' ms';
+  const sc = M && M.real ? M.real : (s.total_score ?? s.score);
+  $('#infoBody').innerHTML = `<div class="hero" style="background-image:linear-gradient(transparent,#120f1d),url('${esc(cov.cover || cov.card || '')}')"><b>${esc(bs.title)}</b><span>${esc(bs.artist)}</span></div>
+  <h3>Map</h3>${R('Difficulty', b.version)}${R('Mapper', bs.creator)}${R('Sterne', b.difficulty_rating != null ? (+b.difficulty_rating).toFixed(2) + ' ★' : null)}${R('Status', b.status || bs.status)}${R('BPM', num(b.bpm))}${R('Länge', len(b.total_length))}${R('Circles / Slider / Spinner', b.count_circles != null ? `${b.count_circles} / ${b.count_sliders} / ${b.count_spinners}` : null)}${R('CS · AR · OD · HP', b.cs != null ? `${num(b.cs)} · ${num(b.ar)} · ${num(b.accuracy)} · ${num(b.drain)}` : null)}${R('Beatmap-ID', b.id)}${R('Beatmapset-ID', bs.id)}
+  <div class="ir"><span>Auf osu! ansehen</span><a href="https://osu.ppy.sh/beatmaps/${esc(b.id)}" target="_blank" rel="noopener">osu.ppy.sh/beatmaps/${esc(b.id)}</a></div>
+  <h3>Score</h3>${R('Rang', lab(s.rank))}${R('Score', sc != null ? Number(sc).toLocaleString('de-DE') : null)}${R('Accuracy', (s.accuracy * 100).toFixed(2) + ' %')}${R('PP', s.pp != null ? Math.round(s.pp * 100) / 100 : null)}${R('Max. Combo', s.max_combo)}${R('Mods', mods)}${R('300 / 100 / 50 / Miss', `${st.great ?? st.count_300 ?? '–'} / ${st.ok ?? st.count_100 ?? '–'} / ${st.meh ?? st.count_50 ?? '–'} / ${st.miss ?? st.count_miss ?? '–'}`)}${R('Gespielt am', new Date(s.ended_at || s.created_at).toLocaleString('de-DE'))}
+  ${ms ? `<h3>Replay-Analyse (berechnet)</h3>${R('Unstable Rate', ms.ur.toFixed(1))}${R('Ø Hit-Error', sgn(ms.avg) + (ms.avg < 0 ? ' (eher zu früh)' : ' (eher zu spät)'))}${R('Combo-Breaks', ms.cb)}${R('Slider-Breaks', ms.sb)}${R('Längste Combo', ms.mx)}${R('Niedrigste Health', Math.round(ms.mh * 100) + ' %')}${R('Treffer 300 / 100 / 50 / Miss', `${ms.n3} / ${ms.n1} / ${ms.n5} / ${ms.miss}`)}${R('Replay-Frames', F.length.toLocaleString('de-DE'))}${R('Replay-Dauer', len(Math.round(end / 1000 / rate)))}<div class="note">Diese Werte werden aus Cursor und Klicks nachgerechnet und können leicht von den offiziellen abweichen.</div>` : '<div class="note">Die Replay-Analyse erscheint, sobald das Replay geladen ist.</div>'}`;
+  $('#info').hidden = false;
+}
+$('#infoBtn').onclick = showInfo;
 
 /* ---------- .osr lesen ---------- */
 function parseOsr(buf) {
@@ -164,15 +329,17 @@ let osrBuf = null;
 $('#mp4').onclick = async () => {
   if (!osrBuf) return;
   const msg = x => ($('#msg').textContent = x), btn = $('#mp4');
-  btn.disabled = true; playing = false; msg('Sende Replay an o!rdr…');
+  btn.disabled = true; playing = false;
   try {
-    const r = await fetch('/.netlify/functions/render?username=' + encodeURIComponent(me.username), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: osrBuf });
-    const j = await r.json();
-    if (!r.ok || !j.renderID) throw new Error(j.message || j.error || r.status);
+    const o = { skin: S.skin }; for (const k of RK) o[k] = S[k];
+    msg('Sende Replay an o!rdr…');
+    const r = await fetch('/.netlify/functions/render?username=' + encodeURIComponent(me.username) + '&o=' + encodeURIComponent(JSON.stringify(o)), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: osrBuf });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.renderID) throw new Error(j.message || j.error || 'HTTP ' + r.status);
     for (let n = 0; n < 180; n++) {
       await new Promise(res => setTimeout(res, 5000));
       const x = ((await (await fetch('/.netlify/functions/render?id=' + j.renderID)).json()).renders || [])[0];
-      if (x && x.errorMessage) throw new Error(x.errorMessage);
+      if (x && x.errorCode) throw new Error(x.progress || 'o!rdr-Fehlercode ' + x.errorCode);
       if (x && x.videoUrl) {
         if (audio) audio.pause();
         const v = $('#vid'); v.src = x.videoUrl; v.hidden = false; cv.hidden = true; $('#ctl').hidden = true; msg('');
@@ -186,10 +353,10 @@ $('#mp4').onclick = async () => {
 };
 
 async function openReplay(s) {
-  $('#viewer').hidden = false; playing = false; M = null;
+  curScore = s; $('#spd').value = S.speed; $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
   $('#vid').pause(); $('#vid').removeAttribute('src'); $('#vid').hidden = true; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
-  $('#title').textContent = `${s.beatmapset.title} [${s.beatmap.version}]`;
+  $('#title').textContent = `${s.beatmapset.artist} – ${s.beatmapset.title} [${s.beatmap.version}]`;
   const msg = x => ($('#msg').textContent = x);
   try {
     msg('Lade Replay…');
@@ -234,7 +401,7 @@ async function loadAudio(setId, file, bgName) {
 
 function syncAudio() {
   if (!audio) return;
-  const want = t / 1000; audio.playbackRate = rate * +$('#spd').value;
+  const want = t / 1000; audio.playbackRate = rate * +$('#spd').value; audio.volume = S.musicVol / 100;
   if (playing) {
     if (audio.paused) { audio.currentTime = want; audio.play().catch(() => { playing = false; }); }
     else if (Math.abs(audio.currentTime - want) > .2) audio.currentTime = want;
@@ -312,7 +479,7 @@ function prep(m, F, mods, real) {
   m.drain = drainMs;
   /* Treffer */
   let od = m.d.OverallDifficulty; if (mods & 16) od = Math.min(10, od * 1.4); if (mods & 2) od /= 2;
-  const w3 = 80 - 6 * od, w1 = 140 - 8 * od, w5 = 200 - 10 * od, pr = []; let pk = 0, pi = 0;
+  const w3 = 80 - 6 * od, w1 = 140 - 8 * od, w5 = 200 - 10 * od, pr = []; let pk = 0, pi = 0; const errs = [];
   for (const f of F) { if ((f.k & 5 && !(pk & 5)) || (f.k & 10 && !(pk & 10))) pr.push({ t: f.t, x: f.x, y: f.y, u: 0 }); pk = f.k; }
   for (const o of m.ho) {
     if (o.type & 8) { o.res = 3; o.hitT = o.end; continue; }
@@ -320,7 +487,7 @@ function prep(m, F, mods, real) {
     o.res = 0; o.hitT = o.t + w5;
     for (let j = pi; j < pr.length && pr[j].t <= o.t + w5; j++) {
       const p = pr[j]; if (p.u || Math.hypot(p.x - o.x, p.y - o.y) > R) continue;
-      const e = Math.abs(p.t - o.t); p.u = 1; o.res = e <= w3 ? 3 : e <= w1 ? 2 : 1; o.hitT = p.t; break;
+      const e = Math.abs(p.t - o.t); p.u = 1; errs.push(p.t - o.t); o.res = e <= w3 ? 3 : e <= w1 ? 2 : 1; o.hitT = p.t; break;
     }
   }
   /* Cursor + Slider-Tracking */
@@ -368,27 +535,30 @@ function prep(m, F, mods, real) {
   const mm2 = mods & 512 ? mods & ~64 : mods;
   const mm = [[1, .5], [2, .5], [8, 1.06], [16, 1.06], [64, 1.12], [256, .3], [512, 1.12], [1024, 1.12], [4096, .9]].reduce((x, [b, v]) => mm2 & b ? x * v : x, 1);
   const val = [0, 50, 100, 300];
-  let h = 1, pt = m.ds, c = 0, sc = 0, n3 = 0, n1 = 0, n5 = 0, cnt = 0; m.ev = [];
+  let h = 1, pt = m.ds, c = 0, sc = 0, n3 = 0, n1 = 0, n5 = 0, cnt = 0, mx = 0, cb = 0, sb = 0, mh = 1; m.ev = [];
   const add = v => v + v * (Math.max(c - 1, 0) * dm * mm / 25), tally = r => { cnt++; if (r === 3) n3++; else if (r === 2) n1++; else if (r === 1) n5++; };
+  const ok = (r, v) => { if (r) { sc += v; c++; mx = Math.max(mx, c); } else { if (c > 0) cb++; c = 0; } };
   for (const a of atoms) {
-    h = Math.max(0, h - m.dr * drainMs(pt, a.t)); pt = a.t; h = Math.min(1, h + dh(a));
-    if (a.k === 'c') { if (a.r) { sc += add(val[a.r]); c++; } else c = 0; tally(a.r); }
-    else if (a.k === 'sh') { if (a.r) { sc += 30; c++; } else c = 0; }
-    else if (a.k === 'st') { if (a.r) { sc += 10; c++; } else c = 0; }
-    else if (a.k === 'sr') { if (a.r) { sc += 30; c++; } else c = 0; }
-    else if (a.k === 'se') { if (a.r) { sc += 30; c++; } }
+    h = Math.max(0, h - m.dr * drainMs(pt, a.t)); pt = a.t; mh = Math.min(mh, h); h = Math.min(1, h + dh(a));
+    if (a.k === 'c') { ok(a.r, a.r ? add(val[a.r]) : 0); tally(a.r); }
+    else if (a.k === 'sh') ok(a.r, 30);
+    else if (a.k === 'st' || a.k === 'sr') { ok(a.r, a.k === 'st' ? 10 : 30); if (!a.r) sb++; }
+    else if (a.k === 'se') { if (a.r) ok(1, 30); }
     else if (a.k === 'sj') { if (a.r) sc += add(val[a.r]); tally(a.r); }
-    else { sc += add(300); c++; tally(3); }
+    else { sc += add(300); c++; mx = Math.max(mx, c); tally(3); }
     m.ev.push({ t: a.t, c, a: cnt ? (300 * n3 + 100 * n1 + 50 * n5) / (300 * cnt) : 1, s: sc, h });
   }
-  const fin = m.ev.length ? m.ev[m.ev.length - 1].s : 0; m.k = real > 0 && fin > 0 ? real / fin : 1;
+  const fin = m.ev.length ? m.ev[m.ev.length - 1].s : 0; m.k = real > 0 && fin > 0 ? real / fin : 1; m.real = real;
+  const rt = mods & (64 | 512) ? 1.5 : mods & 256 ? .75 : 1, avg = errs.length ? errs.reduce((x, y) => x + y, 0) / errs.length : 0;
+  const sd = errs.length ? Math.sqrt(errs.reduce((x, y) => x + (y - avg) ** 2, 0) / errs.length) : 0;
+  m.stats = { n3, n1, n5, miss: cnt - n3 - n1 - n5, mx, cb, sb, mh, ur: sd * 10 / rt, avg: avg / rt };
 }
 
 function draw(t) {
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720); g.globalAlpha = 1;
-  if (bgImg && bgImg.naturalWidth) {
+  if (S.bg && bgImg && bgImg.naturalWidth) {
     const k = Math.max(960 / bgImg.naturalWidth, 720 / bgImg.naturalHeight), w = bgImg.naturalWidth * k, hh = bgImg.naturalHeight * k;
-    g.globalAlpha = .22; g.drawImage(bgImg, (960 - w) / 2, (720 - hh) / 2, w, hh); g.globalAlpha = 1;
+    g.globalAlpha = 1 - S.dim / 100; g.drawImage(bgImg, (960 - w) / 2, (720 - hh) / 2, w, hh); g.globalAlpha = 1;
   }
   g.setTransform(1.5, 0, 0, 1.5, 96, 72);
   g.lineWidth = 1; g.strokeStyle = '#2f2850'; g.strokeRect(0, 0, 512, 384);
@@ -408,7 +578,7 @@ function draw(t) {
       g.beginPath(); o.path.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y));
       g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke();
       g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke();
-      for (const q of o.ticks) {
+      for (const q of (S.ticks ? o.ticks : [])) {
         if (t < q.t) { g.globalAlpha = a * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
       }
@@ -437,14 +607,15 @@ function draw(t) {
   let lo = 0, hi = F.length - 1;
   while (lo < hi) { const m = (lo + hi + 1) >> 1; F[m].t <= t ? lo = m : hi = m - 1; }
   g.lineWidth = 4; g.lineCap = 'round';
-  for (let j = lo; j > 0 && F[j].t > t - 140; j--) {
+  for (let j = lo; S.trail && j > 0 && F[j].t > t - 140; j--) {
     g.globalAlpha = Math.max(0, 1 - (t - F[j].t) / 140) * .6; g.strokeStyle = '#7de3d0';
     g.beginPath(); g.moveTo(F[j - 1].x, F[j - 1].y); g.lineTo(F[j].x, F[j].y); g.stroke();
   }
   g.globalAlpha = 1; const c = F[lo];
-  g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, c.k ? 9 : 7, 0, 7); g.fill();
+  g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, (c.k ? 9 : 7) * S.cursor, 0, 7); g.fill();
   let x0 = 0, x1 = M.ev.length; while (x0 < x1) { const m = (x0 + x1) >> 1; M.ev[m].t <= t ? x0 = m + 1 : x1 = m; }
   const e = x0 ? M.ev[x0 - 1] : { t: M.ds, c: 0, a: 1, s: 0, h: 1 }, hp = Math.max(0, e.h - M.dr * M.drain(e.t, t));
+  if (!S.hud) return;
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.fillStyle = '#2f2850'; g.fillRect(24, 18, 380, 14);
   g.fillStyle = hp > .5 ? '#7de3d0' : hp > .25 ? '#ffd166' : '#ff4d6d'; g.fillRect(24, 18, 380 * hp, 14);
@@ -458,7 +629,7 @@ function hsound(at, hs, tick) {
   const c = actx, mk = (type, f, dur, vol) => {
     const o = c.createOscillator(), gn = c.createGain(); o.type = type;
     o.frequency.setValueAtTime(f, at); o.frequency.exponentialRampToValueAtTime(f / 2, at + dur);
-    gn.gain.setValueAtTime(vol, at); gn.gain.exponentialRampToValueAtTime(.001, at + dur);
+    gn.gain.setValueAtTime(Math.max(.0002, vol * S.hsVol / 100), at); gn.gain.exponentialRampToValueAtTime(.001, at + dur);
     o.connect(gn); gn.connect(c.destination); o.start(at); o.stop(at + dur);
   };
   if (tick) return mk('sine', 1400, .05, .12);
@@ -468,7 +639,7 @@ function hsound(at, hs, tick) {
   if (hs & 8) mk('square', 900, .1, .1);
 }
 function schedSnd() {
-  if (!actx || !playing || !M.snd) return;
+  if (!actx || !playing || !M.snd || !S.hitsounds) return;
   const sp = rate * +$('#spd').value, hz = t + 100 * sp, S = M.snd;
   if (t > sT + 50 || t < sT - 100 * sp - 100) { let a = 0, b = S.length; while (a < b) { const q = (a + b) >> 1; S[q].t <= t ? a = q + 1 : b = q; } sI = a; }
   while (sI < S.length && S[sI].t <= hz) { const e = S[sI++]; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
