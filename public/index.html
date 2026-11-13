@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#120f1d">
 <title>Replay-Kino für osu!</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
@@ -81,6 +82,33 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));border-radius:12
 .skin img{width:100%;border-radius:8px;aspect-ratio:16/9;object-fit:cover;background:#000}
 .skin small{color:var(--dim)}
 .note{color:var(--dim);font-size:.85rem;padding:8px 0}
+#vp{position:relative;width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none}
+#vp:fullscreen{max-width:none;aspect-ratio:auto;height:100%;border-radius:0}
+#vp video{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:contain;border-radius:0;background:#000}
+#vbig{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;background:rgba(18,15,29,.72);display:grid;place-items:center;pointer-events:none;color:#fff}
+#vbig svg{width:34px;height:34px}
+#vspin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+#vspin i{width:42px;height:42px;border-radius:50%;border:4px solid rgba(255,255,255,.25);border-top-color:var(--pink);animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#vspin i{animation-duration:2.5s}}
+#verr{position:absolute;inset:0;display:grid;place-content:center;gap:10px;text-align:center;padding:16px;background:rgba(10,8,18,.88)}
+#verr span{color:var(--dim);font-size:.9rem}
+.vrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#vc{position:absolute;left:0;right:0;bottom:0;padding:28px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.78));display:grid;gap:2px;transition:opacity .25s}
+#vp.idle #vc{opacity:0;pointer-events:none}
+#vc .r1,#vc .r2{display:flex;align-items:center;gap:8px}
+#vc .sp{flex:1}
+.vbtn{background:none;border:0;color:#fff;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:10px;text-decoration:none}
+#vcur,#vdur{color:#e8e2ff;font-size:.8rem;font-variant-numeric:tabular-nums;min-width:34px}
+#vseekw{flex:1;--p:0%;--b:0%;background:linear-gradient(to right,var(--pink) var(--p),#6b5ca5 var(--p) var(--b),rgba(255,255,255,.2) var(--b)) center/100% 5px no-repeat;border-radius:3px}
+#vc input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;width:100%;height:32px;margin:0}
+#vc input[type=range]::-webkit-slider-runnable-track{background:transparent;height:32px}
+#vc input[type=range]::-moz-range-track{background:transparent}
+#vc input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--pink);margin-top:8px}
+#vc input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--pink)}
+#vvol{width:80px!important}
+#vc select{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;height:34px;padding:0 6px}
+@media(max-width:520px){#vvol{display:none}}
 </style>
 </style>
 </head>
@@ -120,7 +148,24 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));border-radius:12
     <button class="vb" id="close" data-ic="x"><span>Schließen</span></button>
   </div>
   <div id="stage"><canvas id="cv" width="960" height="720"></canvas>
-  <video id="vid" controls playsinline hidden></video></div>
+  <div id="vp" hidden>
+    <video id="vid" playsinline preload="auto"></video>
+    <div id="vbig" hidden data-ic="play"></div>
+    <div id="vspin" hidden><i></i></div>
+    <div id="verr" hidden><b>Video-Fehler</b><span id="verrt"></span><div class="vrow"><button class="ghost" id="vretry">Neu laden</button><a class="ghost" id="vopen" target="_blank" rel="noopener">Im Browser öffnen</a></div></div>
+    <div id="vc">
+      <div class="r1"><span id="vcur">0:00</span><div id="vseekw"><input id="vseek" type="range" min="0" max="1000" step="1" value="0" aria-label="Position"></div><span id="vdur">0:00</span></div>
+      <div class="r2">
+        <button class="vbtn" id="vpp" data-ic="play" aria-label="Abspielen oder pausieren"></button>
+        <button class="vbtn" id="vmute" data-ic="vol" aria-label="Ton an oder aus"></button>
+        <input id="vvol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Lautstärke">
+        <span class="sp"></span>
+        <select id="vspd" aria-label="Wiedergabe-Geschwindigkeit"><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
+        <a class="vbtn" id="vlink" data-ic="dl" target="_blank" rel="noopener" aria-label="Video öffnen oder herunterladen"></a>
+        <button class="vbtn" id="vfs" data-ic="fs" aria-label="Vollbild"></button>
+      </div>
+    </div>
+  </div></div>
   <div id="msg" class="msg"></div>
   <div id="ctl">
     <button id="pp" aria-label="Abspielen oder pausieren">▶</button>
@@ -151,7 +196,12 @@ const ICON = {
   info: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
   video: svg('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>'),
   x: svg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
-  play: svg('<polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>')
+  play: svg('<polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>'),
+  pause: svg('<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>'),
+  vol: svg('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'),
+  mute: svg('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'),
+  fs: svg('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>'),
+  dl: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')
 };
 document.querySelectorAll('[data-ic]').forEach(e => e.insertAdjacentHTML('afterbegin', ICON[e.dataset.ic]));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { b.closest('.sheet').hidden = true; });
@@ -322,8 +372,71 @@ function parseMap(txt, mods) {
 }
 
 /* ---------- Player ---------- */
-let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false, audio = null, bgImg = null, actx = null, sI = 0, sT = -1e9;
+let M, F, t = 0, end = 0, rate = 1, playing = false, last = 0, running = false, audioErr = false, audio = null, bgImg = null, actx = null, sI = 0, sT = -1e9;
 const cv = $('#cv'), g = cv.getContext('2d');
+
+/* ---------- Eigener Video-Player ---------- */
+const V = $('#vid'), VP = $('#vp'), vfmt = x => isFinite(x) ? `${x / 60 | 0}:${String(x % 60 | 0).padStart(2, '0')}` : '0:00';
+let vsrc = [], vi = 0, vidle, vdrag = false, vtap = 0, vtimer;
+const vplay = () => { try { const p = V.play(); if (p && p.catch) p.catch(() => {}); } catch {} };
+const vToggle = () => V.paused ? vplay() : V.pause();
+function vErr() { const c = V.error && V.error.code; return c === 2 ? 'Netzwerkfehler beim Laden des Videos.' : c === 3 ? 'Das Video konnte nicht dekodiert werden.' : 'Das Video konnte nicht geladen werden. Der Link ist eventuell abgelaufen oder keine direkte Videodatei.'; }
+function vTry() {
+  if (vi >= vsrc.length) { $('#vspin').hidden = true; $('#verr').hidden = false; $('#verrt').textContent = vErr(); vIcons(); return; }
+  $('#verr').hidden = true; $('#vspin').hidden = false;
+  $('#vopen').href = $('#vlink').href = vsrc[vi]; V.src = vsrc[vi]; V.load(); vplay();
+}
+function playVideo(srcs) { vsrc = srcs; vi = 0; VP.hidden = false; cv.hidden = true; $('#ctl').hidden = true; V.defaultPlaybackRate = V.playbackRate = +$('#vspd').value; vTry(); vShow(); }
+function resetVideo() { vsrc = []; V.pause(); V.removeAttribute('src'); V.load(); VP.hidden = true; if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
+function vIcons() {
+  $('#vpp').innerHTML = V.paused ? ICON.play : ICON.pause;
+  $('#vbig').hidden = !V.paused || !vsrc.length || !$('#verr').hidden;
+  $('#vmute').innerHTML = V.muted || V.volume === 0 ? ICON.mute : ICON.vol;
+}
+function vUpd() {
+  const d = V.duration || 0, p = d ? V.currentTime / d * 100 : 0; let b = 0;
+  try { if (V.buffered.length) b = V.buffered.end(V.buffered.length - 1) / (d || 1) * 100; } catch {}
+  const w = $('#vseekw'); w.style.setProperty('--p', p + '%'); w.style.setProperty('--b', Math.max(p, b) + '%');
+  if (!vdrag) $('#vseek').value = p * 10;
+  $('#vcur').textContent = vfmt(V.currentTime); $('#vdur').textContent = vfmt(d);
+}
+function vShow() { VP.classList.remove('idle'); clearTimeout(vidle); if (!V.paused) vidle = setTimeout(() => VP.classList.add('idle'), 3000); }
+function vFs() {
+  const fs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fs) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else if (VP.requestFullscreen) VP.requestFullscreen().catch(() => {});
+  else if (VP.webkitRequestFullscreen) VP.webkitRequestFullscreen();
+  else if (V.webkitEnterFullscreen) V.webkitEnterFullscreen();
+}
+V.addEventListener('error', () => { if (vsrc.length) { vi++; vTry(); } });
+['play', 'pause', 'volumechange', 'ended', 'loadstart'].forEach(ev => V.addEventListener(ev, () => { vIcons(); vShow(); }));
+['timeupdate', 'progress', 'loadedmetadata', 'durationchange'].forEach(ev => V.addEventListener(ev, vUpd));
+['waiting', 'seeking', 'stalled'].forEach(ev => V.addEventListener(ev, () => { if (vsrc.length) $('#vspin').hidden = false; }));
+['playing', 'canplay', 'seeked', 'loadeddata'].forEach(ev => V.addEventListener(ev, () => { $('#vspin').hidden = true; }));
+$('#vpp').onclick = vToggle;
+$('#vmute').onclick = () => { V.muted = !V.muted; };
+$('#vfs').onclick = vFs;
+$('#vretry').onclick = () => { vi = 0; vTry(); };
+$('#vspd').onchange = e => { V.defaultPlaybackRate = V.playbackRate = +e.target.value; };
+$('#vvol').oninput = e => { V.volume = +e.target.value; V.muted = V.volume === 0; };
+$('#vseek').addEventListener('input', e => { vdrag = true; if (V.duration) { V.currentTime = e.target.value / 1000 * V.duration; vUpd(); } });
+$('#vseek').addEventListener('change', () => { vdrag = false; });
+VP.addEventListener('pointermove', vShow);
+VP.addEventListener('click', e => {
+  if (e.target.closest('#vc, #verr')) return;
+  const now = Date.now(), r = VP.getBoundingClientRect();
+  if (now - vtap < 300) { clearTimeout(vtimer); V.currentTime = Math.max(0, Math.min(V.duration || 1e9, V.currentTime + (e.clientX - r.left < r.width / 2 ? -10 : 10))); vtap = 0; return; }
+  vtap = now; vtimer = setTimeout(vToggle, 300); vShow();
+});
+document.addEventListener('keydown', e => {
+  if (VP.hidden || (e.target.matches && e.target.matches('input,select,textarea'))) return;
+  if (e.key === ' ' || e.key === 'k') { e.preventDefault(); vToggle(); }
+  else if (e.key === 'ArrowLeft') V.currentTime = Math.max(0, V.currentTime - 5);
+  else if (e.key === 'ArrowRight') V.currentTime += 5;
+  else if (e.key === 'f') vFs();
+  else if (e.key === 'm') V.muted = !V.muted;
+});
+vIcons();
 
 let osrBuf = null;
 $('#mp4').onclick = async () => {
@@ -342,8 +455,8 @@ $('#mp4').onclick = async () => {
       if (x && x.errorCode) throw new Error(x.progress || 'o!rdr-Fehlercode ' + x.errorCode);
       if (x && x.videoUrl) {
         if (audio) audio.pause();
-        const v = $('#vid'); v.src = x.videoUrl; v.hidden = false; cv.hidden = true; $('#ctl').hidden = true; msg('');
-        v.play().catch(() => {}); btn.disabled = false; return;
+        msg(''); let dyn = ''; try { dyn = (await (await fetch('/.netlify/functions/render?dyn=' + j.renderID)).json()).url || ''; } catch {}
+        playVideo([dyn, x.videoUrl].filter(Boolean)); btn.disabled = false; return;
       }
       msg('Rendert… ' + ((x && x.progress) || 'wartet in der Warteschlange'));
     }
@@ -355,7 +468,7 @@ $('#mp4').onclick = async () => {
 async function openReplay(s) {
   curScore = s; $('#spd').value = S.speed; $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
-  $('#vid').pause(); $('#vid').removeAttribute('src'); $('#vid').hidden = true; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
+  resetVideo(); audioErr = false; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
   $('#title').textContent = `${s.beatmapset.artist} – ${s.beatmapset.title} [${s.beatmap.version}]`;
   const msg = x => ($('#msg').textContent = x);
   try {
@@ -373,6 +486,7 @@ async function openReplay(s) {
     msg('Lade Ton…');
     const pk = M.audio ? await loadAudio(s.beatmapset.id, M.audio, M.bg) : null;
     audio = pk && pk.audio; bgImg = pk && pk.bg;
+    if (audio) audio.onerror = () => { audioErr = true; };
     if (audio) audio.preservesPitch = !(osr.mods & 512);
     rate = osr.mods & (64 | 512) ? 1.5 : osr.mods & 256 ? 0.75 : 1;
     end = Math.max(F[F.length - 1].t, M.ho.at(-1).end) + 500;
@@ -400,10 +514,10 @@ async function loadAudio(setId, file, bgName) {
 }
 
 function syncAudio() {
-  if (!audio) return;
+  if (!audio || audioErr) return;
   const want = t / 1000; audio.playbackRate = rate * +$('#spd').value; audio.volume = S.musicVol / 100;
   if (playing) {
-    if (audio.paused) { audio.currentTime = want; audio.play().catch(() => { playing = false; }); }
+    if (audio.paused) { audio.currentTime = want; audio.play().catch(() => { audioErr = true; }); }
     else if (Math.abs(audio.currentTime - want) > .2) audio.currentTime = want;
   } else if (!audio.paused) audio.pause();
 }
@@ -646,9 +760,17 @@ function schedSnd() {
   sT = hz;
 }
 
-$('#pp').onclick = cv.onclick = () => { if (!M) return; if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing; };
+$('#pp').onclick = cv.onclick = () => {
+  if (!M) return;
+  try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch { actx = null; }
+  $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing;
+  if (playing && audio) {
+    audioErr = false; audio.currentTime = t / 1000;
+    const pr = audio.play(); if (pr && pr.catch) pr.catch(() => { audioErr = true; $('#msg').textContent = 'Ton konnte nicht gestartet werden – das Replay läuft ohne Musik.'; });
+  }
+};
 $('#seek').oninput = e => { t = +e.target.value; };
-$('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); };
+$('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); resetVideo(); };
 init();
 </script>
 </body>

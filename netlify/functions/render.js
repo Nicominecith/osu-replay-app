@@ -12,6 +12,7 @@ exports.handler = async (e) => {
   if (!/osu_t=/.test(e.headers.cookie || '')) return { statusCode: 401, headers: J, body: '{"error":"nicht eingeloggt"}' };
   if (e.httpMethod === 'GET') {
     if (q.skins) { const r = await fetch(`${ORDR}/skins?pageSize=24&page=1&search=${encodeURIComponent(q.search || '')}`); return out(r, await r.text()); }
+    if (/^\d+$/.test(q.dyn || '')) { const r = await fetch(`https://apis.issou.best/dynlink/ordr/gen?id=${q.dyn}`); return out(r, await r.text()); }
     if (!/^\d+$/.test(q.id || '')) return { statusCode: 400, headers: J, body: '{"error":"ungültige ID"}' };
     const r = await fetch(`${ORDR}/renders?renderID=${q.id}`);
     return out(r, await r.text());
