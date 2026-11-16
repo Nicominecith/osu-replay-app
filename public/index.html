@@ -121,10 +121,10 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(10
 /* ===== osu!lazer-Stil ===== */
 .skin{position:relative}.lsdel{position:absolute;top:4px;right:6px;color:var(--dim);padding:4px 8px}
 .lsup{display:block;text-align:center;cursor:pointer;margin-top:4px}
-#wosuBtn{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;border:0;font-weight:800}
-#wosuFrame{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 0}
-#wosuFrame iframe{flex:1;border:0;width:100%;min-height:0}
-#wosuFrame .wbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;background:#120f1d;color:var(--dim);font-size:.85rem}
+#nicominecithBtn{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;border:0;font-weight:800}
+#nicominecithFrame{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 0}
+#nicominecithFrame iframe{flex:1;border:0;width:100%;min-height:0}
+#nicominecithFrame .wbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;background:#120f1d;color:var(--dim);font-size:.85rem}
 :root{--lz:#ff66ab;--lz2:#b266ff;--card:#2a2140}
 body{background:radial-gradient(1200px 600px at 80% -10%,#3a1f5c55,transparent),var(--bg)}
 .wrap{max-width:1000px}
@@ -176,6 +176,30 @@ input[type=search]{border-radius:999px;padding:12px 18px}
 #mvplay{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;box-shadow:0 6px 24px #ff66ab55;flex:1;max-width:420px;justify-content:center}
 #mvplay:disabled{opacity:.5;filter:grayscale(.6)}
 #mvinfo{background:var(--panel);color:var(--tx);border:1px solid var(--line)!important}
+
+/* --- Fixes & Responsive --- */
+header{flex-wrap:wrap}
+#who{flex:1 1 180px;min-width:0}
+#who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#who img{flex:none}
+.hbtns{flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end}
+.hbtns .icon{flex:none}
+.hbtns .ghost{white-space:nowrap}
+#usrch{display:flex;gap:8px;margin-bottom:10px;position:relative}
+#usrch input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:var(--tx);font:inherit}
+#usrch button{flex:none}
+#ures{position:absolute;top:100%;left:0;right:0;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:4px;overflow:hidden;box-shadow:0 10px 30px #0008}
+#ures button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;color:var(--tx)}
+#ures button:last-child{border:0}
+#ures img{width:32px;height:32px;border-radius:50%}
+#ures .msg{padding:10px}
+#viewing{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;color:var(--dim);font-size:.9rem}
+#verr{z-index:3;bottom:78px;overflow:auto;align-content:center;padding:8px}
+#vp{min-height:200px}
+.tools{align-items:stretch}
+@media(min-width:700px){.wrap{max-width:1000px;padding:24px}}
+@media(min-width:1100px){.wrap{max-width:1280px}#list{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:400px){.ghost{padding:8px 12px;font-size:.82rem}#who img{width:34px;height:34px}}
 </style>
 </head>
 <body>
@@ -190,10 +214,12 @@ input[type=search]{border-radius:999px;padding:12px 18px}
     <div id="who"></div>
     <div class="hbtns">
       <button class="icon" id="gear1" data-ic="gear" aria-label="Einstellungen"></button>
-      <button class="ghost" id="wosuBtn">▶ Spielen (wosu!)</button>
+      <button class="ghost" id="nicominecithBtn">▶ Spielen (nicominecith osu!)</button>
       <a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a>
     </div>
   </header>
+  <form id="usrch" autocomplete="off"><input id="uq" type="search" placeholder="Spieler suchen (Name)…" aria-label="Spieler suchen" maxlength="30"><button class="ghost" type="submit">Suchen</button><div id="ures" hidden></div></form>
+  <div id="viewing" hidden><span id="vwho"></span><button class="ghost" id="vback" type="button">← Zurück zu mir</button></div>
   <div class="tabs">
     <button aria-pressed="true" data-t="recent">Zuletzt gespielt</button>
     <button aria-pressed="false" data-t="best">Beste Plays</button>
@@ -206,7 +232,7 @@ input[type=search]{border-radius:999px;padding:12px 18px}
   <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
 
-<section id="wosuFrame" hidden><div class="wbar"><span>wosu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="wosuClose">✕ Schließen</button></div><iframe id="wosuIf" title="wosu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
+<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
 
 <section id="mapview" hidden>
   <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
@@ -402,7 +428,7 @@ function skinCircle(o, d, al, num) {
 }
 
 /* ---------- Score-Liste ---------- */
-let me, tab = 'recent', scores = [], more = true, curScore = null;
+let me, target, tab = 'recent', scores = [], more = true, curScore = null;
 const LIM = 30;
 const RC = { X: '#ffd166', XH: '#e6e6f5', S: '#ffd166', SH: '#e6e6f5', A: '#7de3d0', B: '#6ea8ff', C: '#c084fc', D: '#ff4d6d', F: '#9b92c4' };
 const lab = r => ({ X: 'SS', XH: 'SS', SH: 'S' }[r] || r);
@@ -413,14 +439,14 @@ async function init() {
   lsLoad(S.liveSkin);
   const r = await api('/me/osu');
   if (!r.ok) return ($('#login').hidden = false);
-  me = await r.json();
+  me = await r.json(); target = me;
   $('#app').hidden = false;
   $('#who').innerHTML = `<img src="${esc(me.avatar_url)}" alt=""><b>${esc(me.username)}</b>`;
   load(true);
 }
 async function load(reset) {
   if (reset) { scores = []; more = true; $('#list').innerHTML = '<div class="msg">Lade Scores…</div>'; }
-  const r = await api(`/users/${me.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 });
+  const r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 });
   if (!r.ok) return ($('#list').innerHTML = `<div class="msg">Scores konnten nicht geladen werden (${r.status}).</div>`);
   const a = await r.json(); scores = scores.concat(a); more = a.length === LIM; paint();
 }
@@ -440,6 +466,29 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
   load(true);
 });
+
+// --- Nutzersuche ---
+function setTarget(u) {
+  target = u; $('#ures').hidden = true; $('#uq').value = '';
+  $('#viewing').hidden = u.id === me.id;
+  $('#vwho').innerHTML = `Replays von <b>${esc(u.username)}</b>`;
+  load(true);
+}
+$('#vback').onclick = () => setTarget(me);
+$('#usrch').onsubmit = async e => {
+  e.preventDefault();
+  const q = $('#uq').value.trim(), box = $('#ures'); if (!q) return;
+  box.hidden = false; box.innerHTML = '<div class="msg">Suche…</div>';
+  try {
+    const r = await api('/search', { mode: 'user', query: q });
+    if (!r.ok) throw 0;
+    const us = ((await r.json()).user || {}).data || [];
+    window._us = us.slice(0, 8);
+    box.innerHTML = window._us.map((u, i) => `<button type="button" data-u="${i}"><img src="${esc(u.avatar_url)}" alt=""><span>${esc(u.username)}</span></button>`).join('') || '<div class="msg">Kein Spieler gefunden.</div>';
+  } catch { box.innerHTML = '<div class="msg">Suche fehlgeschlagen.</div>'; }
+};
+$('#ures').onclick = e => { const b = e.target.closest('[data-u]'); if (b) setTarget(window._us[b.dataset.u]); };
+document.addEventListener('click', e => { if (!e.target.closest('#usrch')) $('#ures').hidden = true; });
 $('#q').oninput = $('#onlyRp').onchange = paint;
 $('#more').onclick = () => load(false);
 $('#list').onclick = e => { const b = e.target.closest('[data-i]'); if (b) openMap(scores[b.dataset.i]); };
@@ -466,8 +515,8 @@ function openMap(s) {
   const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? 'Replay ansehen' : 'Kein Replay verfügbar';
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
-$('#wosuBtn').onclick = () => { const f = $('#wosuIf'); if (!f.src) f.src = '/wosu/index.html'; $('#wosuFrame').hidden = false; };
-$('#wosuClose').onclick = () => { $('#wosuFrame').hidden = true; $('#wosuIf').removeAttribute('src'); };
+$('#nicominecithBtn').onclick = () => { const f = $('#nicominecithIf'); if (!f.src) f.src = '/nicominecith/index.html'; $('#nicominecithFrame').hidden = false; };
+$('#nicominecithClose').onclick = () => { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
 $('#mvplay').onclick = () => { if (curScore) openReplay(curScore); };
 $('#mvinfo').onclick = () => showInfo();
