@@ -427,7 +427,7 @@ async function lsLoad(n) {
     }
     sk.col = sk.col.filter(Boolean);
     const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1]]) if (files[fn]) { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } return null; };
-    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle'];
+    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin'];
     for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
     for (const w of want) sk.img[w] = await img(w);
     if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
@@ -995,6 +995,42 @@ function prep(m, F, mods, real) {
   m.stats = { n3, n1, n5, miss: cnt - n3 - n1 - n5, mx, cb, sb, mh, ur: sd * 10 / rt, avg: avg / rt };
 }
 
+/* ---------- Spinner + Rückwärts-Pfeile (Skin oder Standard-Look) ---------- */
+function drawSpinner(o, t, a, c) {
+  const X = 256, Y = 192, pr = t < o.t ? 1 : Math.max(0, Math.min(1, (o.end - t) / (o.end - o.t))), ang = Math.atan2(c.y - Y, c.x - X), im = SK ? SK.img : null;
+  const sz = i => i.naturalWidth / (i.hd || 1) * .8, spin = (i, rot) => { if (!i) return; g.save(); g.translate(X, Y); g.rotate(rot); dImg(i, 0, 0, sz(i), a); g.restore(); };
+  const has = im && ['spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle', 'spinner-middle2', 'spinner-circle', 'spinner-approachcircle'].some(k => im[k]);
+  if (has) {
+    if (im['spinner-background']) dImg(im['spinner-background'], X, Y, 512, a);
+    spin(im['spinner-bottom'], 0); spin(im['spinner-top'], ang); spin(im['spinner-middle2'], ang); spin(im['spinner-middle'], 0); spin(im['spinner-circle'], ang);
+    const ap = im['spinner-approachcircle']; if (ap) dImg(ap, X, Y, sz(ap) * (.1 + .9 * pr), a);
+    if (im['spinner-spin'] && t < o.t + 1500) dImg(im['spinner-spin'], X, Y + 130, sz(im['spinner-spin']), a);
+    return;
+  }
+  g.save(); g.translate(X, Y); g.globalAlpha = a;
+  g.fillStyle = 'rgba(18,15,29,.55)'; g.beginPath(); g.arc(0, 0, 175, 0, 7); g.fill();
+  g.rotate(ang); g.lineWidth = 10; g.lineCap = 'butt';
+  for (let i = 0; i < 8; i++) { g.strokeStyle = i % 2 ? '#ff5fa2' : '#7de3d0'; g.beginPath(); g.arc(0, 0, 120, i * Math.PI / 4 + .06, (i + 1) * Math.PI / 4 - .06); g.stroke(); }
+  g.rotate(-ang); g.fillStyle = '#ff5fa2'; g.beginPath(); g.arc(0, 0, 24, 0, 7); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill();
+  g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, Math.max(6, 175 * pr), 0, 7); g.stroke();
+  if (t < o.t + 1500) { g.fillStyle = '#fff'; g.font = '800 26px Sora,sans-serif'; g.fillText('SPIN!', 0, 150); }
+  g.restore();
+}
+function revArrow(o, atEnd, R, al, t) {
+  const p = o.path, n = p.length, e = atEnd ? p[n - 1] : p[0]; let q = atEnd ? p[n - 2] : p[1];
+  for (let i = 1; i < n; i++) { const w = atEnd ? p[n - 1 - i] : p[i]; if (Math.hypot(w[0] - e[0], w[1] - e[1]) >= R * .6) { q = w; break; } }
+  g.save(); g.translate(e[0], e[1]); g.rotate(Math.atan2(q[1] - e[1], q[0] - e[0])); const pu = 1 + .07 * Math.sin(t / 110); g.scale(pu, pu);
+  if (SK && SK.img.reversearrow) dImg(SK.img.reversearrow, 0, 0, R * 2, al);
+  else {
+    if (SK && SK.img.hitcircle) dImg(tinted(SK.img.hitcircle, colOf(o)), 0, 0, R * 2, al);
+    else { g.globalAlpha = al; g.fillStyle = o.col; g.beginPath(); g.arc(0, 0, R, 0, 7); g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); }
+    g.globalAlpha = al; g.strokeStyle = '#fff'; g.lineWidth = R * .2; g.lineCap = g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(-R * .35, -R * .42); g.lineTo(R * .38, 0); g.lineTo(-R * .35, R * .42); g.stroke();
+  }
+  g.restore();
+}
+
 function draw(t) {
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720); g.globalAlpha = 1;
   if (S.bg && bgImg && bgImg.naturalWidth) {
@@ -1005,6 +1041,7 @@ function draw(t) {
   g.lineWidth = 1; g.strokeStyle = '#2f2850'; g.strokeRect(0, 0, 512, 384);
   const R = M.r, P = M.pre;
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineCap = g.lineJoin = 'round';
+  const fr0 = (() => { let l = 0, r = F.length - 1; while (l < r) { const m = (l + r + 1) >> 1; F[m].t <= t ? l = m : r = m - 1; } return F[l]; })();
   if (!M.pm) { let m = -1e9; M.pm = M.ho.map(o => (m = Math.max(m, o.end, o.hitT || 0))); }
   let ia = 0, ib = M.ho.length;
   while (ia < ib) { const m = (ia + ib) >> 1; M.pm[m] + 600 < t ? ia = m + 1 : ib = m; }
@@ -1015,11 +1052,7 @@ function draw(t) {
     if (dt > P || t > fin + 600) continue;
     const a0 = Math.min(1, (P - dt) / (P * .4)), a = M.hd ? a0 * Math.min(1, Math.max(0, (dt - .3 * P) / (.3 * P))) : a0;
     const sa = M.hd && t > o.t ? a0 * Math.max(0, 1 - (t - o.t) / Math.max(1, o.end - o.t)) : a0;
-    if (o.type & 8) {
-      if (t > o.end) continue;
-      g.globalAlpha = a; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath();
-      g.arc(256, 192, 150 * Math.max(0, (o.end - t) / (o.end - o.t)), 0, 7); g.stroke(); continue;
-    }
+    if (o.type & 8) { if (t > o.end) continue; drawSpinner(o, t, a0, fr0); continue; }
     if (o.path && t <= o.end + 200) {
       g.globalAlpha = sa * (t > o.end ? 1 - (t - o.end) / 200 : 1);
       if (!o.p2d) { o.p2d = new Path2D(); o.path.forEach(([x, y], j) => j ? o.p2d.lineTo(x, y) : o.p2d.moveTo(x, y)); }
@@ -1028,6 +1061,10 @@ function draw(t) {
       for (const q of (S.ticks ? o.ticks : [])) {
         if (t < q.t) { g.globalAlpha = sa * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
+      }
+      if (o.slides > 1 && t <= o.end) {
+        const span = (o.end - o.t) / o.slides, cs = t < o.t ? 0 : Math.floor((t - o.t) / span);
+        for (let s = Math.min(cs + 1, o.slides - 2); s >= cs; s--) revArrow(o, s % 2 === 0, R, sa, t);
       }
       if (t >= o.t && t <= o.end) {
         const [bx, by] = posAt(o, slideFrac(o, t));
