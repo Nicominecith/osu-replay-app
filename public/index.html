@@ -265,7 +265,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
 
-<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="nicoImp" type="button">⬇ Maps importieren</button><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
+<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · nutzt automatisch deinen Replay-Skin (Einstellungen → Live-Ansicht)</span><button class="ghost" id="nicoImp" type="button">⬇ Maps importieren</button><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
 
 <section id="mapview" hidden>
   <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
@@ -406,10 +406,10 @@ async function lsAdd(f) {
   if (!Object.values(z.files).some(x => /skin\.ini$|\.png$/i.test(x.name))) throw 0;
   const ini = Object.values(z.files).find(x => /(^|\/)skin\.ini$/i.test(x.name));
   let nm = f.name.replace(/\.(osk|zip)$/i, ''); const m = ini && /^\s*Name\s*:\s*(.+)$/im.exec(await ini.async('string')); if (m) nm = m[1].trim() || nm;
-  await idb('readwrite', st => st.put({ name: nm, blob: f })); S.liveSkin = nm; saveS(); await lsLoad(nm);
+  await idb('readwrite', st => st.put({ name: nm, blob: f })); S.liveSkin = nm; saveS(); await lsLoad(nm); syncGameSkin(true);
 }
-async function lsDel(n) { await idb('readwrite', st => st.delete(n)); if (S.liveSkin === n) { S.liveSkin = ''; saveS(); SK = null; } lsPaint(); $('#lsName') && ($('#lsName').textContent = S.liveSkin || 'Standard'); }
-async function lsUse(n) { S.liveSkin = n; saveS(); lsPaint(); $('#lsName').textContent = (n || 'Standard') + ' …'; await lsLoad(n); $('#lsName').textContent = n || 'Standard' + (SK ? '' : ''); if (n && !SK) $('#lsName').textContent = n + ' (nicht lesbar)'; }
+async function lsDel(n) { await idb('readwrite', st => st.delete(n)); if (S.liveSkin === n) { S.liveSkin = ''; saveS(); SK = null; syncGameSkin(true); } lsPaint(); $('#lsName') && ($('#lsName').textContent = S.liveSkin || 'Standard'); }
+async function lsUse(n) { S.liveSkin = n; saveS(); lsPaint(); $('#lsName').textContent = (n || 'Standard') + ' …'; await lsLoad(n); syncGameSkin(true); $('#lsName').textContent = n || 'Standard' + (SK ? '' : ''); if (n && !SK) $('#lsName').textContent = n + ' (nicht lesbar)'; }
 let lsTok = 0;
 async function lsLoad(n) {
   const my = ++lsTok; SK = null; tintC.clear(); sT = -1e9; if (!n) return;
@@ -436,6 +436,42 @@ async function lsLoad(n) {
     if (my !== lsTok) return;
     SK = sk; tintC.clear();
   } catch (e) { console.error(e); SK = null; }
+}
+
+/* ---------- Replay-Skin auch in nicominecith osu! benutzen ---------- */
+const GKEY = 'webosu.settings.v2', GID = 'skin-nicosync', GFLAG = 'osuGameSkinSynced';
+const GAME_DB = () => new Promise((ok, no) => { const r = indexedDB.open('nicominecith-skins', 1); r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('skins')) d.createObjectStore('skins', { keyPath: 'id' }); if (!d.objectStoreNames.contains('files')) d.createObjectStore('files'); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); r.onblocked = () => no(new Error('DB blockiert')); });
+// Spinner bleiben bei allen Skins gleich: fehlen sie im Skin, kommen sie aus dem Standard-Skin des Spiels
+async function withSpinner(blob) {
+  const z = await JSZip.loadAsync(blob), names = Object.keys(z.files);
+  if (names.some(n => /spinner(spin|bonus)/i.test(n))) return blob;
+  const ini = names.find(n => /(^|\/)skin\.ini$/i.test(n)), pre = ini ? ini.slice(0, ini.length - 'skin.ini'.length) : '';
+  let add = 0;
+  for (const [src, dst] of [['normal-spinnerspin.wav', 'spinnerspin.wav'], ['normal-spinnerbonus.wav', 'spinnerbonus.wav']]) {
+    try { const r = await fetch('/nicominecith/assets/skins/default/' + src); if (r.ok) { z.file(pre + dst, await r.arrayBuffer()); add++; } } catch {}
+  }
+  return add ? z.generateAsync({ type: 'blob', compression: 'STORE' }) : blob;
+}
+async function syncGameSkin(force) {
+  try {
+    let cfg = {}; try { cfg = JSON.parse(localStorage.getItem(GKEY) || '{}') || {}; } catch {}
+    const n = S.liveSkin;
+    if (!n) {
+      if (typeof cfg.skin === 'string' && cfg.skin.startsWith(GID)) { cfg.skin = ''; localStorage.setItem(GKEY, JSON.stringify(cfg)); }
+      localStorage.removeItem(GFLAG); return;
+    }
+    if (!force && localStorage.getItem(GFLAG) === n) return;
+    const rec = await idb('readonly', st => st.get(n)); if (!rec || !rec.blob) return;
+    const blob = await withSpinner(rec.blob), db = await GAME_DB();
+    await new Promise((ok, no) => {
+      const tx = db.transaction(['skins', 'files'], 'readwrite');
+      tx.objectStore('files').put(blob, GID);
+      tx.objectStore('skins').put({ id: GID, name: n, author: 'Osu Replay', filename: n + '.osk', addedAt: Date.now(), sizeBytes: blob.size || 0 });
+      tx.oncomplete = ok; tx.onerror = tx.onabort = () => no(tx.error);
+    });
+    db.close();
+    cfg.skin = GID; localStorage.setItem(GKEY, JSON.stringify(cfg)); localStorage.setItem(GFLAG, n);
+  } catch (e) { console.warn('Skin-Sync zum Spiel fehlgeschlagen', e); }
 }
 
 /* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
@@ -606,7 +642,7 @@ function openMap(s) {
   const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? 'Replay ansehen' : 'Kein Replay verfügbar';
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
-$('#nicominecithBtn').onclick = () => { const f = $('#nicominecithIf'); if (!f.src) f.src = '/nicominecith/index.html'; $('#nicominecithFrame').hidden = false; };
+$('#nicominecithBtn').onclick = async () => { const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); f.src = '/nicominecith/index.html'; } $('#nicominecithFrame').hidden = false; };
 $('#nicominecithClose').onclick = () => { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
 $('#mvplay').onclick = () => { if (curScore) openReplay(curScore); };
