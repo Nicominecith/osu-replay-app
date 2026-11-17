@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#120f1d">
-<title>Replay-Kino für osu!</title>
+<link rel="icon" type="image/png" id="fav" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<script>(function(){var i=new Image;i.onerror=function(){document.getElementById("fav").href="https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/0af3c28c-47c7-4876-af38-7340f65ae3b6/u1-e1-0.png"};i.src="favicon.png"})()</script>
+<title>Osu Replay – deine osu!-Replays ansehen</title>
+<meta name="description" content="Osu Replay: Schau dir deine letzten und besten osu!-Plays als Replay an – auf Handy, Tablet und PC. Gespielt mit nicominecith osu!.">
+<meta property="og:title" content="Osu Replay">
+<meta property="og:description" content="Deine osu!-Replays, überall.">
+<meta property="og:image" content="https://osureplay.netlify.app/banner.png">
+<meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#120f1d;--panel:#1d1830;--line:#2f2850;--tx:#f1ecff;--dim:#9b92c4;--pink:#ff5fa2;--mint:#7de3d0}
@@ -214,16 +222,27 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 .hbtns a.ghost{grid-area:out;justify-self:end}
 @media(min-width:700px){header{grid-template-columns:1fr auto auto auto;grid-template-areas:"who gear play out"}.hbtns #nicominecithBtn{width:auto;padding:0 22px}}
 #spd{flex:none;width:96px!important;min-width:0;accent-color:var(--pink)}#spdv{min-width:56px;font-size:.85rem}
+
+.banner{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:20px;border:1px solid var(--line);box-shadow:0 0 40px rgba(255,95,162,.28),0 0 80px rgba(125,227,208,.12);background:var(--panel)}
+.banner.slim{aspect-ratio:16/4.2;object-position:center 45%;border-radius:16px;margin-bottom:14px;box-shadow:0 0 24px rgba(255,95,162,.22)}
+#login{max-width:720px}
+#login h1 span{background:linear-gradient(90deg,var(--pink),var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+#login .btn{box-shadow:0 6px 24px rgba(255,95,162,.4);transition:transform .15s,box-shadow .15s}
+#login .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,95,162,.55)}
+@media(prefers-reduced-motion:reduce){#login .btn{transition:none}}
+@media(max-width:520px){.banner{border-radius:14px}.banner.slim{aspect-ratio:16/6}}
 </style>
 </head>
 <body>
 <section id="login" hidden>
-  <h1>Deine Replays, überall.</h1>
+  <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
+  <h1>Deine Replays, <span>überall.</span></h1>
   <p>Verbinde dein osu!-Konto und schau dir deine letzten und besten Plays auf Handy, Tablet oder PC an.</p>
   <a class="btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
 </section>
 
 <main id="app" class="wrap" hidden>
+  <img class="banner slim" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
   <header>
     <div id="who"></div>
     <div class="hbtns">
