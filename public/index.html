@@ -201,6 +201,17 @@ header{flex-wrap:wrap}
 @media(min-width:1100px){.wrap{max-width:1280px}#list{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:400px){.ghost{padding:8px 12px;font-size:.82rem}#who img{width:34px;height:34px}}
 #nicominecithFrame .wbar{flex-wrap:wrap}#nicominecithFrame .wbar span{flex:1 1 160px}
+
+/* --- Header-Layout v2 + Hintergrund --- */
+html{min-height:100%;background:var(--bg)}
+body{min-height:100dvh;background-attachment:fixed}
+header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-areas:"who who out" "gear play play";gap:10px 10px;align-items:center}
+#who{grid-area:who;flex:none}
+.hbtns{display:contents}
+.hbtns #gear1{grid-area:gear}
+.hbtns #nicominecithBtn{grid-area:play;width:100%;height:44px;display:grid;place-items:center;padding:0 16px}
+.hbtns a.ghost{grid-area:out;justify-self:end}
+@media(min-width:700px){header{grid-template-columns:1fr auto auto auto;grid-template-areas:"who gear play out"}.hbtns #nicominecithBtn{width:auto;padding:0 22px}}
 </style>
 </head>
 <body>
@@ -215,7 +226,7 @@ header{flex-wrap:wrap}
     <div id="who"></div>
     <div class="hbtns">
       <button class="icon" id="gear1" data-ic="gear" aria-label="Einstellungen"></button>
-      <button class="ghost" id="nicominecithBtn">▶ Spielen (nicominecith osu!)</button>
+      <button class="ghost" id="nicominecithBtn">▶ Spielen</button>
       <a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a>
     </div>
   </header>
@@ -407,7 +418,7 @@ async function lsLoad(n) {
 }
 
 /* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
-const BUILTIN = [['Uchiha_Red', '- Uchiha Red'], ['Uchiha_Red_V2_Itachi', '- Uchiha Red V2 [Itachi]'], ['Uchiha_Blue', '- Uchiha Blue']].map(([f, n]) => ({ presentationName: n, author: 'Nzth (eingebaut)', url: `/skins/${f}.osk`, local: true }));
+const BUILTIN = [['Uchiha_Red', '- Uchiha Red'], ['Uchiha_Red_V2_Itachi', '- Uchiha Red V2 [Itachi]'], ['Uchiha_Blue', '- Uchiha Blue']].map(([f, n]) => ({ presentationName: n, author: 'Nzth (eingebaut)', url: `/skins/${f}.osk`, lowResPreview: `/skins/${f}.jpg`, local: true }));
 let GS = [];
 async function loadGallery(q) {
   const box = $('#gsList'); if (!box) return;
@@ -417,7 +428,7 @@ async function loadGallery(q) {
     const mine = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
     let rest = []; try { rest = (await (await fetch('/.netlify/functions/skins?size=47&search=' + encodeURIComponent(q))).json()).skins || []; } catch {}
     GS = mine.concat(rest.slice(0, 50 - mine.length));
-    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}">${k.local ? '' : `<img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}">`}<b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
+    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
   } catch { box.innerHTML = '<div class="note">Galerie nicht erreichbar.</div>'; }
 }
 async function gsUse(i, btn) {
