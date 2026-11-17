@@ -200,6 +200,7 @@ header{flex-wrap:wrap}
 @media(min-width:700px){.wrap{max-width:1000px;padding:24px}}
 @media(min-width:1100px){.wrap{max-width:1280px}#list{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:400px){.ghost{padding:8px 12px;font-size:.82rem}#who img{width:34px;height:34px}}
+#nicominecithFrame .wbar{flex-wrap:wrap}#nicominecithFrame .wbar span{flex:1 1 160px}
 </style>
 </head>
 <body>
@@ -232,7 +233,7 @@ header{flex-wrap:wrap}
   <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
 
-<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
+<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · Skin-Import über Einstellungen → Skin</span><button class="ghost" id="nicoImp" type="button">⬇ Maps importieren</button><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
 
 <section id="mapview" hidden>
   <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
@@ -321,12 +322,13 @@ const pct = [0, 100, 5, '%'];
 const SCH = [
   ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
   ['Live-Ansicht · Ton', [['hitsounds', 'Hitsounds', 't'], ['hsVol', 'Hitsound-Lautstärke', 'r', ...pct], ['musicVol', 'Musik-Lautstärke', 'r', ...pct]]],
-  ['mp4-Render · Allgemein', [['resolution', 'Auflösung', 's', [['960x540', '540p'], ['1280x720', '720p'], ['1920x1080', '1080p (braucht o!rdr-Freigabe)']]], ['skin', 'Skin', 'k'], ['globalVolume', 'Gesamtlautstärke', 'r', ...pct], ['musicVolume', 'Musiklautstärke', 'r', ...pct], ['hitsoundVolume', 'Hitsound-Lautstärke', 'r', ...pct], ['useSkinHitsounds', 'Hitsounds des Skins nutzen', 't']]],
+  ['mp4-Render · Allgemein', [['resolution', 'Auflösung', 's', [['960x540', '540p'], ['1280x720', '720p'], ['1920x1080', '1080p (braucht o!rdr-Freigabe)']]], ['skin', 'Skin', 'k'], ['customSkinId', 'Eigener Skin (o!rdr-ID)', 'cs'], ['globalVolume', 'Gesamtlautstärke', 'r', ...pct], ['musicVolume', 'Musiklautstärke', 'r', ...pct], ['hitsoundVolume', 'Hitsound-Lautstärke', 'r', ...pct], ['useSkinHitsounds', 'Hitsounds des Skins nutzen', 't']]],
   ['mp4-Render · Bild', [['inGameBGDim', 'Hintergrund im Spiel abdunkeln', 'r', ...pct], ['introBGDim', 'Hintergrund im Intro abdunkeln', 'r', ...pct], ['breakBGDim', 'Hintergrund in Pausen abdunkeln', 'r', ...pct], ['cursorSize', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['cursorTrail', 'Cursor-Trail', 't'], ['cursorRainbow', 'Regenbogen-Cursor', 't'], ['showBorders', 'Spielfeld-Rahmen', 't'], ['loadStoryboard', 'Storyboard laden', 't'], ['loadVideo', 'Hintergrundvideo laden', 't']]],
   ['mp4-Render · Anzeige', [['showScore', 'Score', 't'], ['showHPBar', 'Health-Bar', 't'], ['showComboCounter', 'Combo', 't'], ['showPPCounter', 'PP-Zähler', 't'], ['showHitErrorMeter', 'Hit-Error-Meter', 't'], ['showUnstableRate', 'Unstable Rate', 't'], ['showSliderBreaks', 'Slider-Breaks', 't'], ['showMods', 'Mods', 't'], ['showScoreboard', 'Scoreboard', 't'], ['showResultScreen', 'Ergebnis-Bildschirm', 't']]]
 ];
 function openSettings() {
   $('#setBody').innerHTML = SCH.map(([h, rows]) => `<h3>${h}</h3>` + rows.map(([k, l, t, a, b, st, u]) => {
+    if (t === 'cs') return `<div class="srow col"><span>${l}</span><input type="search" inputmode="numeric" data-k="customSkinId" placeholder="ID, z. B. 12345" value="${esc(S.customSkinId || '')}"><div class="note">Eigenen Skin auf <a href="https://ordr.issou.best/skins" target="_blank" rel="noopener" style="color:var(--mint)">ordr.issou.best/skins</a> hochladen, ID hier eintragen. Ist eine ID gesetzt, ersetzt sie die Skin-Auswahl beim mp4-Render.</div></div>`;
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
@@ -358,7 +360,7 @@ setBody.addEventListener('click', e => {
   const b = e.target.closest('.skin'); if (!b) return;
   S.skin = b.dataset.s; S.skinName = b.dataset.n; saveS();
   $('#skinName').textContent = S.skinName || 'Automatisch (beliebtester Skin)';
-  document.querySelectorAll('.skin').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('#skinList .skin').forEach(x => x.classList.toggle('on', x === b));
 });
 setBody.addEventListener('change', async e => {
   if (e.target.id !== 'lsFile') return;
@@ -384,9 +386,10 @@ async function lsAdd(f) {
   await idb('readwrite', st => st.put({ name: nm, blob: f })); S.liveSkin = nm; saveS(); await lsLoad(nm);
 }
 async function lsDel(n) { await idb('readwrite', st => st.delete(n)); if (S.liveSkin === n) { S.liveSkin = ''; saveS(); SK = null; } lsPaint(); $('#lsName') && ($('#lsName').textContent = S.liveSkin || 'Standard'); }
-async function lsUse(n) { S.liveSkin = n; saveS(); await lsLoad(n); $('#lsName').textContent = n || 'Standard'; lsPaint(); }
+async function lsUse(n) { S.liveSkin = n; saveS(); lsPaint(); $('#lsName').textContent = (n || 'Standard') + ' …'; await lsLoad(n); $('#lsName').textContent = n || 'Standard' + (SK ? '' : ''); if (n && !SK) $('#lsName').textContent = n + ' (nicht lesbar)'; }
+let lsTok = 0;
 async function lsLoad(n) {
-  SK = null; if (!n) return;
+  const my = ++lsTok; SK = null; tintC.clear(); sT = -1e9; if (!n) return;
   try {
     const rec = await idb('readonly', st => st.get(n)); if (!rec) return;
     const z = await JSZip.loadAsync(rec.blob), files = {};
@@ -407,6 +410,7 @@ async function lsLoad(n) {
     if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
     const dc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
     for (const b of ['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick']) for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } }
+    if (my !== lsTok) return;
     SK = sk; tintC.clear();
   } catch (e) { console.error(e); SK = null; }
 }
@@ -489,6 +493,40 @@ $('#usrch').onsubmit = async e => {
 };
 $('#ures').onclick = e => { const b = e.target.closest('[data-u]'); if (b) setTarget(window._us[b.dataset.u]); };
 document.addEventListener('click', e => { if (!e.target.closest('#usrch')) $('#ures').hidden = true; });
+
+// --- Maps aus dem osu!-Account ins Spiel importieren ---
+$('#nicoImp').onclick = async () => {
+  const btn = $('#nicoImp'), fr = $('#nicominecithIf'), w = fr.contentWindow;
+  if (!w || !fr.src) return;
+  btn.disabled = true;
+  const lbl = x => (btn.textContent = x);
+  try {
+    let done = []; try { done = JSON.parse(localStorage.getItem('osuImported') || '[]'); } catch {}
+    lbl('Lade Mapliste…');
+    const ids = new Map();
+    for (const [path, q] of [[`/users/${me.id}/beatmaps/most_played`, { limit: 50 }], [`/users/${me.id}/scores/best`, { mode: 'osu', limit: 50 }]]) {
+      try { const r = await api(path, q); if (r.ok) for (const x of await r.json()) { const bs = x.beatmapset; if (bs && bs.id) ids.set(bs.id, bs.title); } } catch {}
+    }
+    const todo = [...ids].filter(([id]) => !done.includes(id)).slice(0, 15);
+    if (!todo.length) { lbl('Alles importiert ✓'); setTimeout(() => { lbl('⬇ Maps importieren'); btn.disabled = false; }, 2500); return; }
+    let n = 0;
+    for (const [id, title] of todo) {
+      lbl(`Importiere ${++n}/${todo.length}…`);
+      let buf = null;
+      for (const u of [`https://api.nerinyan.moe/d/${id}?noVideo=true`, `https://catboy.best/d/${id}`]) {
+        try { const r = await fetch(u); if (r.ok) { buf = await r.arrayBuffer(); break; } } catch {}
+      }
+      if (!buf) continue;
+      const file = new File([buf], `${id} ${String(title).replace(/[\\/:*?"<>|]/g, '')}.osz`, { type: 'application/x-osu-beatmap-archive' });
+      const ev = new Event('drop', { cancelable: true }); Object.defineProperty(ev, 'dataTransfer', { value: { files: [file] } });
+      w.dispatchEvent(ev); done.push(id);
+      try { localStorage.setItem('osuImported', JSON.stringify(done)); } catch {}
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    lbl(`${n} Maps importiert ✓`);
+  } catch { lbl('Import fehlgeschlagen'); }
+  setTimeout(() => { lbl('⬇ Maps importieren'); btn.disabled = false; }, 3000);
+};
 $('#q').oninput = $('#onlyRp').onchange = paint;
 $('#more').onclick = () => load(false);
 $('#list').onclick = e => { const b = e.target.closest('[data-i]'); if (b) openMap(scores[b.dataset.i]); };
@@ -666,7 +704,7 @@ $('#mp4').onclick = async () => {
   const msg = x => ($('#msg').textContent = x), btn = $('#mp4');
   btn.disabled = true; playing = false;
   try {
-    const o = { skin: S.skin }; for (const k of RK) o[k] = S[k];
+    const o = { skin: S.skin, customSkinId: /^\d+$/.test(S.customSkinId || '') ? S.customSkinId : '' }; for (const k of RK) o[k] = S[k];
     msg('Sende Replay an o!rdr…');
     const r = await fetch('/.netlify/functions/render?username=' + encodeURIComponent(me.username) + '&o=' + encodeURIComponent(JSON.stringify(o)), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: osrBuf });
     const j = await r.json().catch(() => ({}));
@@ -739,14 +777,15 @@ function syncAudio() {
   if (!audio || audioErr) return;
   const want = t / 1000; audio.playbackRate = rate * +$('#spd').value; audio.volume = S.musicVol / 100;
   if (playing) {
-    if (audio.paused) { audio.currentTime = want; audio.play().catch(() => { audioErr = true; }); }
-    else if (Math.abs(audio.currentTime - want) > .2) audio.currentTime = want;
+    if (audio.paused) {
+      if (!audio._st) { audio._st = true; audio.currentTime = want; audio.play().then(() => { audio._st = false; }, () => { audio._st = false; audioErr = true; }); }
+    } else if (!audio._st && Math.abs(audio.currentTime - want) > (seeking ? .05 : .35)) { audio.currentTime = want; }
   } else if (!audio.paused) audio.pause();
 }
 
 function tick(n) {
   if (!$('#viewer').hidden && M) {
-    if (playing) { t += (n - last) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
+    if (playing) { t += Math.min(50, Math.max(0, n - last)) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
     try { draw(t); syncAudio(); schedSnd(); } catch (e) { console.error(e); }
     $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
     const sec = Math.max(0, t / 1000 / rate) | 0; $('#time').textContent = `${sec / 60 | 0}:${String(sec % 60).padStart(2, '0')}`;
@@ -901,7 +940,12 @@ function draw(t) {
   g.lineWidth = 1; g.strokeStyle = '#2f2850'; g.strokeRect(0, 0, 512, 384);
   const R = M.r, P = M.pre;
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineCap = g.lineJoin = 'round';
-  for (let i = M.ho.length - 1; i >= 0; i--) {
+  if (!M.pm) { let m = -1e9; M.pm = M.ho.map(o => (m = Math.max(m, o.end, o.hitT || 0))); }
+  let ia = 0, ib = M.ho.length;
+  while (ia < ib) { const m = (ia + ib) >> 1; M.pm[m] + 600 < t ? ia = m + 1 : ib = m; }
+  let ic = ia, id = M.ho.length;
+  while (ic < id) { const m = (ic + id) >> 1; M.ho[m].t - P <= t ? ic = m + 1 : id = m; }
+  for (let i = ic - 1; i >= ia; i--) {
     const o = M.ho[i], dt = o.t - t, fin = Math.max(o.end, o.hitT);
     if (dt > P || t > fin + 600) continue;
     const a = Math.min(1, (P - dt) / (P * .4));
@@ -912,9 +956,9 @@ function draw(t) {
     }
     if (o.path && t <= o.end + 200) {
       g.globalAlpha = a * (t > o.end ? 1 - (t - o.end) / 200 : 1);
-      g.beginPath(); o.path.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y));
-      g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke();
-      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke();
+      if (!o.p2d) { o.p2d = new Path2D(); o.path.forEach(([x, y], j) => j ? o.p2d.lineTo(x, y) : o.p2d.moveTo(x, y)); }
+      g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke(o.p2d);
+      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke(o.p2d);
       for (const q of (S.ticks ? o.ticks : [])) {
         if (t < q.t) { g.globalAlpha = a * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
@@ -988,9 +1032,11 @@ function hsound(at, hs, tick) {
 }
 function schedSnd() {
   if (!actx || !playing || !M.snd || !S.hitsounds) return;
+  if (actx.state === 'suspended') actx.resume().catch(() => {});
   const sp = rate * +$('#spd').value, hz = t + 100 * sp, SN = M.snd;
   if (t > sT + 50 || t < sT - 100 * sp - 100) { let a = 0, b = SN.length; while (a < b) { const q = (a + b) >> 1; SN[q].t <= t ? a = q + 1 : b = q; } sI = a; }
-  while (sI < SN.length && SN[sI].t <= hz) { const e = SN[sI++]; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
+  let nv = 0;
+  while (sI < SN.length && SN[sI].t <= hz) { const e = SN[sI++]; if (++nv > 6) continue; hsound(actx.currentTime + Math.max(0, (e.t - t) / sp / 1000), e.hs, e.tick); }
   sT = hz;
 }
 
@@ -999,11 +1045,13 @@ $('#pp').onclick = cv.onclick = () => {
   try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch { actx = null; }
   $('#msg').textContent = ''; if (t >= end) t = 0; playing = !playing;
   if (playing && audio) {
-    audioErr = false; audio.currentTime = t / 1000;
-    const pr = audio.play(); if (pr && pr.catch) pr.catch(() => { audioErr = true; $('#msg').textContent = 'Ton konnte nicht gestartet werden – das Replay läuft ohne Musik.'; });
+    audioErr = false; audio._st = true; audio.currentTime = t / 1000;
+    const pr = audio.play(); if (pr && pr.then) pr.then(() => { audio._st = false; }, () => { audio._st = false; audioErr = true; $('#msg').textContent = 'Ton konnte nicht gestartet werden – das Replay läuft ohne Musik.'; });
   }
 };
-$('#seek').oninput = e => { t = +e.target.value; };
+let seeking = false;
+$('#seek').oninput = e => { t = +e.target.value; seeking = true; clearTimeout(seeking.t); setTimeout(() => seeking = false, 300); };
+document.addEventListener('visibilitychange', () => { if (document.hidden) { playing = false; if (audio) audio.pause(); } });
 $('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); resetVideo(); };
 init();
 </script>

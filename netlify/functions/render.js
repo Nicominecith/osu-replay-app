@@ -37,8 +37,8 @@ exports.handler = async (e) => {
       skin = ((j.skins || []).sort((a, b) => (b.timesUsed || 0) - (a.timesUsed || 0))[0] || {}).skin || '';
     } catch {}
   }
-  f.append('skin', skin || process.env.ORDR_SKIN || 'default');
-  f.append('customSkin', 'false');
+  if (/^\d{1,9}$/.test(String(o.customSkinId || ''))) { f.append('skin', String(o.customSkinId)); f.append('customSkin', 'true'); }
+  else { f.append('skin', skin || process.env.ORDR_SKIN || 'default'); f.append('customSkin', 'false'); }
   if (process.env.ORDR_KEY) f.append('verificationKey', process.env.ORDR_KEY);
   const r = await fetch(`${ORDR}/renders`, { method: 'POST', body: f });
   return out(r, await r.text());
