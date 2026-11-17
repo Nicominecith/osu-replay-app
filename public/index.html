@@ -246,7 +246,6 @@ header{flex-wrap:wrap}
   <div id="vbar">
     <button class="vb" id="infoBtn" data-ic="info"><span>Details</span></button>
     <button class="vb" id="gear2" data-ic="gear"><span>Einstellungen</span></button>
-    <button class="vb" id="mp4" data-ic="video"><span>mp4 rendern</span></button>
     <button class="vb" id="close" data-ic="x"><span>Schließen</span></button>
   </div>
   <div id="stage"><canvas id="cv" width="960" height="720"></canvas>
@@ -322,9 +321,6 @@ const pct = [0, 100, 5, '%'];
 const SCH = [
   ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
   ['Live-Ansicht · Ton', [['hitsounds', 'Hitsounds', 't'], ['hsVol', 'Hitsound-Lautstärke', 'r', ...pct], ['musicVol', 'Musik-Lautstärke', 'r', ...pct]]],
-  ['mp4-Render · Allgemein', [['resolution', 'Auflösung', 's', [['960x540', '540p'], ['1280x720', '720p'], ['1920x1080', '1080p (braucht o!rdr-Freigabe)']]], ['skin', 'Skin', 'k'], ['customSkinId', 'Eigener Skin (o!rdr-ID)', 'cs'], ['globalVolume', 'Gesamtlautstärke', 'r', ...pct], ['musicVolume', 'Musiklautstärke', 'r', ...pct], ['hitsoundVolume', 'Hitsound-Lautstärke', 'r', ...pct], ['useSkinHitsounds', 'Hitsounds des Skins nutzen', 't']]],
-  ['mp4-Render · Bild', [['inGameBGDim', 'Hintergrund im Spiel abdunkeln', 'r', ...pct], ['introBGDim', 'Hintergrund im Intro abdunkeln', 'r', ...pct], ['breakBGDim', 'Hintergrund in Pausen abdunkeln', 'r', ...pct], ['cursorSize', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['cursorTrail', 'Cursor-Trail', 't'], ['cursorRainbow', 'Regenbogen-Cursor', 't'], ['showBorders', 'Spielfeld-Rahmen', 't'], ['loadStoryboard', 'Storyboard laden', 't'], ['loadVideo', 'Hintergrundvideo laden', 't']]],
-  ['mp4-Render · Anzeige', [['showScore', 'Score', 't'], ['showHPBar', 'Health-Bar', 't'], ['showComboCounter', 'Combo', 't'], ['showPPCounter', 'PP-Zähler', 't'], ['showHitErrorMeter', 'Hit-Error-Meter', 't'], ['showUnstableRate', 'Unstable Rate', 't'], ['showSliderBreaks', 'Slider-Breaks', 't'], ['showMods', 'Mods', 't'], ['showScoreboard', 'Scoreboard', 't'], ['showResultScreen', 'Ergebnis-Bildschirm', 't']]]
 ];
 function openSettings() {
   $('#setBody').innerHTML = SCH.map(([h, rows]) => `<h3>${h}</h3>` + rows.map(([k, l, t, a, b, st, u]) => {
@@ -332,17 +328,10 @@ function openSettings() {
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50)</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
+    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
     return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
-  }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert. Die mp4-Optionen gelten für den nächsten Render bei o!rdr.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
-  $('#settings').hidden = false; loadSkins(''); lsPaint(); loadGallery('');
-}
-async function loadSkins(q) {
-  const box = $('#skinList'); if (!box) return;
-  try {
-    const j = await (await fetch('/.netlify/functions/render?skins=1&search=' + encodeURIComponent(q))).json();
-    box.innerHTML = `<button class="skin ${S.skin ? '' : 'on'}" data-s="" data-n=""><b>Automatisch</b><small>beliebtester Skin</small></button>` + (j.skins || []).map(k => `<button class="skin ${S.skin === k.skin ? 'on' : ''}" data-s="${esc(k.skin)}" data-n="${esc(k.presentationName)}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('');
-  } catch { box.innerHTML = '<div class="note">Skin-Liste nicht erreichbar.</div>'; }
+  }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
+  $('#settings').hidden = false; lsPaint(); loadGallery('');
 }
 const setBody = $('#setBody'); let skinT;
 setBody.addEventListener('input', e => {
@@ -418,13 +407,17 @@ async function lsLoad(n) {
 }
 
 /* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
+const BUILTIN = [['Uchiha_Red', '- Uchiha Red'], ['Uchiha_Red_V2_Itachi', '- Uchiha Red V2 [Itachi]'], ['Uchiha_Blue', '- Uchiha Blue']].map(([f, n]) => ({ presentationName: n, author: 'Nzth (eingebaut)', url: `/skins/${f}.osk`, local: true }));
 let GS = [];
 async function loadGallery(q) {
   const box = $('#gsList'); if (!box) return;
   box.innerHTML = '<div class="note">Lade Skins…</div>';
   try {
-    GS = (await (await fetch('/.netlify/functions/render?skins=1&size=50&search=' + encodeURIComponent(q))).json()).skins || [];
-    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
+    const ql = q.trim().toLowerCase();
+    const mine = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
+    let rest = []; try { rest = (await (await fetch('/.netlify/functions/skins?size=47&search=' + encodeURIComponent(q))).json()).skins || []; } catch {}
+    GS = mine.concat(rest.slice(0, 50 - mine.length));
+    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}">${k.local ? '' : `<img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}">`}<b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
   } catch { box.innerHTML = '<div class="note">Galerie nicht erreichbar.</div>'; }
 }
 async function gsUse(i, btn) {
@@ -433,6 +426,7 @@ async function gsUse(i, btn) {
   try {
     let buf = null;
     try { const r = await fetch(k.url); if (r.ok) buf = await r.arrayBuffer(); } catch {}
+    if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
     if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
     const nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
     await lsAdd(new File([buf], nm + '.osk'));
@@ -726,31 +720,6 @@ document.addEventListener('keydown', e => {
 vIcons();
 
 let osrBuf = null;
-$('#mp4').onclick = async () => {
-  if (!osrBuf) return;
-  const msg = x => ($('#msg').textContent = x), btn = $('#mp4');
-  btn.disabled = true; playing = false;
-  try {
-    const o = { skin: S.skin, customSkinId: /^\d+$/.test(S.customSkinId || '') ? S.customSkinId : '' }; for (const k of RK) o[k] = S[k];
-    msg('Sende Replay an o!rdr…');
-    const r = await fetch('/.netlify/functions/render?username=' + encodeURIComponent(me.username) + '&o=' + encodeURIComponent(JSON.stringify(o)), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: osrBuf });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.renderID) throw new Error(j.message || j.error || 'HTTP ' + r.status);
-    for (let n = 0; n < 180; n++) {
-      await new Promise(res => setTimeout(res, 5000));
-      const x = ((await (await fetch('/.netlify/functions/render?id=' + j.renderID)).json()).renders || [])[0];
-      if (x && x.errorCode) throw new Error(x.progress || 'o!rdr-Fehlercode ' + x.errorCode);
-      if (x && x.videoUrl) {
-        if (audio) audio.pause();
-        msg(''); let dyn = ''; try { dyn = (await (await fetch('/.netlify/functions/render?dyn=' + j.renderID)).json()).url || ''; } catch {}
-        playVideo([dyn, x.videoUrl].filter(Boolean)); btn.disabled = false; return;
-      }
-      msg('Rendert… ' + ((x && x.progress) || 'wartet in der Warteschlange'));
-    }
-    throw new Error('Zeitüberschreitung');
-  } catch (err) { msg('Render fehlgeschlagen: ' + err.message); }
-  btn.disabled = false;
-};
 
 async function openReplay(s) {
   curScore = s; $('#spd').value = S.speed; $('#viewer').hidden = false; playing = false; M = null;
