@@ -332,10 +332,10 @@ function openSettings() {
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label></div>`;
+    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50)</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
     return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
   }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert. Die mp4-Optionen gelten für den nächsten Render bei o!rdr.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
-  $('#settings').hidden = false; loadSkins(''); lsPaint();
+  $('#settings').hidden = false; loadSkins(''); lsPaint(); loadGallery('');
 }
 async function loadSkins(q) {
   const box = $('#skinList'); if (!box) return;
@@ -347,6 +347,7 @@ async function loadSkins(q) {
 const setBody = $('#setBody'); let skinT;
 setBody.addEventListener('input', e => {
   const el = e.target;
+  if (el.id === 'gsQ') { clearTimeout(skinT); skinT = setTimeout(() => loadGallery(el.value), 400); return; }
   if (el.id === 'skinQ') { clearTimeout(skinT); skinT = setTimeout(() => loadSkins(el.value), 400); return; }
   const k = el.dataset.k; if (!k) return;
   S[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
@@ -355,6 +356,7 @@ setBody.addEventListener('input', e => {
 });
 setBody.addEventListener('click', e => {
   const del = e.target.closest('[data-lsdel]'); if (del) { e.stopPropagation(); lsDel(del.dataset.lsdel); return; }
+  const gs = e.target.closest('[data-gs]'); if (gs) { gsUse(+gs.dataset.gs, gs); return; }
   const lb = e.target.closest('[data-ls]'); if (lb) { lsUse(lb.dataset.ls); return; }
   if (e.target.id === 'reset') { S = { ...DEF }; saveS(); return openSettings(); }
   const b = e.target.closest('.skin'); if (!b) return;
@@ -413,6 +415,31 @@ async function lsLoad(n) {
     if (my !== lsTok) return;
     SK = sk; tintC.clear();
   } catch (e) { console.error(e); SK = null; }
+}
+
+/* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
+let GS = [];
+async function loadGallery(q) {
+  const box = $('#gsList'); if (!box) return;
+  box.innerHTML = '<div class="note">Lade Skins…</div>';
+  try {
+    GS = (await (await fetch('/.netlify/functions/render?skins=1&size=50&search=' + encodeURIComponent(q))).json()).skins || [];
+    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
+  } catch { box.innerHTML = '<div class="note">Galerie nicht erreichbar.</div>'; }
+}
+async function gsUse(i, btn) {
+  const k = GS[i]; if (!k) return; const sm = btn.querySelector('small'), old = sm.textContent;
+  sm.textContent = 'Lade…'; btn.disabled = true;
+  try {
+    let buf = null;
+    try { const r = await fetch(k.url); if (r.ok) buf = await r.arrayBuffer(); } catch {}
+    if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
+    const nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
+    await lsAdd(new File([buf], nm + '.osk'));
+    sm.textContent = 'Aktiv ✓'; lsPaint(); const n = $('#lsName'); if (n) n.textContent = S.liveSkin;
+    document.querySelectorAll('#gsList .skin').forEach(x => x.classList.toggle('on', x === btn));
+  } catch (err) { sm.textContent = 'Fehler: ' + String(err.message || 'Download').slice(0, 40); setTimeout(() => sm.textContent = old, 3500); }
+  btn.disabled = false;
 }
 const tintC = new Map();
 function tinted(im, col) {
