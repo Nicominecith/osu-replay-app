@@ -416,7 +416,7 @@ async function lsLoad(n) {
   try {
     const rec = await idb('readonly', st => st.get(n)); if (!rec) return;
     const z = await JSZip.loadAsync(rec.blob), files = {};
-    for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split('/').pop().toLowerCase()] = f;
+    for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split(/[\\/]/).pop().toLowerCase()] = f;
     const sk = { img: {}, snd: {}, col: [], pre: 'default', ov: -2 };
     const ini = files['skin.ini'] ? await files['skin.ini'].async('string') : '';
     for (const ln of ini.split(/\r?\n/)) {
@@ -426,15 +426,15 @@ async function lsLoad(n) {
       else if (/^HitCircleOverlap$/i.test(m[1])) sk.ov = +m[2];
     }
     sk.col = sk.col.filter(Boolean);
-    const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1]]) if (files[fn]) { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } return null; };
-    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin'];
+    const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1], [b + '@2x.jpg', 2], [b + '.jpg', 1]]) if (files[fn]) { try { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } catch {} } return null; };
+    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin', 'hit300', 'hit100', 'hit50', 'hit0'];
     for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
     for (const w of want) sk.img[w] = await img(w);
     if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
     const dc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
     for (const b of ['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick']) for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } }
     if (my !== lsTok) return;
-    SK = sk; tintC.clear();
+    SK = sk; tintC.clear(); const nf = Object.values(sk.img).filter(Boolean).length; window.skinInfo = nf + ' Grafiken geladen'; console.info('Skin', n, window.skinInfo, Object.keys(sk.img).filter(k => sk.img[k]).join(','));
   } catch (e) { console.error(e); SK = null; }
 }
 
@@ -1088,8 +1088,9 @@ function draw(t) {
       g.beginPath(); g.arc(o.x, o.y, R * (o.res ? 1 + .4 * k : 1), 0, 7); g.fill(); g.stroke();
     }
     if (t >= o.hitT && t < o.hitT + 600 && o.res < 3) {
-      g.globalAlpha = 1 - (t - o.hitT) / 600; g.font = 'bold 22px Sora,sans-serif';
-      g.fillStyle = ['#ff4d6d', '#7de3d0', '#ffd166'][o.res]; g.fillText(['✕', '50', '100'][o.res], o.x, o.y + R + 14);
+      g.globalAlpha = 1 - (t - o.hitT) / 600; const hi0 = SK && SK.img['hit' + [0, 50, 100][o.res]];
+      if (hi0) dImg(hi0, o.x, o.y + R + 6, hi0.naturalWidth / (hi0.hd || 1) * .8, g.globalAlpha);
+      else { g.font = 'bold 22px Sora,sans-serif'; g.fillStyle = ['#ff4d6d', '#7de3d0', '#ffd166'][o.res]; g.fillText(['✕', '50', '100'][o.res], o.x, o.y + R + 14); }
     }
   }
   g.globalAlpha = 1;
