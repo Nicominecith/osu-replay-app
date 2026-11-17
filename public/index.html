@@ -54,6 +54,7 @@ canvas{width:100%;max-width:min(100%,calc((100vh - 230px)*4/3));max-width:min(10
 video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(100%,calc((100dvh - 230px)*16/9));border-radius:12px;background:#000}
 #ctl{display:flex;align-items:center;gap:10px;padding:12px 0}
 #ctl input[type=range]{flex:1;accent-color:var(--pink);height:32px}
+#spd{flex:none;width:96px;height:32px;accent-color:var(--pink);min-width:0}
 #ctl button,#ctl select{background:var(--panel);border:1px solid var(--line);border-radius:10px;height:44px;min-width:44px;padding:0 10px;color:var(--tx)}
 #time{color:var(--dim);font-variant-numeric:tabular-nums;font-size:.85rem}
 .msg{color:var(--dim);text-align:center;padding:8px}
@@ -212,6 +213,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 .hbtns #nicominecithBtn{grid-area:play;width:100%;height:44px;display:grid;place-items:center;padding:0 16px}
 .hbtns a.ghost{grid-area:out;justify-self:end}
 @media(min-width:700px){header{grid-template-columns:1fr auto auto auto;grid-template-areas:"who gear play out"}.hbtns #nicominecithBtn{width:auto;padding:0 22px}}
+#spd{flex:none;width:96px!important;min-width:0;accent-color:var(--pink)}#spdv{min-width:56px;font-size:.85rem}
 </style>
 </head>
 <body>
@@ -283,7 +285,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
     <button id="pp" aria-label="Abspielen oder pausieren">▶</button>
     <input id="seek" type="range" min="0" value="0" step="10" aria-label="Zeitleiste">
     <span id="time">0:00</span>
-    <select id="spd" aria-label="Geschwindigkeit"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option></select>
+    <input id="spd" type="range" min="0.25" max="3" step="0.05" value="1" aria-label="Geschwindigkeit"><button id="spdv" type="button" aria-label="Geschwindigkeit zurücksetzen">1x</button>
   </div>
 </section>
 
@@ -330,7 +332,7 @@ const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); }
 const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName', 'liveSkin'].includes(k));
 const pct = [0, 100, 5, '%'];
 const SCH = [
-  ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 's', [['0.5', '0.5x'], ['1', '1x'], ['2', '2x']]]]],
+  ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 'r', .25, 3, .05, 'x']]],
   ['Live-Ansicht · Ton', [['hitsounds', 'Hitsounds', 't'], ['hsVol', 'Hitsound-Lautstärke', 'r', ...pct], ['musicVol', 'Musik-Lautstärke', 'r', ...pct]]],
 ];
 function openSettings() {
@@ -733,7 +735,7 @@ vIcons();
 let osrBuf = null;
 
 async function openReplay(s) {
-  curScore = s; $('#spd').value = S.speed; $('#viewer').hidden = false; playing = false; M = null;
+  curScore = s; $('#spd').value = S.speed || 1; spdUpd(); $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
   resetVideo(); audioErr = false; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
   $('#title').textContent = `${s.beatmapset.artist} – ${s.beatmapset.title} [${s.beatmap.version}]`;
@@ -1056,6 +1058,9 @@ $('#pp').onclick = cv.onclick = () => {
     const pr = audio.play(); if (pr && pr.then) pr.then(() => { audio._st = false; }, () => { audio._st = false; audioErr = true; $('#msg').textContent = 'Ton konnte nicht gestartet werden – das Replay läuft ohne Musik.'; });
   }
 };
+const spdUpd = () => { $('#spdv').textContent = (+$('#spd').value).toFixed(2).replace(/\.?0+$/, '') + 'x'; };
+$('#spd').oninput = spdUpd;
+$('#spdv').onclick = () => { $('#spd').value = 1; spdUpd(); };
 let seeking = false;
 $('#seek').oninput = e => { t = +e.target.value; seeking = true; clearTimeout(seeking.t); setTimeout(() => seeking = false, 300); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) { playing = false; if (audio) audio.pause(); } });
