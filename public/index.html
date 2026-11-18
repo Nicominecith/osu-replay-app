@@ -231,14 +231,41 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 #login .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,95,162,.55)}
 @media(prefers-reduced-motion:reduce){#login .btn{transition:none}}
 @media(max-width:520px){.banner{border-radius:14px}.banner.slim{aspect-ratio:16/6}}
+
+#login{max-width:760px;position:relative}
+#login::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 50% at 18% 8%,rgba(255,95,162,.2),transparent 70%),radial-gradient(50% 45% at 88% 90%,rgba(125,227,208,.15),transparent 70%)}
+.lg-card{background:linear-gradient(180deg,rgba(29,24,48,.94),rgba(18,15,29,.94));border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 60px rgba(255,95,162,.12)}
+.lg-card .banner{border-radius:0;border:0;box-shadow:none;aspect-ratio:16/8}
+.lg-body{padding:22px 22px 24px;display:grid;gap:14px}
+.lg-badge{justify-self:start;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mint);background:rgba(125,227,208,.1);border:1px solid rgba(125,227,208,.3);padding:4px 10px;border-radius:99px}
+.lg-feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lg-feat li{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:.9rem;display:flex;gap:8px;align-items:center}
+.lg-feat b{color:var(--pink);font-weight:700}
+.lg-btn{display:block;justify-self:stretch;text-align:center;font-size:1.1rem;padding:14px 18px;animation:lgpulse 2.4s infinite}
+@keyframes lgpulse{0%{box-shadow:0 0 0 0 rgba(255,95,162,.5)}70%{box-shadow:0 0 0 16px rgba(255,95,162,0)}100%{box-shadow:0 0 0 0 rgba(255,95,162,0)}}
+.lg-note{color:var(--dim);font-size:.8rem;text-align:center}
+@media(max-width:520px){.lg-feat{grid-template-columns:1fr}.lg-body{padding:18px}}
+@media(prefers-reduced-motion:reduce){.lg-btn{animation:none}}
 </style>
 </head>
 <body>
 <section id="login" hidden>
-  <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
-  <h1>Deine Replays, <span>überall.</span></h1>
-  <p>Verbinde dein osu!-Konto und schau dir deine letzten und besten Plays auf Handy, Tablet oder PC an.</p>
-  <a class="btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+  <div class="lg-card">
+    <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
+    <div class="lg-body">
+      <span class="lg-badge">osu!-Replays · kostenlos</span>
+      <h1>Deine Replays, <span>überall.</span></h1>
+      <p>Verbinde dein osu!-Konto und schau dir deine letzten und besten Plays auf Handy, Tablet oder PC an.</p>
+      <ul class="lg-feat">
+        <li><b>▶</b> Replays direkt im Browser</li>
+        <li><b>🎨</b> Eigene Skins &amp; Galerie</li>
+        <li><b>🎮</b> Selbst spielen mit nicominecith osu!</li>
+        <li><b>📊</b> Score, Genauigkeit &amp; Combo live</li>
+      </ul>
+      <a class="btn lg-btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+      <small class="lg-note">Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</small>
+    </div>
+  </div>
 </section>
 
 <main id="app" class="wrap" hidden>
@@ -341,14 +368,11 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { b.clo
 
 /* ---------- Einstellungen ---------- */
 const DEF = {
-  bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80,
-  skin: '', skinName: '', liveSkin: '', resolution: '1280x720', globalVolume: 60, musicVolume: 60, hitsoundVolume: 60, useSkinHitsounds: true,
-  inGameBGDim: 80, introBGDim: 60, breakBGDim: 70, cursorSize: 1, cursorTrail: true, cursorRainbow: false, showBorders: true, loadStoryboard: false, loadVideo: false,
-  showScore: true, showHPBar: true, showComboCounter: true, showPPCounter: true, showHitErrorMeter: true, showUnstableRate: true, showSliderBreaks: true, showMods: true, showScoreboard: false, showResultScreen: false
+  bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80, liveSkin: ''
 };
 let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('osuSet') || '{}')); } catch {}
+for (const k of Object.keys(S)) if (!(k in DEF)) delete S[k];
 const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); } catch {} };
-const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName', 'liveSkin'].includes(k));
 const pct = [0, 100, 5, '%'];
 const SCH = [
   ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 'r', .25, 3, .05, 'x']]],
@@ -356,12 +380,11 @@ const SCH = [
 ];
 function openSettings() {
   $('#setBody').innerHTML = SCH.map(([h, rows]) => `<h3>${h}</h3>` + rows.map(([k, l, t, a, b, st, u]) => {
-    if (t === 'cs') return `<div class="srow col"><span>${l}</span><input type="search" inputmode="numeric" data-k="customSkinId" placeholder="ID, z. B. 12345" value="${esc(S.customSkinId || '')}"><div class="note">Eigenen Skin auf <a href="https://ordr.issou.best/skins" target="_blank" rel="noopener" style="color:var(--mint)">ordr.issou.best/skins</a> hochladen, ID hier eintragen. Ist eine ID gesetzt, ersetzt sie die Skin-Auswahl beim mp4-Render.</div></div>`;
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
     if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
-    return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
+    return '';
   }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
   $('#settings').hidden = false; lsPaint(); loadGallery('');
 }
@@ -369,7 +392,6 @@ const setBody = $('#setBody'); let skinT;
 setBody.addEventListener('input', e => {
   const el = e.target;
   if (el.id === 'gsQ') { clearTimeout(skinT); skinT = setTimeout(() => loadGallery(el.value), 400); return; }
-  if (el.id === 'skinQ') { clearTimeout(skinT); skinT = setTimeout(() => loadSkins(el.value), 400); return; }
   const k = el.dataset.k; if (!k) return;
   S[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
   if (el.type === 'range') $('#v_' + k).textContent = el.value + el.dataset.u;
@@ -380,10 +402,6 @@ setBody.addEventListener('click', e => {
   const gs = e.target.closest('[data-gs]'); if (gs) { gsUse(+gs.dataset.gs, gs); return; }
   const lb = e.target.closest('[data-ls]'); if (lb) { lsUse(lb.dataset.ls); return; }
   if (e.target.id === 'reset') { S = { ...DEF }; saveS(); return openSettings(); }
-  const b = e.target.closest('.skin'); if (!b) return;
-  S.skin = b.dataset.s; S.skinName = b.dataset.n; saveS();
-  $('#skinName').textContent = S.skinName || 'Automatisch (beliebtester Skin)';
-  document.querySelectorAll('#skinList .skin').forEach(x => x.classList.toggle('on', x === b));
 });
 setBody.addEventListener('change', async e => {
   if (e.target.id !== 'lsFile') return;
@@ -996,26 +1014,38 @@ function prep(m, F, mods, real) {
 }
 
 /* ---------- Spinner + Rückwärts-Pfeile (Skin oder Standard-Look) ---------- */
+let DEFSP = null;
+function defSpin() { // Standard-Spinner im Look von nicominecith osu!
+  if (DEFSP) return DEFSP;
+  const mk = (w, ht, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = ht; fn(c.getContext('2d'), w, ht); c.naturalWidth = w; c.naturalHeight = ht; c.hd = 1; return c; };
+  const ring = (x, r, w, al) => { x.globalAlpha = al; x.strokeStyle = '#fff'; x.lineWidth = w; x.beginPath(); x.arc(304, 304, r, 0, 7); x.stroke(); };
+  const txt = (s, size) => mk(Math.ceil(s.length * size * .8) + 30, size + 30, (x, w, ht) => { x.font = `800 ${size}px Sora,sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round'; if ('letterSpacing' in x) x.letterSpacing = '8px'; x.lineWidth = 8; x.strokeStyle = 'rgba(0,0,0,.4)'; x.strokeText(s, w / 2, ht / 2); x.fillStyle = '#fff'; x.fillText(s, w / 2, ht / 2); });
+  return DEFSP = {
+    bottom: mk(608, 608, x => { x.globalAlpha = .55; x.fillStyle = '#0c0c14'; x.beginPath(); x.arc(304, 304, 300, 0, 7); x.fill(); ring(x, 299, 2, .22); ring(x, 54.7, 1.5, .18); }),
+    glow: mk(608, 608, x => { x.shadowColor = 'rgba(255,255,255,.4)'; x.shadowBlur = 14; ring(x, 289, 9, .9); }),
+    top: mk(608, 608, x => { x.globalAlpha = .85; x.strokeStyle = '#fff'; x.lineCap = 'round'; x.lineWidth = 7; for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6, c = Math.cos(an), s = Math.sin(an); x.beginPath(); x.moveTo(304 + c * 256, 304 + s * 256); x.lineTo(304 + c * 276, 304 + s * 276); x.stroke(); } ring(x, 27, 5, .85); x.globalAlpha = .85; x.fillStyle = '#fff'; x.beginPath(); x.arc(304, 304, 9, 0, 7); x.fill(); }),
+    approach: mk(327, 327, x => { x.globalAlpha = .85; x.strokeStyle = '#fff'; x.lineWidth = 3; x.beginPath(); x.arc(163.5, 163.5, 159.5, 0, 7); x.stroke(); }),
+    spin: txt('SPIN', 72)
+  };
+}
 function drawSpinner(o, t, a, c) {
-  const X = 256, Y = 192, pr = t < o.t ? 1 : Math.max(0, Math.min(1, (o.end - t) / (o.end - o.t))), ang = Math.atan2(c.y - Y, c.x - X), im = SK ? SK.img : null;
-  const sz = i => i.naturalWidth / (i.hd || 1) * .8, spin = (i, rot) => { if (!i) return; g.save(); g.translate(X, Y); g.rotate(rot); dImg(i, 0, 0, sz(i), a); g.restore(); };
-  const has = im && ['spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle', 'spinner-middle2', 'spinner-circle', 'spinner-approachcircle'].some(k => im[k]);
-  if (has) {
+  const X = 256, Y = 192, pr = t < o.t ? 1 : Math.max(0, Math.min(1, (o.end - t) / (o.end - o.t))), ang = Math.atan2(c.y - Y, c.x - X), im = SK ? SK.img : {}, D = defSpin();
+  const own = ['spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle', 'spinner-middle2', 'spinner-circle', 'spinner-approachcircle'].some(k => im[k]), sc = own ? .8 : .62, sy = own ? 140 : 112, ry = own ? 168 : 150;
+  const sz = i => i.naturalWidth / (i.hd || 1) * sc, spin = (i, rot) => { if (!i) return; g.save(); g.translate(X, Y); g.rotate(rot); dImg(i, 0, 0, sz(i), a); g.restore(); };
+  if (own) {
     if (im['spinner-background']) dImg(im['spinner-background'], X, Y, 512, a);
     spin(im['spinner-bottom'], 0); spin(im['spinner-top'], ang); spin(im['spinner-middle2'], ang); spin(im['spinner-middle'], 0); spin(im['spinner-circle'], ang);
-    const ap = im['spinner-approachcircle']; if (ap) dImg(ap, X, Y, sz(ap) * (.1 + .9 * pr), a);
-    if (im['spinner-spin'] && t < o.t + 1500) dImg(im['spinner-spin'], X, Y + 130, sz(im['spinner-spin']), a);
-    return;
+  } else { spin(D.bottom, 0); spin(D.glow, 0); spin(D.top, ang); }
+  const ap = im['spinner-approachcircle'] || D.approach; dImg(ap, X, Y, sz(ap) * (.1 + .9 * pr) * (im['spinner-approachcircle'] ? 1 : 1.5), a);
+  const sp = im['spinner-spin'] || D.spin; if (t < o.t + 1500) dImg(sp, X, Y + sy, sz(sp), a);
+  if (t >= o.t) { // RPM aus der Cursor-Drehung
+    let l = 0, r = F.length - 1; const t0 = t - 400; while (l < r) { const m = (l + r + 1) >> 1; F[m].t <= t0 ? l = m : r = m - 1; }
+    let tot = 0, pa = null; const f0 = F[l].t;
+    for (let i = l; i < F.length && F[i].t <= t; i++) { const an = Math.atan2(F[i].y - Y, F[i].x - X); if (pa !== null) { let d = an - pa; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; tot += Math.abs(d); } pa = an; }
+    const rpm = Math.min(477, Math.round(tot / (2 * Math.PI) * 60000 / Math.max(120, t - Math.max(f0, o.t))));
+    g.save(); g.globalAlpha = a; g.fillStyle = 'rgba(12,12,20,.72)'; g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = 1.5; g.beginPath(); g.roundRect(X - 52, Y + ry, 104, 24, 12); g.fill(); g.stroke();
+    g.fillStyle = '#c8c8d8'; g.font = '700 13px Sora,sans-serif'; g.fillText(rpm + ' RPM', X, Y + ry + 12.5); g.restore();
   }
-  g.save(); g.translate(X, Y); g.globalAlpha = a;
-  g.fillStyle = 'rgba(18,15,29,.55)'; g.beginPath(); g.arc(0, 0, 175, 0, 7); g.fill();
-  g.rotate(ang); g.lineWidth = 10; g.lineCap = 'butt';
-  for (let i = 0; i < 8; i++) { g.strokeStyle = i % 2 ? '#ff5fa2' : '#7de3d0'; g.beginPath(); g.arc(0, 0, 120, i * Math.PI / 4 + .06, (i + 1) * Math.PI / 4 - .06); g.stroke(); }
-  g.rotate(-ang); g.fillStyle = '#ff5fa2'; g.beginPath(); g.arc(0, 0, 24, 0, 7); g.fill();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill();
-  g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, Math.max(6, 175 * pr), 0, 7); g.stroke();
-  if (t < o.t + 1500) { g.fillStyle = '#fff'; g.font = '800 26px Sora,sans-serif'; g.fillText('SPIN!', 0, 150); }
-  g.restore();
 }
 function revArrow(o, atEnd, R, al, t) {
   const p = o.path, n = p.length, e = atEnd ? p[n - 1] : p[0]; let q = atEnd ? p[n - 2] : p[1];
