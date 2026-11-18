@@ -383,7 +383,7 @@ function openSettings() {
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
+    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (500) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
     return '';
   }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
   $('#settings').hidden = false; lsPaint(); loadGallery('');
@@ -447,10 +447,10 @@ async function lsLoad(n) {
     const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1], [b + '@2x.jpg', 2], [b + '.jpg', 1]]) if (files[fn]) { try { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } catch {} } return null; };
     const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin', 'hit300', 'hit100', 'hit50', 'hit0'];
     for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
-    for (const w of want) sk.img[w] = await img(w);
+    await Promise.all(want.map(async w => { sk.img[w] = await img(w); }));
     if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
     const dc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
-    for (const b of ['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick']) for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } }
+    await Promise.all(['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick'].map(async b => { for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } } }));
     if (my !== lsTok) return;
     SK = sk; tintC.clear(); const nf = Object.values(sk.img).filter(Boolean).length; window.skinInfo = nf + ' Grafiken geladen'; console.info('Skin', n, window.skinInfo, Object.keys(sk.img).filter(k => sk.img[k]).join(','));
   } catch (e) { console.error(e); SK = null; }
@@ -460,13 +460,14 @@ async function lsLoad(n) {
 const GKEY = 'webosu.settings.v2', GID = 'skin-nicosync', GFLAG = 'osuGameSkinSynced';
 const GAME_DB = () => new Promise((ok, no) => { const r = indexedDB.open('nicominecith-skins', 1); r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('skins')) d.createObjectStore('skins', { keyPath: 'id' }); if (!d.objectStoreNames.contains('files')) d.createObjectStore('files'); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); r.onblocked = () => no(new Error('DB blockiert')); });
 // Spinner bleiben bei allen Skins gleich: fehlen sie im Skin, kommen sie aus dem Standard-Skin des Spiels
+const SPW = {};
 async function withSpinner(blob) {
   const z = await JSZip.loadAsync(blob), names = Object.keys(z.files);
   if (names.some(n => /spinner(spin|bonus)/i.test(n))) return blob;
   const ini = names.find(n => /(^|\/)skin\.ini$/i.test(n)), pre = ini ? ini.slice(0, ini.length - 'skin.ini'.length) : '';
   let add = 0;
   for (const [src, dst] of [['normal-spinnerspin.wav', 'spinnerspin.wav'], ['normal-spinnerbonus.wav', 'spinnerbonus.wav']]) {
-    try { const r = await fetch('/nicominecith/assets/skins/default/' + src); if (r.ok) { z.file(pre + dst, await r.arrayBuffer()); add++; } } catch {}
+    try { const ab = await (SPW[src] || (SPW[src] = fetch('/nicominecith/assets/skins/default/' + src).then(r => r.ok ? r.arrayBuffer() : null))); if (ab) { z.file(pre + dst, ab); add++; } } catch {}
   }
   return add ? z.generateAsync({ type: 'blob', compression: 'STORE' }) : blob;
 }
@@ -492,35 +493,56 @@ async function syncGameSkin(force) {
   } catch (e) { console.warn('Skin-Sync zum Spiel fehlgeschlagen', e); }
 }
 
-/* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
+/* ---------- Skin-Galerie (500 Skins von o!rdr) ---------- */
 const BUILTIN = [['Uchiha_Red', '- Uchiha Red'], ['Uchiha_Red_V2_Itachi', '- Uchiha Red V2 [Itachi]'], ['Uchiha_Blue', '- Uchiha Blue']].map(([f, n]) => ({ presentationName: n, author: 'Nzth (eingebaut)', url: `/skins/${f}.osk`, lowResPreview: `/skins/${f}.jpg`, local: true }));
-let GS = [];
+let GS = [], gsTok = 0; const GS_MAX = 500, gsBuf = new Map();
+const gsMap = () => { try { return JSON.parse(localStorage.getItem('osuGalMap') || '{}'); } catch { return {}; } };
+const gsCard = (k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" decoding="async" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`;
 async function loadGallery(q) {
-  const box = $('#gsList'); if (!box) return;
-  box.innerHTML = '<div class="note">Lade Skins…</div>';
-  try {
-    const ql = q.trim().toLowerCase();
-    const mine = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
-    let rest = []; try { rest = (await (await fetch('/.netlify/functions/skins?size=47&search=' + encodeURIComponent(q))).json()).skins || []; } catch {}
-    GS = mine.concat(rest.slice(0, 50 - mine.length));
-    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
-  } catch { box.innerHTML = '<div class="note">Galerie nicht erreichbar.</div>'; }
+  const box = $('#gsList'); if (!box) return; const my = ++gsTok, ql = q.trim().toLowerCase();
+  GS = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
+  box.innerHTML = GS.map(gsCard).join('') + '<div class="note" id="gsMore">Lade Skins…</div>';
+  const page = async p => { try { const r = await fetch('/.netlify/functions/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
+  const seen = new Set(GS.map(x => x.url)); let end = false;
+  for (const wave of [[1], [2, 3, 4], [5, 6, 7], [8, 9, 10]]) { // erste Seite sofort, Rest in Schüben
+    if (end || GS.length >= GS_MAX) break;
+    const lists = await Promise.all(wave.map(page)); if (my !== gsTok) return;
+    let html = '';
+    for (const list of lists) {
+      if (list.length < 50) end = true;
+      for (const k of list) if (k.url && !seen.has(k.url) && GS.length < GS_MAX) { seen.add(k.url); GS.push(k); html += gsCard(k, GS.length - 1); }
+    }
+    const mo = $('#gsMore'); if (mo) { mo.insertAdjacentHTML('beforebegin', html); mo.textContent = GS.length + ' Skins · lade weitere…'; }
+  }
+  const mo = $('#gsMore'); if (mo && my === gsTok) mo.textContent = GS.length ? GS.length + ' Skins' : 'Nichts gefunden.';
+}
+async function gsFetch(k) { // direkt vom Server; Proxy nur als Notlösung
+  let buf = null;
+  try { const r = await fetch(k.url, { signal: AbortSignal.timeout(20000) }); if (r.ok) buf = await r.arrayBuffer(); } catch {}
+  if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
+  if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
+  return buf;
+}
+function gsGet(k) { // Vorab-Download beim Drüberfahren/Antippen, max. 6 im Speicher
+  if (!gsBuf.has(k.url)) { gsBuf.set(k.url, gsFetch(k).catch(e => { gsBuf.delete(k.url); throw e; })); if (gsBuf.size > 6) gsBuf.delete(gsBuf.keys().next().value); }
+  return gsBuf.get(k.url);
 }
 async function gsUse(i, btn) {
   const k = GS[i]; if (!k) return; const sm = btn.querySelector('small'), old = sm.textContent;
   sm.textContent = 'Lade…'; btn.disabled = true;
+  const done = () => { sm.textContent = 'Aktiv ✓'; lsPaint(); const n = $('#lsName'); if (n) n.textContent = S.liveSkin; document.querySelectorAll('#gsList .skin').forEach(x => x.classList.toggle('on', x === btn)); };
   try {
-    let buf = null;
-    try { const r = await fetch(k.url); if (r.ok) buf = await r.arrayBuffer(); } catch {}
-    if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
-    if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
-    const nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
+    const map = gsMap(), had = map[k.url];
+    if (had && await idb('readonly', st => st.get(had))) { await lsUse(had); return done(); } // schon geladen: sofort nutzen
+    const buf = await gsGet(k), nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
     await lsAdd(new File([buf], nm + '.osk'));
-    sm.textContent = 'Aktiv ✓'; lsPaint(); const n = $('#lsName'); if (n) n.textContent = S.liveSkin;
-    document.querySelectorAll('#gsList .skin').forEach(x => x.classList.toggle('on', x === btn));
+    map[k.url] = S.liveSkin; try { localStorage.setItem('osuGalMap', JSON.stringify(map)); } catch {}
+    done();
   } catch (err) { sm.textContent = 'Fehler: ' + String(err.message || 'Download').slice(0, 40); setTimeout(() => sm.textContent = old, 3500); }
   btn.disabled = false;
 }
+let gsPf; const gsPre = e => { const b = e.target.closest && e.target.closest('[data-gs]'); if (!b) return; clearTimeout(gsPf); gsPf = setTimeout(() => { const k = GS[+b.dataset.gs]; if (k && !k.local && !gsMap()[k.url]) gsGet(k).catch(() => {}); }, 120); };
+setBody.addEventListener('mouseover', gsPre); setBody.addEventListener('touchstart', gsPre, { passive: true });
 const tintC = new Map();
 function tinted(im, col) {
   const k = im.src + col; let c = tintC.get(k); if (c) return c;
