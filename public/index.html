@@ -231,14 +231,41 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 #login .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,95,162,.55)}
 @media(prefers-reduced-motion:reduce){#login .btn{transition:none}}
 @media(max-width:520px){.banner{border-radius:14px}.banner.slim{aspect-ratio:16/6}}
+
+#login{max-width:760px;position:relative}
+#login::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 50% at 18% 8%,rgba(255,95,162,.2),transparent 70%),radial-gradient(50% 45% at 88% 90%,rgba(125,227,208,.15),transparent 70%)}
+.lg-card{background:linear-gradient(180deg,rgba(29,24,48,.94),rgba(18,15,29,.94));border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 60px rgba(255,95,162,.12)}
+.lg-card .banner{border-radius:0;border:0;box-shadow:none;aspect-ratio:16/8}
+.lg-body{padding:22px 22px 24px;display:grid;gap:14px}
+.lg-badge{justify-self:start;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mint);background:rgba(125,227,208,.1);border:1px solid rgba(125,227,208,.3);padding:4px 10px;border-radius:99px}
+.lg-feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lg-feat li{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:.9rem;display:flex;gap:8px;align-items:center}
+.lg-feat b{color:var(--pink);font-weight:700}
+.lg-btn{display:block;justify-self:stretch;text-align:center;font-size:1.1rem;padding:14px 18px;animation:lgpulse 2.4s infinite}
+@keyframes lgpulse{0%{box-shadow:0 0 0 0 rgba(255,95,162,.5)}70%{box-shadow:0 0 0 16px rgba(255,95,162,0)}100%{box-shadow:0 0 0 0 rgba(255,95,162,0)}}
+.lg-note{color:var(--dim);font-size:.8rem;text-align:center}
+@media(max-width:520px){.lg-feat{grid-template-columns:1fr}.lg-body{padding:18px}}
+@media(prefers-reduced-motion:reduce){.lg-btn{animation:none}}
 </style>
 </head>
 <body>
 <section id="login" hidden>
-  <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
-  <h1>Deine Replays, <span>überall.</span></h1>
-  <p>Verbinde dein osu!-Konto und schau dir deine letzten und besten Plays auf Handy, Tablet oder PC an.</p>
-  <a class="btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+  <div class="lg-card">
+    <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
+    <div class="lg-body">
+      <span class="lg-badge">osu!-Replays · kostenlos</span>
+      <h1>Deine Replays, <span>überall.</span></h1>
+      <p>Verbinde dein osu!-Konto und schau dir deine letzten und besten Plays auf Handy, Tablet oder PC an.</p>
+      <ul class="lg-feat">
+        <li><b>▶</b> Replays direkt im Browser</li>
+        <li><b>🎨</b> Eigene Skins &amp; Galerie</li>
+        <li><b>🎮</b> Selbst spielen mit nicominecith osu!</li>
+        <li><b>📊</b> Score, Genauigkeit &amp; Combo live</li>
+      </ul>
+      <a class="btn lg-btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+      <small class="lg-note">Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</small>
+    </div>
+  </div>
 </section>
 
 <main id="app" class="wrap" hidden>
@@ -341,14 +368,11 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { b.clo
 
 /* ---------- Einstellungen ---------- */
 const DEF = {
-  bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80,
-  skin: '', skinName: '', liveSkin: '', resolution: '1280x720', globalVolume: 60, musicVolume: 60, hitsoundVolume: 60, useSkinHitsounds: true,
-  inGameBGDim: 80, introBGDim: 60, breakBGDim: 70, cursorSize: 1, cursorTrail: true, cursorRainbow: false, showBorders: true, loadStoryboard: false, loadVideo: false,
-  showScore: true, showHPBar: true, showComboCounter: true, showPPCounter: true, showHitErrorMeter: true, showUnstableRate: true, showSliderBreaks: true, showMods: true, showScoreboard: false, showResultScreen: false
+  bg: true, dim: 78, trail: true, cursor: 1, hud: true, ticks: true, speed: '1', hitsounds: true, hsVol: 60, musicVol: 80, liveSkin: ''
 };
 let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('osuSet') || '{}')); } catch {}
+for (const k of Object.keys(S)) if (!(k in DEF)) delete S[k];
 const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); } catch {} };
-const RK = Object.keys(DEF).filter(k => !['bg', 'dim', 'trail', 'cursor', 'hud', 'ticks', 'speed', 'hitsounds', 'hsVol', 'musicVol', 'skin', 'skinName', 'liveSkin'].includes(k));
 const pct = [0, 100, 5, '%'];
 const SCH = [
   ['Live-Ansicht', [['bg', 'Hintergrundbild', 't'], ['dim', 'Hintergrund abdunkeln', 'r', 0, 95, 5, '%'], ['trail', 'Cursor-Trail', 't'], ['cursor', 'Cursor-Größe', 'r', .5, 2, .1, 'x'], ['hud', 'HUD (Health, Score, Combo, Accuracy)', 't'], ['ticks', 'Slider-Ticks anzeigen', 't'], ['liveSkin', 'Eigener osu!-Skin (.osk)', 'ls'], ['speed', 'Start-Geschwindigkeit', 'r', .25, 3, .05, 'x']]],
@@ -356,20 +380,18 @@ const SCH = [
 ];
 function openSettings() {
   $('#setBody').innerHTML = SCH.map(([h, rows]) => `<h3>${h}</h3>` + rows.map(([k, l, t, a, b, st, u]) => {
-    if (t === 'cs') return `<div class="srow col"><span>${l}</span><input type="search" inputmode="numeric" data-k="customSkinId" placeholder="ID, z. B. 12345" value="${esc(S.customSkinId || '')}"><div class="note">Eigenen Skin auf <a href="https://ordr.issou.best/skins" target="_blank" rel="noopener" style="color:var(--mint)">ordr.issou.best/skins</a> hochladen, ID hier eintragen. Ist eine ID gesetzt, ersetzt sie die Skin-Auswahl beim mp4-Render.</div></div>`;
     if (t === 't') return `<label class="srow"><span>${l}</span><input type="checkbox" class="sw" data-k="${k}" ${S[k] ? 'checked' : ''}></label>`;
     if (t === 'r') return `<label class="srow col"><span>${l}<b id="v_${k}">${S[k]}${u}</b></span><input type="range" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></label>`;
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><div class="note" id="lsInfo"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (50) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
-    return `<div class="srow col"><span>${l}<b id="skinName">${esc(S.skinName || 'Automatisch (beliebtester Skin)')}</b></span><input type="search" id="skinQ" placeholder="Skin suchen"><div class="skins" id="skinList"><div class="note">Lade Skins…</div></div></div>`;
+    if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (500) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
+    return '';
   }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
-  $('#settings').hidden = false; lsPaint(); lsReport(); loadGallery('');
+  $('#settings').hidden = false; lsPaint(); loadGallery('');
 }
 const setBody = $('#setBody'); let skinT;
 setBody.addEventListener('input', e => {
   const el = e.target;
   if (el.id === 'gsQ') { clearTimeout(skinT); skinT = setTimeout(() => loadGallery(el.value), 400); return; }
-  if (el.id === 'skinQ') { clearTimeout(skinT); skinT = setTimeout(() => loadSkins(el.value), 400); return; }
   const k = el.dataset.k; if (!k) return;
   S[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
   if (el.type === 'range') $('#v_' + k).textContent = el.value + el.dataset.u;
@@ -380,10 +402,6 @@ setBody.addEventListener('click', e => {
   const gs = e.target.closest('[data-gs]'); if (gs) { gsUse(+gs.dataset.gs, gs); return; }
   const lb = e.target.closest('[data-ls]'); if (lb) { lsUse(lb.dataset.ls); return; }
   if (e.target.id === 'reset') { S = { ...DEF }; saveS(); return openSettings(); }
-  const b = e.target.closest('.skin'); if (!b) return;
-  S.skin = b.dataset.s; S.skinName = b.dataset.n; saveS();
-  $('#skinName').textContent = S.skinName || 'Automatisch (beliebtester Skin)';
-  document.querySelectorAll('#skinList .skin').forEach(x => x.classList.toggle('on', x === b));
 });
 setBody.addEventListener('change', async e => {
   if (e.target.id !== 'lsFile') return;
@@ -411,46 +429,30 @@ async function lsAdd(f) {
 async function lsDel(n) { await idb('readwrite', st => st.delete(n)); if (S.liveSkin === n) { S.liveSkin = ''; saveS(); SK = null; syncGameSkin(true); } lsPaint(); $('#lsName') && ($('#lsName').textContent = S.liveSkin || 'Standard'); }
 async function lsUse(n) { S.liveSkin = n; saveS(); lsPaint(); $('#lsName').textContent = (n || 'Standard') + ' …'; await lsLoad(n); syncGameSkin(true); $('#lsName').textContent = n || 'Standard' + (SK ? '' : ''); if (n && !SK) $('#lsName').textContent = n + ' (nicht lesbar)'; }
 let lsTok = 0;
-function lsReport() {
-  const el = $('#lsInfo'); if (!el) return;
-  if (!S.liveSkin) { el.textContent = 'Standard-Grafiken aktiv.'; return; }
-  if (!SK) { el.textContent = 'Skin wird geladen …'; return; }
-  const ok = SK.rep.filter(r => r[1]).map(r => r[0]), no = SK.rep.filter(r => !r[1]).map(r => r[0]);
-  el.innerHTML = `<b>Aus dem Skin:</b> ${esc(ok.join(', ') || '–')}<br><b>Standard-Grafik (fehlt im Skin):</b> ${esc(no.join(', ') || '–')}`;
-}
 async function lsLoad(n) {
-  const my = ++lsTok; SK = null; tintC.clear(); sT = -1e9; if (!n) { lsReport(); return; }
+  const my = ++lsTok; SK = null; tintC.clear(); sT = -1e9; if (!n) return;
   try {
     const rec = await idb('readonly', st => st.get(n)); if (!rec) return;
     const z = await JSZip.loadAsync(rec.blob), files = {};
-    for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split('/').pop().toLowerCase()] = f;
-    const sk = { img: {}, snd: {}, col: [], pre: 'default', ov: -2, spre: 'score', sov: 0, border: null, track: null, rep: [] };
-    const col3 = v => { const c = v.split(',').map(Number); return c.length >= 3 && c.slice(0, 3).every(isFinite) ? `rgb(${c[0]},${c[1]},${c[2]})` : null; };
+    for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split(/[\\/]/).pop().toLowerCase()] = f;
+    const sk = { img: {}, snd: {}, col: [], pre: 'default', ov: -2 };
     const ini = files['skin.ini'] ? await files['skin.ini'].async('string') : '';
     for (const ln of ini.split(/\r?\n/)) {
       const m = /^\s*([A-Za-z0-9]+)\s*:\s*(.*?)\s*$/.exec(ln); if (!m) continue;
       if (/^Combo\d$/i.test(m[1])) { const c = m[2].split(',').map(Number); if (c.length >= 3) sk.col[+m[1].slice(5) - 1] = `rgb(${c[0]},${c[1]},${c[2]})`; }
       else if (/^HitCirclePrefix$/i.test(m[1])) sk.pre = m[2].replace(/\\/g, '/').split('/').pop();
       else if (/^HitCircleOverlap$/i.test(m[1])) sk.ov = +m[2];
-      else if (/^SliderBorder$/i.test(m[1])) sk.border = col3(m[2]);
-      else if (/^SliderTrackOverride$/i.test(m[1])) sk.track = col3(m[2]);
-      else if (/^ScorePrefix$/i.test(m[1])) sk.spre = m[2].replace(/\\/g, '/').split('/').pop();
-      else if (/^ScoreOverlap$/i.test(m[1])) sk.sov = +m[2];
     }
     sk.col = sk.col.filter(Boolean);
-    const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1]]) if (files[fn]) { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } return null; };
-    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin'];
+    const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1], [b + '@2x.jpg', 2], [b + '.jpg', 1]]) if (files[fn]) { try { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } catch {} } return null; };
+    const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin', 'hit300', 'hit100', 'hit50', 'hit0'];
     for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
-    for (const w of ['hit300', 'hit300g', 'hit300k', 'hit100', 'hit100k', 'hit50', 'hit0', 'sliderstartcircle', 'sliderstartcircleoverlay', 'sliderendcircleoverlay', 'sliderscorepoint', 'cursormiddle', 'scorebar-bg', 'scorebar-colour']) want.push(w);
-    for (const c of ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'comma', 'dot', 'percent', 'x']) want.push(sk.spre + '-' + c);
-    for (const w of want) sk.img[w] = (await img(w)) || (/^(hit|sliderscore|sliderstart|sliderend)/.test(w) ? await img(w + '-0') : null);
+    await Promise.all(want.map(async w => { sk.img[w] = await img(w); }));
     if (!sk.img.sliderb0) sk.img.sliderb0 = await img('sliderb');
-    const has = k => !!sk.img[k];
-    sk.rep = [['Hit-Kreise und Nummern', has('hitcircle') && has(sk.pre + '-0')], ['Approach-Circle', has('approachcircle')], ['Cursor', has('cursor')], ['Cursor-Trail', has('cursortrail')], ['Slider-Ball', has('sliderb0')], ['Follow-Circle', has('sliderfollowcircle')], ['Reverse-Pfeil', has('reversearrow')], ['Slider-Start/Ende', has('sliderstartcircle') || has('sliderendcircle')], ['Slider-Ticks', has('sliderscorepoint')], ['Slider-Farben', !!(sk.track || sk.border)], ['Spinner', ['spinner-background', 'spinner-circle', 'spinner-bottom', 'spinner-top', 'spinner-middle'].some(has)], ['Treffer-Anzeigen (300/100/50/Miss)', has('hit300') || has('hit100') || has('hit50') || has('hit0')], ['Score/Combo-Ziffern', has(sk.spre + '-0')], ['Health-Bar', has('scorebar-bg') || has('scorebar-colour')], ['Combo-Farben', sk.col.length > 0], ['Hitsounds', Object.keys(sk.snd).length > 0]];
     const dc = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
-    for (const b of ['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick']) for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } }
+    await Promise.all(['hitnormal', 'hitwhistle', 'hitfinish', 'hitclap', 'slidertick'].map(async b => { for (const ext of ['wav', 'ogg', 'mp3']) { const f = files[`normal-${b}.${ext}`] || files[`soft-${b}.${ext}`]; if (f) { try { sk.snd[b] = await dc.decodeAudioData(await f.async('arraybuffer')); break; } catch {} } } }));
     if (my !== lsTok) return;
-    SK = sk; tintC.clear(); lsReport();
+    SK = sk; tintC.clear(); const nf = Object.values(sk.img).filter(Boolean).length; window.skinInfo = nf + ' Grafiken geladen'; console.info('Skin', n, window.skinInfo, Object.keys(sk.img).filter(k => sk.img[k]).join(','));
   } catch (e) { console.error(e); SK = null; }
 }
 
@@ -458,13 +460,14 @@ async function lsLoad(n) {
 const GKEY = 'webosu.settings.v2', GID = 'skin-nicosync', GFLAG = 'osuGameSkinSynced';
 const GAME_DB = () => new Promise((ok, no) => { const r = indexedDB.open('nicominecith-skins', 1); r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('skins')) d.createObjectStore('skins', { keyPath: 'id' }); if (!d.objectStoreNames.contains('files')) d.createObjectStore('files'); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); r.onblocked = () => no(new Error('DB blockiert')); });
 // Spinner bleiben bei allen Skins gleich: fehlen sie im Skin, kommen sie aus dem Standard-Skin des Spiels
+const SPW = {};
 async function withSpinner(blob) {
   const z = await JSZip.loadAsync(blob), names = Object.keys(z.files);
   if (names.some(n => /spinner(spin|bonus)/i.test(n))) return blob;
   const ini = names.find(n => /(^|\/)skin\.ini$/i.test(n)), pre = ini ? ini.slice(0, ini.length - 'skin.ini'.length) : '';
   let add = 0;
   for (const [src, dst] of [['normal-spinnerspin.wav', 'spinnerspin.wav'], ['normal-spinnerbonus.wav', 'spinnerbonus.wav']]) {
-    try { const r = await fetch('/nicominecith/assets/skins/default/' + src); if (r.ok) { z.file(pre + dst, await r.arrayBuffer()); add++; } } catch {}
+    try { const ab = await (SPW[src] || (SPW[src] = fetch('/nicominecith/assets/skins/default/' + src).then(r => r.ok ? r.arrayBuffer() : null))); if (ab) { z.file(pre + dst, ab); add++; } } catch {}
   }
   return add ? z.generateAsync({ type: 'blob', compression: 'STORE' }) : blob;
 }
@@ -490,35 +493,56 @@ async function syncGameSkin(force) {
   } catch (e) { console.warn('Skin-Sync zum Spiel fehlgeschlagen', e); }
 }
 
-/* ---------- Skin-Galerie (50 Skins von o!rdr) ---------- */
+/* ---------- Skin-Galerie (500 Skins von o!rdr) ---------- */
 const BUILTIN = [['Uchiha_Red', '- Uchiha Red'], ['Uchiha_Red_V2_Itachi', '- Uchiha Red V2 [Itachi]'], ['Uchiha_Blue', '- Uchiha Blue']].map(([f, n]) => ({ presentationName: n, author: 'Nzth (eingebaut)', url: `/skins/${f}.osk`, lowResPreview: `/skins/${f}.jpg`, local: true }));
-let GS = [];
+let GS = [], gsTok = 0; const GS_MAX = 500, gsBuf = new Map();
+const gsMap = () => { try { return JSON.parse(localStorage.getItem('osuGalMap') || '{}'); } catch { return {}; } };
+const gsCard = (k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" decoding="async" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`;
 async function loadGallery(q) {
-  const box = $('#gsList'); if (!box) return;
-  box.innerHTML = '<div class="note">Lade Skins…</div>';
-  try {
-    const ql = q.trim().toLowerCase();
-    const mine = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
-    let rest = []; try { rest = (await (await fetch('/.netlify/functions/skins?size=47&search=' + encodeURIComponent(q))).json()).skins || []; } catch {}
-    GS = mine.concat(rest.slice(0, 50 - mine.length));
-    box.innerHTML = GS.map((k, i) => `<button class="skin ${S.liveSkin === k.presentationName ? 'on' : ''}" data-gs="${i}"><img loading="lazy" alt="" src="${esc(k.lowResPreview || k.gridPreview || '')}"><b>${esc(k.presentationName)}</b><small>${esc(k.author)}</small></button>`).join('') || '<div class="note">Nichts gefunden.</div>';
-  } catch { box.innerHTML = '<div class="note">Galerie nicht erreichbar.</div>'; }
+  const box = $('#gsList'); if (!box) return; const my = ++gsTok, ql = q.trim().toLowerCase();
+  GS = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
+  box.innerHTML = GS.map(gsCard).join('') + '<div class="note" id="gsMore">Lade Skins…</div>';
+  const page = async p => { try { const r = await fetch('/.netlify/functions/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
+  const seen = new Set(GS.map(x => x.url)); let end = false;
+  for (const wave of [[1], [2, 3, 4], [5, 6, 7], [8, 9, 10]]) { // erste Seite sofort, Rest in Schüben
+    if (end || GS.length >= GS_MAX) break;
+    const lists = await Promise.all(wave.map(page)); if (my !== gsTok) return;
+    let html = '';
+    for (const list of lists) {
+      if (list.length < 50) end = true;
+      for (const k of list) if (k.url && !seen.has(k.url) && GS.length < GS_MAX) { seen.add(k.url); GS.push(k); html += gsCard(k, GS.length - 1); }
+    }
+    const mo = $('#gsMore'); if (mo) { mo.insertAdjacentHTML('beforebegin', html); mo.textContent = GS.length + ' Skins · lade weitere…'; }
+  }
+  const mo = $('#gsMore'); if (mo && my === gsTok) mo.textContent = GS.length ? GS.length + ' Skins' : 'Nichts gefunden.';
+}
+async function gsFetch(k) { // direkt vom Server; Proxy nur als Notlösung
+  let buf = null;
+  try { const r = await fetch(k.url, { signal: AbortSignal.timeout(20000) }); if (r.ok) buf = await r.arrayBuffer(); } catch {}
+  if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
+  if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
+  return buf;
+}
+function gsGet(k) { // Vorab-Download beim Drüberfahren/Antippen, max. 6 im Speicher
+  if (!gsBuf.has(k.url)) { gsBuf.set(k.url, gsFetch(k).catch(e => { gsBuf.delete(k.url); throw e; })); if (gsBuf.size > 6) gsBuf.delete(gsBuf.keys().next().value); }
+  return gsBuf.get(k.url);
 }
 async function gsUse(i, btn) {
   const k = GS[i]; if (!k) return; const sm = btn.querySelector('small'), old = sm.textContent;
   sm.textContent = 'Lade…'; btn.disabled = true;
+  const done = () => { sm.textContent = 'Aktiv ✓'; lsPaint(); const n = $('#lsName'); if (n) n.textContent = S.liveSkin; document.querySelectorAll('#gsList .skin').forEach(x => x.classList.toggle('on', x === btn)); };
   try {
-    let buf = null;
-    try { const r = await fetch(k.url); if (r.ok) buf = await r.arrayBuffer(); } catch {}
-    if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
-    if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
-    const nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
+    const map = gsMap(), had = map[k.url];
+    if (had && await idb('readonly', st => st.get(had))) { await lsUse(had); return done(); } // schon geladen: sofort nutzen
+    const buf = await gsGet(k), nm = k.presentationName.replace(/[\\/:*?"<>|]/g, '');
     await lsAdd(new File([buf], nm + '.osk'));
-    sm.textContent = 'Aktiv ✓'; lsPaint(); const n = $('#lsName'); if (n) n.textContent = S.liveSkin;
-    document.querySelectorAll('#gsList .skin').forEach(x => x.classList.toggle('on', x === btn));
+    map[k.url] = S.liveSkin; try { localStorage.setItem('osuGalMap', JSON.stringify(map)); } catch {}
+    done();
   } catch (err) { sm.textContent = 'Fehler: ' + String(err.message || 'Download').slice(0, 40); setTimeout(() => sm.textContent = old, 3500); }
   btn.disabled = false;
 }
+let gsPf; const gsPre = e => { const b = e.target.closest && e.target.closest('[data-gs]'); if (!b) return; clearTimeout(gsPf); gsPf = setTimeout(() => { const k = GS[+b.dataset.gs]; if (k && !k.local && !gsMap()[k.url]) gsGet(k).catch(() => {}); }, 120); };
+setBody.addEventListener('mouseover', gsPre); setBody.addEventListener('touchstart', gsPre, { passive: true });
 const tintC = new Map();
 function tinted(im, col) {
   const k = im.src + col; let c = tintC.get(k); if (c) return c;
@@ -528,18 +552,8 @@ function tinted(im, col) {
 }
 const colOf = o => SK && SK.col.length ? SK.col[(o.ci || 0) % SK.col.length] : o.col;
 function dImg(im, x, y, d, al) { if (!im) return; g.globalAlpha = al; g.drawImage(im, x - d / 2, y - d / 2, d, d * im.naturalHeight / im.naturalWidth); }
-const szS = (im, R) => im.naturalWidth / (im.hd || 1) * R / 64;
-const shade = c => { const m = /(\d+),\s*(\d+),\s*(\d+)/.exec(c || ''); return m ? `rgb(${m[1] * .3 | 0},${m[2] * .3 | 0},${m[3] * .3 | 0})` : '#1d1830'; };
-function skinNum(str, x, y, hgt, right) {
-  const P = SK.spre || 'score', ims = [...str].map(ch => SK.img[P + '-' + ({ ',': 'comma', '.': 'dot', '%': 'percent' }[ch] ?? ch)]);
-  if (!ims.length || ims.some(i => !i)) return false;
-  const sc = hgt / Math.max(...ims.map(i => i.naturalHeight)), ov = (SK.sov || 0) * (ims[0].hd || 1) * sc, ws = ims.map(i => i.naturalWidth * sc);
-  let cx = right ? x - (ws.reduce((a, b) => a + b, 0) - ov * (ims.length - 1)) : x; g.globalAlpha = 1;
-  ims.forEach((im, k) => { g.drawImage(im, cx, y - im.naturalHeight * sc / 2, ws[k], im.naturalHeight * sc); cx += ws[k] - ov; });
-  return true;
-}
 function skinCircle(o, d, al, num) {
-  const c = colOf(o), sl = o.path && SK.img.sliderstartcircle; dImg(tinted(sl || SK.img.hitcircle, c), o.x, o.y, d, al); dImg(sl ? (SK.img.sliderstartcircleoverlay || SK.img.hitcircleoverlay) : SK.img.hitcircleoverlay, o.x, o.y, d, al);
+  const c = colOf(o); dImg(tinted(SK.img.hitcircle, c), o.x, o.y, d, al); dImg(SK.img.hitcircleoverlay, o.x, o.y, d, al);
   if (!num) return;
   const ds = String(o.n).split('').map(ch => SK.img[SK.pre + '-' + ch]); if (ds.some(x => !x)) return;
   const sc = d / 128 * .8 / (ds[0].hd || 1), ov = (SK.ov === -2 ? 0 : SK.ov) * d / 128 / 1; let tw = ds.reduce((a, im) => a + im.naturalWidth * sc - ov, ov);
@@ -1022,41 +1036,57 @@ function prep(m, F, mods, real) {
 }
 
 /* ---------- Spinner + Rückwärts-Pfeile (Skin oder Standard-Look) ---------- */
+let DEFSP = null;
+function defSpin() { // Standard-Spinner im Look von nicominecith osu!
+  if (DEFSP) return DEFSP;
+  const mk = (w, ht, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = ht; fn(c.getContext('2d'), w, ht); c.naturalWidth = w; c.naturalHeight = ht; c.hd = 1; return c; };
+  const ring = (x, r, w, al) => { x.globalAlpha = al; x.strokeStyle = '#fff'; x.lineWidth = w; x.beginPath(); x.arc(304, 304, r, 0, 7); x.stroke(); };
+  const txt = (s, size) => mk(Math.ceil(s.length * size * .8) + 30, size + 30, (x, w, ht) => { x.font = `800 ${size}px Sora,sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round'; if ('letterSpacing' in x) x.letterSpacing = '8px'; x.lineWidth = 8; x.strokeStyle = 'rgba(0,0,0,.4)'; x.strokeText(s, w / 2, ht / 2); x.fillStyle = '#fff'; x.fillText(s, w / 2, ht / 2); });
+  return DEFSP = {
+    bottom: mk(608, 608, x => { x.globalAlpha = .55; x.fillStyle = '#0c0c14'; x.beginPath(); x.arc(304, 304, 300, 0, 7); x.fill(); ring(x, 299, 2, .22); ring(x, 54.7, 1.5, .18); }),
+    glow: mk(608, 608, x => { x.shadowColor = 'rgba(255,255,255,.4)'; x.shadowBlur = 14; ring(x, 289, 9, .9); }),
+    top: mk(608, 608, x => { x.globalAlpha = .85; x.strokeStyle = '#fff'; x.lineCap = 'round'; x.lineWidth = 7; for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6, c = Math.cos(an), s = Math.sin(an); x.beginPath(); x.moveTo(304 + c * 256, 304 + s * 256); x.lineTo(304 + c * 276, 304 + s * 276); x.stroke(); } ring(x, 27, 5, .85); x.globalAlpha = .85; x.fillStyle = '#fff'; x.beginPath(); x.arc(304, 304, 9, 0, 7); x.fill(); }),
+    approach: mk(327, 327, x => { x.globalAlpha = .85; x.strokeStyle = '#fff'; x.lineWidth = 3; x.beginPath(); x.arc(163.5, 163.5, 159.5, 0, 7); x.stroke(); }),
+    spin: txt('SPIN', 72)
+  };
+}
 function drawSpinner(o, t, a, c) {
-  const X = 256, Y = 192, pr = t < o.t ? 1 : Math.max(0, Math.min(1, (o.end - t) / (o.end - o.t))), ang = Math.atan2(c.y - Y, c.x - X), im = SK ? SK.img : null;
-  const sz = i => i.naturalWidth / (i.hd || 1) * .8, spin = (i, rot) => { if (!i) return; g.save(); g.translate(X, Y); g.rotate(rot); dImg(i, 0, 0, sz(i), a); g.restore(); };
-  const has = im && ['spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle', 'spinner-middle2', 'spinner-circle', 'spinner-approachcircle'].some(k => im[k]);
-  if (has) {
+  const X = 256, Y = 192, pr = t < o.t ? 1 : Math.max(0, Math.min(1, (o.end - t) / (o.end - o.t))), ang = Math.atan2(c.y - Y, c.x - X), im = SK ? SK.img : {}, D = defSpin();
+  const own = ['spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle', 'spinner-middle2', 'spinner-circle', 'spinner-approachcircle'].some(k => im[k]), sc = own ? .8 : .62, sy = own ? 140 : 112, ry = own ? 168 : 150;
+  const sz = i => i.naturalWidth / (i.hd || 1) * sc, spin = (i, rot) => { if (!i) return; g.save(); g.translate(X, Y); g.rotate(rot); dImg(i, 0, 0, sz(i), a); g.restore(); };
+  if (own) {
     if (im['spinner-background']) dImg(im['spinner-background'], X, Y, 512, a);
     spin(im['spinner-bottom'], 0); spin(im['spinner-top'], ang); spin(im['spinner-middle2'], ang); spin(im['spinner-middle'], 0); spin(im['spinner-circle'], ang);
-    const ap = im['spinner-approachcircle']; if (ap) dImg(ap, X, Y, sz(ap) * (.1 + .9 * pr), a);
-    if (im['spinner-spin'] && t < o.t + 1500) dImg(im['spinner-spin'], X, Y + 130, sz(im['spinner-spin']), a);
-    return;
+  } else { spin(D.bottom, 0); spin(D.glow, 0); spin(D.top, ang); }
+  const ap = im['spinner-approachcircle'] || D.approach; dImg(ap, X, Y, sz(ap) * (.1 + .9 * pr) * (im['spinner-approachcircle'] ? 1 : 1.5), a);
+  const sp = im['spinner-spin'] || D.spin; if (t < o.t + 1500) dImg(sp, X, Y + sy, sz(sp), a);
+  if (t >= o.t) { // RPM aus der Cursor-Drehung
+    let l = 0, r = F.length - 1; const t0 = t - 400; while (l < r) { const m = (l + r + 1) >> 1; F[m].t <= t0 ? l = m : r = m - 1; }
+    let tot = 0, pa = null; const f0 = F[l].t;
+    for (let i = l; i < F.length && F[i].t <= t; i++) { const an = Math.atan2(F[i].y - Y, F[i].x - X); if (pa !== null) { let d = an - pa; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; tot += Math.abs(d); } pa = an; }
+    const rpm = Math.min(477, Math.round(tot / (2 * Math.PI) * 60000 / Math.max(120, t - Math.max(f0, o.t))));
+    g.save(); g.globalAlpha = a; g.fillStyle = 'rgba(12,12,20,.72)'; g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = 1.5; g.beginPath(); g.roundRect(X - 52, Y + ry, 104, 24, 12); g.fill(); g.stroke();
+    g.fillStyle = '#c8c8d8'; g.font = '700 13px Sora,sans-serif'; g.fillText(rpm + ' RPM', X, Y + ry + 12.5); g.restore();
   }
-  g.save(); g.translate(X, Y); g.globalAlpha = a;
-  g.fillStyle = 'rgba(18,15,29,.55)'; g.beginPath(); g.arc(0, 0, 175, 0, 7); g.fill();
-  g.rotate(ang); g.lineWidth = 10; g.lineCap = 'butt';
-  for (let i = 0; i < 8; i++) { g.strokeStyle = i % 2 ? '#ff5fa2' : '#7de3d0'; g.beginPath(); g.arc(0, 0, 120, i * Math.PI / 4 + .06, (i + 1) * Math.PI / 4 - .06); g.stroke(); }
-  g.rotate(-ang); g.fillStyle = '#ff5fa2'; g.beginPath(); g.arc(0, 0, 24, 0, 7); g.fill();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill();
-  g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, Math.max(6, 175 * pr), 0, 7); g.stroke();
-  if (t < o.t + 1500) { g.fillStyle = '#fff'; g.font = '800 26px Sora,sans-serif'; g.fillText('SPIN!', 0, 150); }
-  g.restore();
 }
 function revArrow(o, atEnd, R, al, t) {
   const p = o.path, n = p.length, e = atEnd ? p[n - 1] : p[0]; let q = atEnd ? p[n - 2] : p[1];
   for (let i = 1; i < n; i++) { const w = atEnd ? p[n - 1 - i] : p[i]; if (Math.hypot(w[0] - e[0], w[1] - e[1]) >= R * .6) { q = w; break; } }
-  g.save(); g.translate(e[0], e[1]); g.rotate(Math.atan2(q[1] - e[1], q[0] - e[0])); const pu = 1 + .07 * Math.sin(t / 110); g.scale(pu, pu);
-  if (SK && SK.img.reversearrow) dImg(SK.img.reversearrow, 0, 0, R * 2, al);
-  else {
-    if (SK && SK.img.hitcircle) dImg(tinted(SK.img.hitcircle, colOf(o)), 0, 0, R * 2, al);
-    else { g.globalAlpha = al; g.fillStyle = o.col; g.beginPath(); g.arc(0, 0, R, 0, 7); g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); }
+  const im = SK ? SK.img : {}, hc = im.hitcircle, ec = im.sliderendcircle, ra = im.reversearrow, pu = 1 + .06 * Math.sin(t / 110);
+  g.save(); g.translate(e[0], e[1]); g.scale(pu, pu);
+  // Endkreis darunter (wie in osu!), der Pfeil sitzt immer auf einem Kreis
+  if (ec || hc) { dImg(tinted(ec || hc, colOf(o)), 0, 0, R * 2, al); if (!ec) dImg(im.hitcircleoverlay, 0, 0, R * 2, al); }
+  else { g.globalAlpha = al; g.fillStyle = o.col; g.beginPath(); g.arc(0, 0, R, 0, 7); g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke(); }
+  g.rotate(Math.atan2(q[1] - e[1], q[0] - e[0]));
+  if (ra) { // Größe relativ zum Hitcircle, nie größer als der Kreis, Seitenverhältnis bleibt
+    const k = R * 2 / (hc ? hc.naturalWidth / (hc.hd || 1) : 128), w = ra.naturalWidth / (ra.hd || 1) * k, hh = ra.naturalHeight / (ra.hd || 1) * k, f = Math.min(1, R * 1.7 / w, R * 1.7 / hh);
+    dImg(ra, 0, 0, w * f, al);
+  } else {
     g.globalAlpha = al; g.strokeStyle = '#fff'; g.lineWidth = R * .2; g.lineCap = g.lineJoin = 'round';
     g.beginPath(); g.moveTo(-R * .35, -R * .42); g.lineTo(R * .38, 0); g.lineTo(-R * .35, R * .42); g.stroke();
   }
   g.restore();
 }
-
 function draw(t) {
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720); g.globalAlpha = 1;
   if (S.bg && bgImg && bgImg.naturalWidth) {
@@ -1082,11 +1112,10 @@ function draw(t) {
     if (o.path && t <= o.end + 200) {
       g.globalAlpha = sa * (t > o.end ? 1 - (t - o.end) / 200 : 1);
       if (!o.p2d) { o.p2d = new Path2D(); o.path.forEach(([x, y], j) => j ? o.p2d.lineTo(x, y) : o.p2d.moveTo(x, y)); }
-      g.lineWidth = R * 2; g.strokeStyle = (SK && SK.border) || '#fff'; g.stroke(o.p2d);
-      g.lineWidth = R * 2 - 8; g.strokeStyle = (SK && SK.track) || (SK && SK.col.length ? shade(colOf(o)) : '#1d1830'); g.stroke(o.p2d);
-      if (SK && SK.img.sliderendcircle) { const e2 = o.path[o.path.length - 1]; dImg(tinted(SK.img.sliderendcircle, colOf(o)), e2[0], e2[1], R * 2, sa); dImg(SK.img.sliderendcircleoverlay, e2[0], e2[1], R * 2, sa); }
+      g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke(o.p2d);
+      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke(o.p2d);
       for (const q of (S.ticks ? o.ticks : [])) {
-        if (t < q.t) { if (SK && SK.img.sliderscorepoint) dImg(SK.img.sliderscorepoint, q.x, q.y, szS(SK.img.sliderscorepoint, R), sa); else { g.globalAlpha = sa * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); } }
+        if (t < q.t) { g.globalAlpha = sa * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
       }
       if (o.slides > 1 && t <= o.end) {
@@ -1114,13 +1143,10 @@ function draw(t) {
       g.globalAlpha = 1 - k; g.fillStyle = o.res ? o.col : '#555';
       g.beginPath(); g.arc(o.x, o.y, R * (o.res ? 1 + .4 * k : 1), 0, 7); g.fill(); g.stroke();
     }
-    if (t >= o.hitT && t < o.hitT + 600 && (o.res < 3 || (SK && SK.img.hit300))) {
-      const hk = SK && SK.img[['hit0', 'hit50', 'hit100', 'hit300'][o.res]];
-      if (hk) { const kk = (t - o.hitT) / 600; dImg(hk, o.x, o.y, szS(hk, R), kk < .6 ? 1 : 1 - (kk - .6) / .4); }
-      else if (o.res < 3) {
-        g.globalAlpha = 1 - (t - o.hitT) / 600; g.font = 'bold 22px Sora,sans-serif';
-        g.fillStyle = ['#ff4d6d', '#7de3d0', '#ffd166'][o.res]; g.fillText(['✕', '50', '100'][o.res], o.x, o.y + R + 14);
-      }
+    if (t >= o.hitT && t < o.hitT + 600 && o.res < 3) {
+      g.globalAlpha = 1 - (t - o.hitT) / 600; const hi0 = SK && SK.img['hit' + [0, 50, 100][o.res]];
+      if (hi0) dImg(hi0, o.x, o.y + R + 6, hi0.naturalWidth / (hi0.hd || 1) * .8, g.globalAlpha);
+      else { g.font = 'bold 22px Sora,sans-serif'; g.fillStyle = ['#ff4d6d', '#7de3d0', '#ffd166'][o.res]; g.fillText(['✕', '50', '100'][o.res], o.x, o.y + R + 14); }
     }
   }
   g.globalAlpha = 1;
@@ -1134,7 +1160,7 @@ function draw(t) {
   g.globalAlpha = 1; const c = F[lo];
   if (SK && SK.img.cursor) {
     if (S.trail && SK.img.cursortrail) for (let j = lo; j > 0 && F[j].t > t - 140; j -= 1) dImg(SK.img.cursortrail, F[j].x, F[j].y, 30 * S.cursor, Math.max(0, 1 - (t - F[j].t) / 140) * .5);
-    dImg(SK.img.cursor, c.x, c.y, 34 * S.cursor, 1); dImg(SK.img.cursormiddle, c.x, c.y, 34 * S.cursor, 1);
+    dImg(SK.img.cursor, c.x, c.y, 34 * S.cursor, 1);
   } else {
   g.fillStyle = c.k ? '#ff5fa2' : '#fff'; g.beginPath(); g.arc(c.x, c.y, (c.k ? 9 : 7) * S.cursor, 0, 7); g.fill(); }
   let x0 = 0, x1 = M.ev.length; while (x0 < x1) { const m = (x0 + x1) >> 1; M.ev[m].t <= t ? x0 = m + 1 : x1 = m; }
@@ -1146,21 +1172,12 @@ function draw(t) {
   }
   if (!S.hud) return;
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.globalAlpha = 1;
-  const sbg = SK && SK.img['scorebar-bg'], sco = SK && SK.img['scorebar-colour'];
-  if (sbg || sco) {
-    const base = sbg || sco, bs = 380 / base.naturalWidth;
-    if (sbg) g.drawImage(sbg, 24, 8, sbg.naturalWidth * bs, sbg.naturalHeight * bs);
-    if (sco) { const cw = sco.naturalWidth * bs, ch = sco.naturalHeight * bs, ox = sbg ? 380 * .01 : 0, oy = sbg ? (sbg.naturalHeight * bs - ch) / 2 : 0; g.save(); g.beginPath(); g.rect(24 + ox, 8 + oy, cw * hp, ch); g.clip(); g.drawImage(sco, 24 + ox, 8 + oy, cw, ch); g.restore(); }
-  } else {
-    g.fillStyle = '#2f2850'; g.fillRect(24, 18, 380, 14);
-    g.fillStyle = hp > .5 ? '#7de3d0' : hp > .25 ? '#ffd166' : '#ff4d6d'; g.fillRect(24, 18, 380 * hp, 14);
-  }
+  g.fillStyle = '#2f2850'; g.fillRect(24, 18, 380, 14);
+  g.fillStyle = hp > .5 ? '#7de3d0' : hp > .25 ? '#ffd166' : '#ff4d6d'; g.fillRect(24, 18, 380 * hp, 14);
   g.fillStyle = '#f1ecff';
-  if (!(SK && skinNum(e.c + 'x', 24, 686, 56, false))) { g.textAlign = 'left'; g.font = '800 48px Sora,sans-serif'; g.fillText(e.c + 'x', 24, 686); }
-  const scs = String(Math.round(e.s * M.k)).padStart(8, '0'), accs = (e.a * 100).toFixed(2) + '%';
-  if (!(SK && skinNum(scs, 936, 34, 40, true))) { g.textAlign = 'right'; g.font = '800 32px Sora,sans-serif'; g.fillText(scs, 936, 30); }
-  if (!(SK && skinNum(accs, 936, 76, 26, true))) { g.textAlign = 'right'; g.font = '600 22px Sora,sans-serif'; g.fillText(accs, 936, 60); }
+  g.textAlign = 'left'; g.font = '800 48px Sora,sans-serif'; g.fillText(e.c + 'x', 24, 686);
+  g.textAlign = 'right'; g.font = '800 32px Sora,sans-serif'; g.fillText(String(Math.round(e.s * M.k)).padStart(8, '0'), 936, 30);
+  g.font = '600 22px Sora,sans-serif'; g.fillText((e.a * 100).toFixed(2) + '%', 936, 60);
 }
 
 function skinSnd(b, at) { const bf = SK && SK.snd[b]; if (!bf) return false; const s = actx.createBufferSource(), gn = actx.createGain(); s.buffer = bf; gn.gain.value = S.hsVol / 100; s.connect(gn); gn.connect(actx.destination); s.start(at); return true; }
