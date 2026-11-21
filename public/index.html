@@ -246,6 +246,33 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 .lg-note{color:var(--dim);font-size:.8rem;text-align:center}
 @media(max-width:520px){.lg-feat{grid-template-columns:1fr}.lg-body{padding:18px}}
 @media(prefers-reduced-motion:reduce){.lg-btn{animation:none}}
+
+@media (min-width:900px),(min-width:700px) and (orientation:landscape){
+  #login:not([hidden]){max-width:1120px;min-height:calc(100dvh - 40px);display:grid;align-content:center}
+  .lg-card{display:grid;grid-template-columns:1.4fr 1fr}
+  .lg-card .banner{height:100%;min-height:100%;aspect-ratio:auto;object-fit:cover;object-position:center}
+  .lg-body{align-content:center;padding:28px 32px}
+  .lg-body h1{font-size:clamp(1.7rem,3.2vw,2.5rem);line-height:1.08;margin:0}
+  .lg-body p{margin:0}
+  .lg-btn{width:100%;box-sizing:border-box}
+}
+@media (min-width:700px) and (max-height:700px){.lg-body{gap:10px;padding:20px 26px}.lg-feat li{padding:8px 10px;font-size:.85rem}.lg-btn{padding:12px 16px}}
+
+/* ===== Tablet: alles anpassen ===== */
+@media (min-width:700px){
+  #list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .banner.slim{aspect-ratio:auto;height:clamp(90px,14vh,150px);object-position:center 45%}
+}
+@media (min-width:900px) and (orientation:landscape) and (max-height:900px){
+  #viewer{display:grid;grid-template-columns:230px minmax(0,1fr);grid-template-rows:auto auto 1fr auto;column-gap:18px;padding-left:18px;padding-right:18px}
+  #title{grid-column:1;grid-row:1;max-width:none;margin:0;font-size:1rem;line-height:1.3;padding:14px 0 8px}
+  #vbar{grid-column:1;grid-row:2;flex-direction:column;align-items:stretch;flex-wrap:nowrap;overflow:visible;max-width:none;margin:0;gap:8px}
+  #vbar .vb{width:100%;justify-content:flex-start}
+  #msg{grid-column:1;grid-row:3;align-self:end;padding-bottom:12px}
+  #stage{grid-column:2;grid-row:1/4}
+  #ctl{grid-column:2;grid-row:4;max-width:none;margin:0}
+  canvas{max-width:min(100%,calc((100dvh - 96px)*4/3))}
+}
 </style>
 </head>
 <body>
