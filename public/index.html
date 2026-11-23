@@ -889,11 +889,11 @@ async function openReplay(s) {
     const pk = M.audio ? await loadAudio(s.beatmapset.id, M.audio, M.bg) : null;
     audio = pk && pk.audio; bgImg = pk && pk.bg;
     if (audio) audio.onerror = () => { audioErr = true; };
-    if (audio) audio.preservesPitch = !(osr.mods & 512);
+    if (audio) audio.preservesPitch = !(osr.mods & 512); window.curMods = osr.mods;
     rate = osr.mods & (64 | 512) ? 1.5 : osr.mods & 256 ? 0.75 : 1;
     end = Math.max(F[F.length - 1].t, M.ho.at(-1).end) + 500;
     t = Math.max(0, M.ho[0].t - 2000); playing = false;
-    $('#seek').max = end; msg(audio ? 'Tippe ▶ zum Start' : 'Kein Ton: Beatmap-Audio nicht erreichbar. Tippe ▶ zum Start');
+    $('#seek').max = end; msg(audio ? 'Tippe ▶ zum Start' : 'Kein Ton: Beatmap-Audio nicht erreichbar. Tippe hier für einen neuen Versuch.');
     if (!running) { running = true; requestAnimationFrame(tick); }
   } catch (err) { msg('Replay konnte nicht gelesen werden.'); }
 }
@@ -901,9 +901,9 @@ async function openReplay(s) {
 async function loadAudio(setId, file, bgName) {
   const mime = { mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' }[file.split('.').pop().toLowerCase()] || 'audio/mpeg';
   const find = (z, n) => z.file(n) || Object.values(z.files).find(x => x.name.toLowerCase() === n.toLowerCase());
-  for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&NoHitsound=true&NoStoryboard=true`, `https://catboy.best/d/${setId}`]) {
+  for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&NoHitsound=true&NoStoryboard=true`, `https://api.nerinyan.moe/d/${setId}?noVideo=true`, `https://catboy.best/d/${setId}n`, `https://catboy.best/d/${setId}`, `https://osu.direct/api/d/${setId}`]) {
     try {
-      const r = await fetch(u); if (!r.ok) continue;
+      const r = await fetch(u, { signal: AbortSignal.timeout(30000) }); if (!r.ok) continue;
       const z = await JSZip.loadAsync(await r.arrayBuffer()), f = find(z, file);
       if (!f) continue;
       const audio = new Audio(URL.createObjectURL(new Blob([await f.async('arraybuffer')], { type: mime })));
@@ -914,6 +914,19 @@ async function loadAudio(setId, file, bgName) {
   }
   return null;
 }
+
+
+async function retryAudio() { // Ton erneut laden, wenn alle Spiegel-Server vorher nicht erreichbar waren
+  if (!M || audio || !curScore || !M.audio || retryAudio.busy) return; retryAudio.busy = true;
+  const msg = x => ($('#msg').textContent = x); msg('Lade Ton…');
+  try {
+    const pk = await loadAudio(curScore.beatmapset.id, M.audio, M.bg); audio = pk && pk.audio; if (pk && pk.bg && !bgImg) bgImg = pk.bg;
+    if (audio) { audioErr = false; audio.onerror = () => { audioErr = true; }; audio.preservesPitch = !((window.curMods || 0) & 512); }
+    msg(audio ? 'Ton geladen. Tippe ▶ zum Start' : 'Kein Ton: Beatmap-Audio nicht erreichbar. Tippe hier für einen neuen Versuch.');
+  } catch { msg('Kein Ton: Beatmap-Audio nicht erreichbar. Tippe hier für einen neuen Versuch.'); }
+  retryAudio.busy = false;
+}
+$('#msg').addEventListener('click', retryAudio);
 
 function syncAudio() {
   if (!audio || audioErr) return;
