@@ -283,9 +283,52 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 }
 @media (max-height:480px) and (orientation:landscape){.lg-feat,.lg-body p{display:none}#login:not([hidden]){min-height:0}.lg-body{padding:14px 22px;gap:8px}.lg-body h1{font-size:1.45rem}.lg-note{font-size:.72rem}.lg-badge{display:none}}
 @media (min-width:1500px){.wrap{max-width:1560px}#list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ===== Einführungs-Tutorial ===== */
+#tut{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:radial-gradient(60% 50% at 20% 10%,rgba(255,95,162,.22),transparent 70%),radial-gradient(50% 45% at 85% 90%,rgba(125,227,208,.16),transparent 70%),rgba(10,8,18,.94);backdrop-filter:blur(6px)}
+.tut-card{position:relative;width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(29,24,48,.97),rgba(18,15,29,.97));border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.55),0 0 60px rgba(255,95,162,.14);animation:tutin .35s ease}
+@keyframes tutin{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.tut-x{position:absolute;top:10px;right:12px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(18,15,29,.7);color:var(--tx);font-size:1rem;cursor:pointer}
+.tut-art{flex:0 0 auto;display:grid;place-items:center;height:clamp(110px,24vh,190px);background:linear-gradient(135deg,rgba(255,95,162,.18),rgba(125,227,208,.12));overflow:hidden}
+.tut-art img{width:100%;height:100%;object-fit:cover}
+.tut-art .ico{font-size:clamp(3rem,10vh,4.6rem);filter:drop-shadow(0 0 22px rgba(255,95,162,.5))}
+.tut-body{padding:18px 22px 6px;overflow:auto;min-height:0}
+.tut-step{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mint)}
+.tut-body h2{margin:6px 0 10px;font-size:clamp(1.3rem,3.2vw,1.75rem);line-height:1.15}
+.tut-text{color:var(--tx);font-size:.98rem;line-height:1.5}
+.tut-text p{margin:0 0 10px;color:var(--dim)}
+.tut-text ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tut-text li{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:9px 12px}
+.tut-text li b{color:var(--pink);flex:0 0 auto}
+.tut-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px 16px}
+.tut-dots{display:flex;gap:7px}
+.tut-dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
+.tut-dots i.on{width:22px;border-radius:99px;background:var(--pink)}
+.tut-btns{display:flex;gap:8px;align-items:center}
+.tut-next{padding:11px 22px}
+.tut-skip{align-self:center;margin:0 0 14px;background:none;border:0;color:var(--dim);font-size:.82rem;cursor:pointer;text-decoration:underline}
+.tut-link{justify-self:center;background:none;border:0;color:var(--mint);font-size:.9rem;cursor:pointer;text-decoration:underline;padding:2px}
+@media (max-height:520px){.tut-art{display:none}.tut-body{padding-top:44px}}
+@media (prefers-reduced-motion:reduce){.tut-card{animation:none}.tut-dots i{transition:none}}
 </style>
 </head>
 <body>
+<div id="tut" role="dialog" aria-modal="true" aria-labelledby="tutTitle" hidden>
+  <div class="tut-card">
+    <button class="tut-x" id="tutX" aria-label="Tutorial schließen">✕</button>
+    <div class="tut-art" id="tutArt"></div>
+    <div class="tut-body">
+      <div class="tut-step" id="tutStep"></div>
+      <h2 id="tutTitle"></h2>
+      <div class="tut-text" id="tutText"></div>
+    </div>
+    <div class="tut-foot">
+      <div class="tut-dots" id="tutDots" aria-hidden="true"></div>
+      <div class="tut-btns"><button class="ghost" id="tutBack">Zurück</button><button class="btn tut-next" id="tutNext">Weiter</button></div>
+    </div>
+    <button class="tut-skip" id="tutSkip">Überspringen</button>
+  </div>
+</div>
 <section id="login" hidden>
   <div class="lg-card">
     <img class="banner" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
@@ -300,6 +343,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
         <li><b>📊</b> Score, Genauigkeit &amp; Combo live</li>
       </ul>
       <a class="btn lg-btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+      <button type="button" class="tut-link" id="tutBtn">Wie funktioniert das? · Kurze Einführung</button>
       <small class="lg-note">Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</small>
     </div>
   </div>
@@ -422,7 +466,7 @@ function openSettings() {
     if (t === 's') return `<label class="srow"><span>${l}</span><select data-k="${k}">${a.map(([v, n]) => `<option value="${v}" ${String(S[k]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
     if (t === 'ls') return `<div class="srow col"><span>${l}<b id="lsName">${esc(S.liveSkin || 'Standard')}</b></span><div class="skins" id="lsList"></div><label class="ghost lsup">+ Skin importieren (.osk)<input type="file" id="lsFile" accept=".osk,.zip,application/zip,application/octet-stream" multiple hidden></label><span>Skin-Galerie (500) · .osk oder .zip</span><input type="search" id="gsQ" placeholder="Galerie durchsuchen"><div class="skins" id="gsList"><div class="note">Lade Skins…</div></div></div>`;
     return '';
-  }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="reset">Alles zurücksetzen</button>';
+  }).join('')).join('') + '<h3>Hinweis</h3><div class="note">Änderungen werden sofort gespeichert.</div><button class="ghost" id="tutOpen">Tutorial anzeigen</button> <button class="ghost" id="reset">Alles zurücksetzen</button>';
   $('#settings').hidden = false; lsPaint(); loadGallery('');
 }
 const setBody = $('#setBody'); let skinT;
@@ -1271,6 +1315,35 @@ let seeking = false;
 $('#seek').oninput = e => { t = +e.target.value; seeking = true; clearTimeout(seeking.t); setTimeout(() => seeking = false, 300); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) { playing = false; if (audio) audio.pause(); } });
 $('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); resetVideo(); };
+
+/* ---------- Einführungs-Tutorial (beim ersten Besuch) ---------- */
+const TUT = [
+  { art: 'banner', t: 'Willkommen bei Osu Replay', h: '<p>Hier schaust du dir deine osu!-Replays direkt im Browser an – auf Handy, Tablet und PC, ohne etwas zu installieren.</p><p>Die nächsten Schritte zeigen dir kurz, was die Seite kann.</p>' },
+  { art: '👤', t: 'Von wem ist die Seite?', h: '<ul><li><b>🛠</b><span>Gebaut von <strong>Nicominecith</strong> als kostenloses Fan-Projekt.</span></li><li><b>ℹ️</b><span>Inoffiziell: Die Seite gehört nicht zu osu! oder ppy und wird nicht von ihnen betrieben.</span></li><li><b>🔒</b><span>Du meldest dich über osu! an. Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</span></li></ul>' },
+  { art: '▶', t: 'Was macht die Seite?', h: '<ul><li><b>1</b><span>Mit osu! verbinden – deine letzten und besten Plays erscheinen als Liste.</span></li><li><b>2</b><span>Tippe bei einem Play auf ▶, wenn er ein Replay hat.</span></li><li><b>3</b><span>Das Replay läuft mit Score, Genauigkeit und Combo. Du kannst spulen und das Tempo ändern.</span></li></ul>' },
+  { art: '✨', t: 'Was du hier machen kannst', h: '<ul><li><b>🔎</b><span><strong>Spieler suchen:</strong> Schau dir auch Plays anderer Spieler an. „Nur mit Replay" blendet Plays ohne Replay aus.</span></li><li><b>🎨</b><span><strong>Skins:</strong> Importiere eigene .osk-Skins oder nimm einen aus der Galerie mit bis zu 500 Skins (Einstellungen).</span></li><li><b>⚙️</b><span><strong>Einstellungen:</strong> Hintergrund, Cursor, HUD und Lautstärke anpassen.</span></li><li><b>🎮</b><span><strong>Spielen:</strong> Mit „▶ Spielen" startest du nicominecith osu! – dort wird dein gewählter Skin ebenfalls benutzt.</span></li></ul>' },
+  { art: '🚀', t: 'Los geht’s!', h: '<p>Verbinde jetzt dein osu!-Konto und starte dein erstes Replay.</p><p>Dieses Tutorial findest du später wieder unter „Wie funktioniert das?" auf dem Login-Screen oder in den Einstellungen.</p>' }
+];
+let tutI = 0;
+function tutDone() { try { localStorage.setItem('osuTutDone', '1'); } catch {} }
+function tutRender() {
+  const s = TUT[tutI], last = tutI === TUT.length - 1;
+  $('#tutArt').innerHTML = s.art === 'banner' ? `<img src="banner.png" alt="Osu Replay" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">` : `<div class="ico" aria-hidden="true">${s.art}</div>`;
+  $('#tutStep').textContent = `Schritt ${tutI + 1} von ${TUT.length}`; $('#tutTitle').textContent = s.t; $('#tutText').innerHTML = s.h;
+  $('#tutDots').innerHTML = TUT.map((_, i) => `<i class="${i === tutI ? 'on' : ''}"></i>`).join('');
+  $('#tutBack').hidden = tutI === 0; $('#tutNext').textContent = last ? 'Fertig' : 'Weiter'; $('#tutSkip').hidden = last;
+  $('#tut .tut-body').scrollTop = 0;
+}
+let tutPrev = null;
+function showTut(i = 0) { tutI = i; tutPrev = document.activeElement; $('#tut').hidden = false; tutRender(); $('#tutNext').focus(); }
+function closeTut() { $('#tut').hidden = true; tutDone(); if (tutPrev && tutPrev.focus) try { tutPrev.focus(); } catch {} }
+$('#tutNext').onclick = () => { if (tutI >= TUT.length - 1) closeTut(); else { tutI++; tutRender(); } };
+$('#tutBack').onclick = () => { if (tutI > 0) { tutI--; tutRender(); } };
+$('#tutSkip').onclick = $('#tutX').onclick = closeTut;
+document.addEventListener('keydown', e => { if ($('#tut').hidden) return; if (e.key === 'Escape') closeTut(); else if (e.key === 'ArrowRight') $('#tutNext').click(); else if (e.key === 'ArrowLeft') $('#tutBack').click(); });
+document.addEventListener('click', e => { if (e.target.closest('#tutBtn, #tutOpen')) { const st = $('#settings'); if (st && !st.hidden && e.target.closest('#tutOpen')) st.hidden = true; showTut(0); } });
+try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0); }
+
 init();
 </script>
 </body>
