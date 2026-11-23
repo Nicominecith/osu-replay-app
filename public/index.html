@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#120f1d">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12091a">
 <link rel="icon" type="image/png" id="fav" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <script>(function(){var i=new Image;i.onerror=function(){document.getElementById("fav").href="https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/0af3c28c-47c7-4876-af38-7340f65ae3b6/u1-e1-0.png"};i.src="favicon.png"})()</script>
@@ -310,9 +312,27 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 .tut-link{justify-self:center;background:none;border:0;color:var(--mint);font-size:.9rem;cursor:pointer;text-decoration:underline;padding:2px}
 @media (max-height:520px){.tut-art{display:none}.tut-body{padding-top:44px}}
 @media (prefers-reduced-motion:reduce){.tut-card{animation:none}.tut-dots i{transition:none}}
+
+/* ===== Gast-Bereich + Offline ===== */
+#guest{max-width:900px}
+#guest .gh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+#guest .gsp{flex:1}
+.gcards{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:700px){.gcards{grid-template-columns:1fr 1fr}}
+.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:linear-gradient(180deg,rgba(29,24,48,.94),rgba(18,15,29,.94));border:1px solid var(--line);border-radius:18px;padding:16px;color:var(--tx);cursor:pointer;font:inherit;transition:transform .15s,border-color .15s}
+.gcard:hover,.gcard:focus-visible{border-color:var(--pink);transform:translateY(-2px)}
+.gcard .i{font-size:1.8rem}.gcard small{color:var(--dim)}
+#guest.drag .gcards{outline:2px dashed var(--pink);outline-offset:6px}
+#gMsg{margin-top:12px;color:var(--mint);min-height:1.2em}
+.lg-guest{display:block;width:100%;box-sizing:border-box;text-align:center;padding:12px 16px}
+#offlineBar{position:fixed;left:0;right:0;top:0;z-index:70;text-align:center;padding:5px 10px calc(5px);font-size:.8rem;font-weight:700;background:#ffd166;color:#1d1830}
+.tut-actions{display:grid;gap:10px;margin-top:6px}.tut-actions .btn,.tut-actions .ghost{display:block;text-align:center;padding:13px 16px;text-decoration:none}
+@media (max-height:480px) and (orientation:landscape){.lg-guest{display:none}}
+@media(prefers-reduced-motion:reduce){.gcard{transition:none}}
 </style>
 </head>
 <body>
+<div id="offlineBar" hidden>Du bist offline – gespeicherte Inhalte werden genutzt.</div>
 <div id="tut" role="dialog" aria-modal="true" aria-labelledby="tutTitle" hidden>
   <div class="tut-card">
     <button class="tut-x" id="tutX" aria-label="Tutorial schließen">✕</button>
@@ -343,12 +363,26 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
         <li><b>📊</b> Score, Genauigkeit &amp; Combo live</li>
       </ul>
       <a class="btn lg-btn" href="/.netlify/functions/auth">Mit osu! verbinden</a>
+      <button type="button" class="ghost lg-guest" id="guestBtn">Ohne Anmeldung nutzen</button>
       <button type="button" class="tut-link" id="tutBtn">Wie funktioniert das? · Kurze Einführung</button>
       <small class="lg-note">Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</small>
     </div>
   </div>
 </section>
 
+<section id="guest" class="wrap" hidden>
+  <img class="banner slim" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
+  <div class="gh"><b>Osu Replay</b><span class="chip">Ohne Anmeldung</span><span class="gsp"></span><button class="ghost" id="gLogin">Zum Login</button><a class="btn" href="/.netlify/functions/auth">Mit osu! verbinden</a></div>
+  <div class="gcards">
+    <label class="gcard" for="osrFile" id="gOsr"><span class="i" aria-hidden="true">📂</span><b>Replay-Datei öffnen</b><small>Öffne eine .osr-Datei von deinem Gerät (oder zieh sie hierher). Beatmap und Ton werden online geladen.</small></label>
+    <input type="file" id="osrFile" accept=".osr" hidden>
+    <button class="gcard" id="gPlay"><span class="i" aria-hidden="true">🎮</span><b>Spielen</b><small>nicominecith osu! direkt starten</small></button>
+    <button class="gcard" id="gSet"><span class="i" aria-hidden="true">⚙️</span><b>Einstellungen</b><small>Eigenen Skin importieren, HUD, Cursor und Ton</small></button>
+    <button class="gcard" id="gTut"><span class="i" aria-hidden="true">❓</span><b>Tutorial</b><small>Kurz erklärt, was die Seite kann</small></button>
+  </div>
+  <p class="note" style="margin-top:14px">Deine eigenen Plays, die Spielersuche und die Skin-Galerie brauchen eine Anmeldung mit osu!. Alles andere geht auch ohne.</p>
+  <div id="gMsg" role="status"></div>
+</section>
 <main id="app" class="wrap" hidden>
   <img class="banner slim" src="banner.png" alt="Osu Replay" width="1280" height="720" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">
   <header>
@@ -426,7 +460,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma-d-min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const api = (p, q = {}) => fetch('/.netlify/functions/api?' + new URLSearchParams({ path: p, ...q }));
@@ -583,10 +617,10 @@ async function loadGallery(q) {
   const box = $('#gsList'); if (!box) return; const my = ++gsTok, ql = q.trim().toLowerCase();
   GS = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
   box.innerHTML = GS.map(gsCard).join('') + '<div class="note" id="gsMore">Lade Skins…</div>';
-  const page = async p => { try { const r = await fetch('/.netlify/functions/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
+  let denied = false; const page = async p => { try { const r = await fetch('/.netlify/functions/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); if (r.status === 401) denied = true; return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
   const seen = new Set(GS.map(x => x.url)); let end = false;
   for (const wave of [[1], [2, 3, 4], [5, 6, 7], [8, 9, 10]]) { // erste Seite sofort, Rest in Schüben
-    if (end || GS.length >= GS_MAX) break;
+    if (end || denied || GS.length >= GS_MAX) break;
     const lists = await Promise.all(wave.map(page)); if (my !== gsTok) return;
     let html = '';
     for (const list of lists) {
@@ -595,7 +629,7 @@ async function loadGallery(q) {
     }
     const mo = $('#gsMore'); if (mo) { mo.insertAdjacentHTML('beforebegin', html); mo.textContent = GS.length + ' Skins · lade weitere…'; }
   }
-  const mo = $('#gsMore'); if (mo && my === gsTok) mo.textContent = GS.length ? GS.length + ' Skins' : 'Nichts gefunden.';
+  const mo = $('#gsMore'); if (mo && my === gsTok) mo.textContent = denied ? (GS.length ? GS.length + ' Skins · für die Galerie bitte mit osu! anmelden' : 'Die Galerie braucht eine Anmeldung mit osu!.') : GS.length ? GS.length + ' Skins' : 'Nichts gefunden.';
 }
 async function gsFetch(k) { // direkt vom Server; Proxy nur als Notlösung
   let buf = null;
@@ -649,10 +683,13 @@ const lab = r => ({ X: 'SS', XH: 'SS', SH: 'S' }[r] || r);
 const starCol = r => r < 2 ? '#7de3d0' : r < 4 ? '#ffd166' : r < 6 ? '#ff7aa8' : '#a78bfa';
 const rel = d => { if (!d) return ''; const m = (Date.now() - new Date(d)) / 6e4; return m < 60 ? `vor ${m | 0} Min.` : m < 1440 ? `vor ${m / 60 | 0} Std.` : m < 43200 ? `vor ${m / 1440 | 0} Tg.` : new Date(d).toLocaleDateString('de-DE'); };
 
+const guestOn = () => { try { return localStorage.getItem('osuGuest') === '1'; } catch { return false; } };
+function showGuest() { $('#login').hidden = true; $('#app').hidden = true; $('#guest').hidden = false; }
+function enterGuest() { try { localStorage.setItem('osuGuest', '1'); } catch {} if (!me) showGuest(); }
 async function init() {
   lsLoad(S.liveSkin);
-  const r = await api('/me/osu');
-  if (!r.ok) return ($('#login').hidden = false);
+  let r; try { r = await api('/me/osu'); } catch { r = { ok: false }; }
+  if (!r.ok) return guestOn() ? showGuest() : ($('#login').hidden = false);
   me = await r.json(); target = me;
   $('#app').hidden = false;
   $('#who').innerHTML = `<img src="${esc(me.avatar_url)}" alt=""><b>${esc(me.username)}</b>`;
@@ -660,8 +697,8 @@ async function init() {
 }
 async function load(reset) {
   if (reset) { scores = []; more = true; $('#list').innerHTML = '<div class="msg">Lade Scores…</div>'; }
-  const r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 });
-  if (!r.ok) return ($('#list').innerHTML = `<div class="msg">Scores konnten nicht geladen werden (${r.status}).</div>`);
+  let r; try { r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 }); } catch { r = { ok: false, status: 'offline' }; }
+  if (!r.ok) return ($('#list').innerHTML = `<div class="msg">${r.status === 'offline' ? 'Offline – diese Scores sind noch nicht gespeichert.' : `Scores konnten nicht geladen werden (${r.status}).`}</div>`);
   const a = await r.json(); scores = scores.concat(a); more = a.length === LIM; paint();
 }
 function rowHtml(s, i) {
@@ -793,18 +830,28 @@ function parseOsr(buf) {
   const d = new DataView(buf), u = new Uint8Array(buf); let p = 0;
   const b = () => d.getUint8(p++), sh = () => (p += 2, d.getUint16(p - 2, true)), i = () => (p += 4, d.getInt32(p - 4, true));
   const str = () => { if (b() !== 11) return ''; let n = 0, s = 0, c; do { c = b(); n |= (c & 127) << s; s += 7; } while (c & 128); const t = new TextDecoder().decode(u.subarray(p, p + n)); p += n; return t; };
-  const mode = b(); i(); str(); str(); str(); p += 12; const score = i(); sh(); b();
+  const mode = b(); i(); const md5 = str(), player = str(); str(); p += 12; const score = i(), combo = sh(); b();
   const mods = i(); str(); p += 8; const len = i();
   return new Promise((res, rej) => LZMA.decompress(Array.from(u.subarray(p, p + len), x => x << 24 >> 24), t => {
     if (t == null) return rej(new Error('LZMA'));
     if (typeof t !== 'string') t = new TextDecoder().decode(new Uint8Array(t));
     let ms = 0; const F = [];
     for (const f of t.split(',')) { const [w, x, y, z] = f.split('|'); if (z === undefined || w === '-12345') continue; ms += +w; F.push({ t: ms, x: +x, y: +y, k: (+z) & 15 }); }
-    res({ mode, mods, F, score });
+    res({ mode, mods, F, score, md5, player, combo });
   }));
 }
 
 /* ---------- .osu lesen ---------- */
+/* ---------- Mod-Sync (HR, DT/NC/HT/DC inkl. eigener Geschwindigkeit, TC, HD, EZ, FL) ---------- */
+const MODBIT = { EZ: 2, HD: 8, HR: 16, DT: 64, HT: 256, NC: 576, DC: 256, FL: 1024 };
+function modInfo(s, osrMods) { // Mods aus der Score-API (auch lazer-Mods) + Bitmaske aus der Replay-Datei
+  const list = ((s && s.mods) || []).map(m => typeof m === 'string' ? { acronym: m } : m);
+  let bits = osrMods | 0, speed = 0;
+  for (const m of list) { bits |= MODBIT[m.acronym] || 0; const sc = m.settings && +m.settings.speed_change; if (sc > 0 && /^(DT|NC|HT|DC)$/.test(m.acronym)) speed = sc; }
+  if (!speed) speed = bits & (64 | 512) ? 1.5 : bits & 256 ? .75 : 1;
+  return { bits, speed, tc: list.some(m => m.acronym === 'TC') };
+}
+const bitsToMods = b => [b & 2 && 'EZ', b & 8 && 'HD', b & 16 && 'HR', b & 512 ? 'NC' : b & 64 && 'DT', b & 256 && 'HT', b & 1024 && 'FL'].filter(Boolean);
 function parseMap(txt, mods) {
   const m = { d: {}, tp: [], ho: [], br: [] }; let sec = '';
   for (let l of txt.split('\n')) {
@@ -919,22 +966,26 @@ async function openReplay(s) {
   const msg = x => ($('#msg').textContent = x);
   try {
     msg('Lade Replay…');
-    let r = await api(`/scores/${s.id}/download`);
-    if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
-    if (!r.ok) return msg(`Replay-Download fehlgeschlagen (${r.status}).`);
-    osrBuf = await r.arrayBuffer();
+    if (s._osrBuf) osrBuf = s._osrBuf; // lokale .osr-Datei (ohne Anmeldung)
+    else {
+      let r = await api(`/scores/${s.id}/download`);
+      if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
+      if (!r.ok) return msg(`Replay-Download fehlgeschlagen (${r.status}).`);
+      osrBuf = await r.arrayBuffer();
+    }
     const osr = await parseOsr(osrBuf.slice(0));
     if (osr.mode !== 0) return msg('Aktuell wird nur osu!standard unterstützt.');
     msg('Lade Beatmap…');
     const b = await fetch('/.netlify/functions/beatmap?id=' + s.beatmap.id);
     if (!b.ok) return msg('Beatmap konnte nicht geladen werden.');
-    M = parseMap(await b.text(), osr.mods); F = osr.F; prep(M, F, osr.mods, osr.score);
+    const mi = modInfo(s, osr.mods); if (s._osrBuf && !(s.mods || []).length && mi.bits) $('#title').textContent += ' +' + bitsToMods(mi.bits).join('');
+    M = parseMap(await b.text(), mi.bits); M.speed = mi.speed; M.tc = mi.tc; F = osr.F; prep(M, F, mi.bits, osr.score);
     msg('Lade Ton…');
     const pk = M.audio ? await loadAudio(s.beatmapset.id, M.audio, M.bg) : null;
     audio = pk && pk.audio; bgImg = pk && pk.bg;
     if (audio) audio.onerror = () => { audioErr = true; };
-    if (audio) audio.preservesPitch = !(osr.mods & 512); window.curMods = osr.mods;
-    rate = osr.mods & (64 | 512) ? 1.5 : osr.mods & 256 ? 0.75 : 1;
+    if (audio) audio.preservesPitch = !(mi.bits & 512); window.curMods = mi.bits;
+    rate = mi.speed;
     end = Math.max(F[F.length - 1].t, M.ho.at(-1).end) + 500;
     t = Math.max(0, M.ho[0].t - 2000); playing = false;
     $('#seek').max = end; msg(audio ? 'Tippe ▶ zum Start' : 'Kein Ton: Beatmap-Audio nicht erreichbar. Tippe hier für einen neuen Versuch.');
@@ -1054,7 +1105,7 @@ function prep(m, F, mods, real) {
   m.drain = drainMs;
   /* Treffer */
   let od = m.d.OverallDifficulty; if (mods & 16) od = Math.min(10, od * 1.4); if (mods & 2) od /= 2;
-  const wr = mods & (64 | 512) ? 1.5 : mods & 256 ? .75 : 1, w3 = (80 - 6 * od) * wr, w1 = (140 - 8 * od) * wr, w5 = (200 - 10 * od) * wr, pr = []; let pk = 0, pi = 0; const errs = [];
+  const wr = m.speed || (mods & (64 | 512) ? 1.5 : mods & 256 ? .75 : 1), w3 = (80 - 6 * od) * wr, w1 = (140 - 8 * od) * wr, w5 = (200 - 10 * od) * wr, pr = []; let pk = 0, pi = 0; const errs = [];
   for (const f of F) { if ((f.k & 5 && !(pk & 5)) || (f.k & 10 && !(pk & 10))) pr.push({ t: f.t, x: f.x, y: f.y, u: 0 }); pk = f.k; }
   for (const o of m.ho) {
     if (o.type & 8) { o.res = 3; o.hitT = o.end; continue; }
@@ -1124,7 +1175,7 @@ function prep(m, F, mods, real) {
     m.ev.push({ t: a.t, c, a: cnt ? (300 * n3 + 100 * n1 + 50 * n5) / (300 * cnt) : 1, s: sc, h });
   }
   const fin = m.ev.length ? m.ev[m.ev.length - 1].s : 0; m.k = real > 0 && fin > 0 ? real / fin : 1; m.real = real;
-  const rt = mods & (64 | 512) ? 1.5 : mods & 256 ? .75 : 1, avg = errs.length ? errs.reduce((x, y) => x + y, 0) / errs.length : 0;
+  const rt = m.speed || (mods & (64 | 512) ? 1.5 : mods & 256 ? .75 : 1), avg = errs.length ? errs.reduce((x, y) => x + y, 0) / errs.length : 0;
   const sd = errs.length ? Math.sqrt(errs.reduce((x, y) => x + (y - avg) ** 2, 0) / errs.length) : 0;
   m.stats = { n3, n1, n5, miss: cnt - n3 - n1 - n5, mx, cb, sb, mh, ur: sd * 10 / rt, avg: avg / rt };
 }
@@ -1206,8 +1257,8 @@ function draw(t) {
     if (o.path && t <= o.end + 200) {
       g.globalAlpha = sa * (t > o.end ? 1 - (t - o.end) / 200 : 1);
       if (!o.p2d) { o.p2d = new Path2D(); o.path.forEach(([x, y], j) => j ? o.p2d.lineTo(x, y) : o.p2d.moveTo(x, y)); }
-      g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke(o.p2d);
-      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke(o.p2d);
+      if (!M.tc) { g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke(o.p2d);
+      g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke(o.p2d); }
       for (const q of (S.ticks ? o.ticks : [])) {
         if (t < q.t) { g.globalAlpha = sa * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
@@ -1227,13 +1278,13 @@ function draw(t) {
     const k = (t - o.hitT) / 200;
     g.lineWidth = 3; g.strokeStyle = '#fff';
     if (SK && SK.img.hitcircle) {
-      if (t < o.hitT) { skinCircle(o, R * 2, a, true); if (dt > 0 && !M.hd) dImg(tinted(SK.img.approachcircle || SK.img.hitcircle, colOf(o)), o.x, o.y, R * 2 * (1 + 3 * dt / P), a); }
-      else if (k < 1) { if (o.res) skinCircle(o, R * 2 * (1 + .4 * k), 1 - k, false); else { g.filter = 'grayscale(1)'; skinCircle(o, R * 2, 1 - k, false); g.filter = 'none'; } }
+      if (t < o.hitT) { if (!M.tc) skinCircle(o, R * 2, a, true); if (dt > 0 && !M.hd) dImg(tinted(SK.img.approachcircle || SK.img.hitcircle, colOf(o)), o.x, o.y, R * 2 * (1 + 3 * dt / P), a); }
+      else if (k < 1 && !M.tc) { if (o.res) skinCircle(o, R * 2 * (1 + .4 * k), 1 - k, false); else { g.filter = 'grayscale(1)'; skinCircle(o, R * 2, 1 - k, false); g.filter = 'none'; } }
     } else if (t < o.hitT) {
-      g.globalAlpha = a; g.fillStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
-      g.fillStyle = '#12091a'; g.font = `bold ${R}px Sora,sans-serif`; g.fillText(o.n, o.x, o.y);
+      g.globalAlpha = a; if (!M.tc) { g.fillStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = '#12091a'; g.font = `bold ${R}px Sora,sans-serif`; g.fillText(o.n, o.x, o.y); }
       if (dt > 0 && !M.hd) { g.lineWidth = 2; g.beginPath(); g.arc(o.x, o.y, R * (1 + 3 * dt / P), 0, 7); g.stroke(); }
-    } else if (k < 1) {
+    } else if (k < 1 && !M.tc) {
       g.globalAlpha = 1 - k; g.fillStyle = o.res ? o.col : '#555';
       g.beginPath(); g.arc(o.x, o.y, R * (o.res ? 1 + .4 * k : 1), 0, 7); g.fill(); g.stroke();
     }
@@ -1316,20 +1367,61 @@ $('#seek').oninput = e => { t = +e.target.value; seeking = true; clearTimeout(se
 document.addEventListener('visibilitychange', () => { if (document.hidden) { playing = false; if (audio) audio.pause(); } });
 $('#close').onclick = () => { $('#viewer').hidden = true; playing = false; if (audio) audio.pause(); resetVideo(); };
 
+/* ---------- Ohne Anmeldung: eigene .osr-Datei öffnen ---------- */
+async function lookupMd5(md5) {
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem('osuMd5') || '{}'); } catch {}
+  if (cache[md5]) return cache[md5];
+  for (const u of [`https://catboy.best/api/v2/md5/${md5}`, `https://osu.direct/api/v2/md5/${md5}`]) {
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(12000) }); if (!r.ok) continue; const j = await r.json(), bs = j.beatmapset || {};
+      const info = { id: j.id, beatmapset_id: j.beatmapset_id || bs.id, version: j.version || '', difficulty_rating: j.difficulty_rating || 0, artist: bs.artist || j.artist || '', title: bs.title || j.title || '' };
+      if (info.id && info.beatmapset_id) { cache[md5] = info; try { localStorage.setItem('osuMd5', JSON.stringify(cache)); } catch {} return info; }
+    } catch {}
+  }
+  return null;
+}
+async function openLocalReplay(file) {
+  const gm = x => ($('#gMsg').textContent = x);
+  try {
+    if (!/\.osr$/i.test(file.name)) return gm('Bitte eine .osr-Replay-Datei wählen.');
+    gm('Lese Replay…'); const buf = await file.arrayBuffer(), osr = await parseOsr(buf.slice(0));
+    if (osr.mode !== 0) return gm('Aktuell wird nur osu!standard unterstützt.');
+    gm('Suche Beatmap…'); const info = await lookupMd5(osr.md5);
+    if (!info) return gm(navigator.onLine ? 'Die Beatmap zu diesem Replay wurde nicht gefunden.' : 'Offline: Die Beatmap zu diesem Replay ist noch nicht gespeichert.');
+    gm('');
+    await openReplay({ id: 0, _osrBuf: buf, mods: [], beatmap: { id: info.id, version: info.version, difficulty_rating: info.difficulty_rating }, beatmapset: { id: info.beatmapset_id, artist: info.artist || osr.player, title: info.title || 'Replay' } });
+  } catch { gm('Die Replay-Datei konnte nicht gelesen werden.'); }
+}
+$('#osrFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) openLocalReplay(f); };
+$('#guestBtn').onclick = () => { enterGuest(); };
+$('#gLogin').onclick = () => { try { localStorage.removeItem('osuGuest'); } catch {} $('#guest').hidden = true; $('#login').hidden = false; };
+$('#gPlay').onclick = () => $('#nicominecithBtn').click();
+$('#gSet').onclick = () => openSettings();
+$('#gTut').onclick = () => showTut(0);
+const gst = $('#guest');
+['dragenter', 'dragover'].forEach(ev => gst.addEventListener(ev, e => { e.preventDefault(); gst.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(ev => gst.addEventListener(ev, e => { e.preventDefault(); gst.classList.remove('drag'); }));
+gst.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) openLocalReplay(f); });
+
+/* ---------- Offline: Hinweisleiste + Service Worker ---------- */
+const offUpd = () => { $('#offlineBar').hidden = navigator.onLine; };
+addEventListener('online', offUpd); addEventListener('offline', offUpd); offUpd();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+
 /* ---------- Einführungs-Tutorial (beim ersten Besuch) ---------- */
 const TUT = [
-  { art: 'banner', t: 'Willkommen bei Osu Replay', h: '<p>Hier schaust du dir deine osu!-Replays direkt im Browser an – auf Handy, Tablet und PC, ohne etwas zu installieren.</p><p>Die nächsten Schritte zeigen dir kurz, was die Seite kann.</p>' },
-  { art: '👤', t: 'Von wem ist die Seite?', h: '<ul><li><b>🛠</b><span>Gebaut von <strong>Nicominecith</strong> als kostenloses Fan-Projekt.</span></li><li><b>ℹ️</b><span>Inoffiziell: Die Seite gehört nicht zu osu! oder ppy und wird nicht von ihnen betrieben.</span></li><li><b>🔒</b><span>Du meldest dich über osu! an. Wir bekommen nur dein öffentliches Profil und deine Scores – nie dein Passwort.</span></li></ul>' },
-  { art: '▶', t: 'Was macht die Seite?', h: '<ul><li><b>1</b><span>Mit osu! verbinden – deine letzten und besten Plays erscheinen als Liste.</span></li><li><b>2</b><span>Tippe bei einem Play auf ▶, wenn er ein Replay hat.</span></li><li><b>3</b><span>Das Replay läuft mit Score, Genauigkeit und Combo. Du kannst spulen und das Tempo ändern.</span></li></ul>' },
-  { art: '✨', t: 'Was du hier machen kannst', h: '<ul><li><b>🔎</b><span><strong>Spieler suchen:</strong> Schau dir auch Plays anderer Spieler an. „Nur mit Replay" blendet Plays ohne Replay aus.</span></li><li><b>🎨</b><span><strong>Skins:</strong> Importiere eigene .osk-Skins oder nimm einen aus der Galerie mit bis zu 500 Skins (Einstellungen).</span></li><li><b>⚙️</b><span><strong>Einstellungen:</strong> Hintergrund, Cursor, HUD und Lautstärke anpassen.</span></li><li><b>🎮</b><span><strong>Spielen:</strong> Mit „▶ Spielen" startest du nicominecith osu! – dort wird dein gewählter Skin ebenfalls benutzt.</span></li></ul>' },
-  { art: '🚀', t: 'Los geht’s!', h: '<p>Verbinde jetzt dein osu!-Konto und starte dein erstes Replay.</p><p>Dieses Tutorial findest du später wieder unter „Wie funktioniert das?" auf dem Login-Screen oder in den Einstellungen.</p>' }
+  { art: 'banner', t: 'Willkommen bei Osu Replay', h: '<p>Hier schaust du dir osu!-Replays direkt im Browser an – auf Handy, Tablet und PC, ohne etwas zu installieren.</p><p>Du kannst die Seite <strong>mit osu!-Anmeldung</strong> oder <strong>ganz ohne Anmeldung</strong> nutzen. Die nächsten Schritte zeigen kurz, was geht.</p>' },
+  { art: '👤', t: 'Von wem ist die Seite?', h: '<ul><li><b>🛠</b><span>Gebaut von <strong>Nicominecith</strong> als kostenloses Fan-Projekt.</span></li><li><b>ℹ️</b><span>Inoffiziell: Die Seite gehört nicht zu osu! oder ppy und wird nicht von ihnen betrieben.</span></li><li><b>🔒</b><span>Die Anmeldung ist freiwillig. Meldest du dich an, bekommen wir nur dein öffentliches Profil und deine Scores – nie dein Passwort.</span></li></ul>' },
+  { art: '▶', t: 'Was macht die Seite?', h: '<ul><li><b>1</b><span>Replay öffnen: entweder deine Plays nach der Anmeldung antippen oder eine .osr-Datei öffnen.</span></li><li><b>2</b><span>Das Replay läuft mit Score, Genauigkeit und Combo. Du kannst spulen und das Tempo ändern.</span></li><li><b>3</b><span>Mods wie HR, DT und TC werden mit abgespielt.</span></li></ul>' },
+  { art: '✨', t: 'Was du hier machen kannst', h: '<ul><li><b>🔓</b><span><strong>Ohne Anmeldung:</strong> eigene .osr-Replays öffnen, „▶ Spielen" mit nicominecith osu!, eigene Skins importieren und die Einstellungen nutzen.</span></li><li><b>🔑</b><span><strong>Mit Anmeldung zusätzlich:</strong> deine letzten und besten Plays, Spieler suchen und die Skin-Galerie mit bis zu 500 Skins.</span></li><li><b>📴</b><span><strong>Offline:</strong> Die Seite lässt sich installieren und startet auch ohne Internet. Replays brauchen für Beatmap und Ton einmal Verbindung.</span></li></ul>' },
+  { art: '🚀', t: 'Los geht’s!', h: () => me ? '<p>Du bist schon angemeldet – viel Spaß mit deinen Replays!</p>' : '<p>Wie möchtest du starten?</p><div class="tut-actions"><a class="btn" href="/.netlify/functions/auth">Mit osu! verbinden</a><button class="ghost" id="tutGuest" type="button">Ohne Anmeldung nutzen</button></div><p style="margin-top:12px">Dieses Tutorial findest du später wieder auf dem Login-Screen oder in den Einstellungen.</p>' }
 ];
 let tutI = 0;
 function tutDone() { try { localStorage.setItem('osuTutDone', '1'); } catch {} }
 function tutRender() {
   const s = TUT[tutI], last = tutI === TUT.length - 1;
   $('#tutArt').innerHTML = s.art === 'banner' ? `<img src="banner.png" alt="Osu Replay" decoding="async" onerror="this.onerror=null;this.src='https://azyjlkhpdgafuobyxoax.supabase.co/storage/v1/object/public/asset-images/e275d85e-fccd-4b15-839b-078fb61a72d2/mcp/b872fa8f-ec81-4289-a3a3-2d8d30fdd303/u1-e1-1.png'">` : `<div class="ico" aria-hidden="true">${s.art}</div>`;
-  $('#tutStep').textContent = `Schritt ${tutI + 1} von ${TUT.length}`; $('#tutTitle').textContent = s.t; $('#tutText').innerHTML = s.h;
+  $('#tutStep').textContent = `Schritt ${tutI + 1} von ${TUT.length}`; $('#tutTitle').textContent = s.t; $('#tutText').innerHTML = typeof s.h === 'function' ? s.h() : s.h;
   $('#tutDots').innerHTML = TUT.map((_, i) => `<i class="${i === tutI ? 'on' : ''}"></i>`).join('');
   $('#tutBack').hidden = tutI === 0; $('#tutNext').textContent = last ? 'Fertig' : 'Weiter'; $('#tutSkip').hidden = last;
   $('#tut .tut-body').scrollTop = 0;
@@ -1341,7 +1433,7 @@ $('#tutNext').onclick = () => { if (tutI >= TUT.length - 1) closeTut(); else { t
 $('#tutBack').onclick = () => { if (tutI > 0) { tutI--; tutRender(); } };
 $('#tutSkip').onclick = $('#tutX').onclick = closeTut;
 document.addEventListener('keydown', e => { if ($('#tut').hidden) return; if (e.key === 'Escape') closeTut(); else if (e.key === 'ArrowRight') $('#tutNext').click(); else if (e.key === 'ArrowLeft') $('#tutBack').click(); });
-document.addEventListener('click', e => { if (e.target.closest('#tutBtn, #tutOpen')) { const st = $('#settings'); if (st && !st.hidden && e.target.closest('#tutOpen')) st.hidden = true; showTut(0); } });
+document.addEventListener('click', e => { if (e.target.closest('#tutGuest')) { closeTut(); enterGuest(); return; } if (e.target.closest('#tutBtn, #tutOpen')) { const st = $('#settings'); if (st && !st.hidden && e.target.closest('#tutOpen')) st.hidden = true; showTut(0); } });
 try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0); }
 
 init();

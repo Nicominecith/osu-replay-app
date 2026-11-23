@@ -1,0 +1,16 @@
+{
+  "name": "Osu Replay",
+  "short_name": "Osu Replay",
+  "description": "osu!-Replays direkt im Browser ansehen – auch ohne Anmeldung und offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#12091a",
+  "theme_color": "#12091a",
+  "lang": "de",
+  "icons": [
+    { "src": "favicon.png", "sizes": "any", "type": "image/png", "purpose": "any" },
+    { "src": "favicon.png", "sizes": "any", "type": "image/png", "purpose": "maskable" }
+  ]
+}
