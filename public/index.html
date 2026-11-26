@@ -667,7 +667,21 @@ async function gsUse(i, btn) {
 }
 let gsPf; const gsPre = e => { const b = e.target.closest && e.target.closest('[data-gs]'); if (!b) return; clearTimeout(gsPf); gsPf = setTimeout(() => { const k = GS[+b.dataset.gs]; if (k && !k.local && !gsMap()[k.url]) gsGet(k).catch(() => {}); }, 120); };
 setBody.addEventListener('mouseover', gsPre); setBody.addEventListener('touchstart', gsPre, { passive: true });
-const tintC = new Map();
+const tintC = new Map(), tcCache = new Map();
+function tcBody(o, R, col) { // Traceable: nur der Slider-Rand, Innenfläche durchsichtig
+  let c = tcCache.get(o); if (c && c.col === col) return c;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const [x, y] of o.path) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const pad = R + 6; x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
+  const ex = x1 - x0, ey = y1 - y0, S = Math.min(2, 2000 / Math.max(ex, ey, 1));
+  const cv2 = document.createElement('canvas'); cv2.width = Math.max(1, Math.ceil(ex * S)); cv2.height = Math.max(1, Math.ceil(ey * S));
+  const x = cv2.getContext('2d'); x.scale(S, S); x.translate(-x0, -y0); x.lineCap = x.lineJoin = 'round';
+  const pth = new Path2D(); o.path.forEach(([px, py], j) => j ? pth.lineTo(px, py) : pth.moveTo(px, py));
+  x.lineWidth = R * 2; x.strokeStyle = col; x.stroke(pth);
+  x.globalCompositeOperation = 'destination-out'; x.lineWidth = R * 2 - 6; x.stroke(pth);
+  c = { cv: cv2, x0, y0, w: ex, h: ey, col }; tcCache.set(o, c); if (tcCache.size > 20) tcCache.delete(tcCache.keys().next().value);
+  return c;
+}
 function tinted(im, col) {
   const k = im.src + col; let c = tintC.get(k); if (c) return c;
   c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext('2d');
@@ -972,7 +986,7 @@ let osrBuf = null;
 async function openReplay(s) {
   curScore = s; $('#spd').value = S.speed || 1; spdUpd(); $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
-  resetVideo(); audioErr = false; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
+  resetVideo(); tcCache.clear(); audioErr = false; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
   $('#title').textContent = `${s.beatmapset.artist} – ${s.beatmapset.title} [${s.beatmap.version}]`;
   const ml = (s.mods || []).map(m => m.acronym || m).join(''); if (ml) $('#title').textContent += ' +' + ml;
   const msg = x => ($('#msg').textContent = x);
@@ -1271,6 +1285,7 @@ function draw(t) {
       if (!o.p2d) { o.p2d = new Path2D(); o.path.forEach(([x, y], j) => j ? o.p2d.lineTo(x, y) : o.p2d.moveTo(x, y)); }
       if (!M.tc) { g.lineWidth = R * 2; g.strokeStyle = '#fff'; g.stroke(o.p2d);
       g.lineWidth = R * 2 - 8; g.strokeStyle = '#1d1830'; g.stroke(o.p2d); }
+      else { const b = tcBody(o, R, colOf(o)); g.drawImage(b.cv, b.x0, b.y0, b.w, b.h); }
       for (const q of (S.ticks ? o.ticks : [])) {
         if (t < q.t) { g.globalAlpha = sa * .9; g.fillStyle = '#fff'; g.beginPath(); g.arc(q.x, q.y, 4, 0, 7); g.fill(); }
         else if (!q.hit && t < q.t + 500) { g.globalAlpha = 1 - (t - q.t) / 500; g.fillStyle = '#ff4d6d'; g.font = 'bold 20px Sora,sans-serif'; g.fillText('✕', q.x, q.y); }
@@ -1290,11 +1305,12 @@ function draw(t) {
     const k = (t - o.hitT) / 200;
     g.lineWidth = 3; g.strokeStyle = '#fff';
     if (SK && SK.img.hitcircle) {
-      if (t < o.hitT) { if (!M.tc) skinCircle(o, R * 2, a, true); if (dt > 0 && !M.hd) dImg(tinted(SK.img.approachcircle || SK.img.hitcircle, colOf(o)), o.x, o.y, R * 2 * (1 + 3 * dt / P), a); }
+      if (t < o.hitT) { if (!M.tc) skinCircle(o, R * 2, a, true); else { g.globalAlpha = a * .5; g.lineWidth = 3; g.strokeStyle = colOf(o); g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.stroke(); } if (dt > 0 && !M.hd) dImg(tinted(SK.img.approachcircle || SK.img.hitcircle, colOf(o)), o.x, o.y, R * 2 * (1 + 3 * dt / P), a); }
       else if (k < 1 && !M.tc) { if (o.res) skinCircle(o, R * 2 * (1 + .4 * k), 1 - k, false); else { g.filter = 'grayscale(1)'; skinCircle(o, R * 2, 1 - k, false); g.filter = 'none'; } }
     } else if (t < o.hitT) {
       g.globalAlpha = a; if (!M.tc) { g.fillStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.fill(); g.stroke();
       g.fillStyle = '#12091a'; g.font = `bold ${R}px Sora,sans-serif`; g.fillText(o.n, o.x, o.y); }
+      else { g.globalAlpha = a * .5; g.lineWidth = 3; g.strokeStyle = o.col; g.beginPath(); g.arc(o.x, o.y, R, 0, 7); g.stroke(); g.strokeStyle = '#fff'; g.globalAlpha = a; }
       if (dt > 0 && !M.hd) { g.lineWidth = 2; g.beginPath(); g.arc(o.x, o.y, R * (1 + 3 * dt / P), 0, 7); g.stroke(); }
     } else if (k < 1 && !M.tc) {
       g.globalAlpha = 1 - k; g.fillStyle = o.res ? o.col : '#555';

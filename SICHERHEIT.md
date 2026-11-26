@@ -1,4 +1,4 @@
-# Sicherheit – Stand v38
+# Sicherheit – Stand v39
 
 ## Einmalig nach dem Deploy prüfen
 1. **Deploy-Log** (Schritt "Post-processing") muss eine gültige Rate-Limit-Regel für `/api/*` zeigen. Fehlt sie, greift nur der Zusatz-Limiter in der Funktion.
