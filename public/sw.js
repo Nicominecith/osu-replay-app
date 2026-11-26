@@ -1,7 +1,7 @@
 // Service Worker: Offline-Unterstützung für Osu Replay
-const V = 'osu-replay-v37', DATA = V + '-data';
-const SHELL = ['/', '/index.html', '/manifest.json', '/vendor/jszip.min.js', '/banner.png', '/favicon.png'];
-const EXTRA = ['https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma-d-min.js'];
+const V = 'osu-replay-v38', DATA = V + '-data';
+const SHELL = ['/', '/index.html', '/manifest.json', '/vendor/jszip.min.js', '/vendor/lzma-d-min.js', '/banner.png', '/favicon.png'];
+const EXTRA = [];
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(V);
@@ -27,12 +27,16 @@ self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const u = new URL(req.url);
   if (u.origin === location.origin) {
-    if (u.pathname.startsWith('/.netlify/functions/')) {
-      if (/\/(auth|skin)$/.test(u.pathname)) return; // Login und Skin-Downloads nicht zwischenspeichern
+    if (u.pathname === '/.netlify/functions/auth') { // Login/Logout nie zwischenspeichern; beim Logout private Daten löschen
+      if (u.searchParams.has('logout')) e.waitUntil(caches.delete(DATA));
+      return;
+    }
+    if (u.pathname.startsWith('/api/') || u.pathname.startsWith('/.netlify/functions/')) {
+      if (/\/(skin|skins)$/.test(u.pathname) || !/\/api\/(osu|beatmap)$/.test(u.pathname)) return; // nur Scores/Beatmaps offline vorhalten
       return e.respondWith(netFirst(req, DATA));
     }
     if (req.mode === 'navigate') return e.respondWith(netFirst(req, V, '/index.html'));
     return e.respondWith(swr(req));
   }
-  if (/(^|\.)(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(u.host)) e.respondWith(swr(req));
+  if (/(^|\.)(fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(u.host)) e.respondWith(swr(req));
 });

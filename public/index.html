@@ -459,12 +459,17 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   <div class="sb" id="setBody"></div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma-d-min.js"></script>
+<script src="vendor/lzma-d-min.js"></script>
 <script src="vendor/jszip.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const api = (p, q = {}) => fetch('/.netlify/functions/api?' + new URLSearchParams({ path: p, ...q }));
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const api = (p, q = {}) => fetch('/api/osu?' + new URLSearchParams({ path: p, ...q }), { credentials: 'same-origin' });
+const esc = s => String(s ?? '').replace(/[&<>"'`]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]));
+// Nur saubere https-URLs in CSS url('…') zulassen (kein Ausbruch über Anführungszeichen, Klammern, Backslash)
+const cssUrl = u => (typeof u === 'string' && /^https:\/\/[^\s'"()\\<>`]{1,1500}$/.test(u) ? u : '');
+const MAX_OSR = 8e6, MAX_SKIN = 60e6, MAX_MAPZIP = 200e6, MAX_ZIP_FILES = 4000, MAX_ZIP_UNPACKED = 400e6;
+// Schutz vor Entpack-Bomben: Anzahl und entpackte Gesamtgröße der ZIP-Einträge prüfen
+function zipGuard(z) { const f = Object.values(z.files); if (f.length > MAX_ZIP_FILES) throw new Error('zip-zu-viele-dateien'); let n = 0; for (const x of f) n += (x._data && x._data.uncompressedSize) || 0; if (n > MAX_ZIP_UNPACKED) throw new Error('zip-zu-gross'); return z; }
 const svg = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
   gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
@@ -487,6 +492,8 @@ const DEF = {
 };
 let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('osuSet') || '{}')); } catch {}
 for (const k of Object.keys(S)) if (!(k in DEF)) delete S[k];
+for (const k of Object.keys(DEF)) { if (typeof S[k] !== typeof DEF[k]) S[k] = DEF[k]; else if (typeof S[k] === 'number' && !isFinite(S[k])) S[k] = DEF[k]; }
+if (typeof S.liveSkin === 'string' && S.liveSkin.length > 200) S.liveSkin = '';
 const saveS = () => { try { localStorage.setItem('osuSet', JSON.stringify(S)); } catch {} };
 const pct = [0, 100, 5, '%'];
 const SCH = [
@@ -520,7 +527,7 @@ setBody.addEventListener('click', e => {
 });
 setBody.addEventListener('change', async e => {
   if (e.target.id !== 'lsFile') return;
-  for (const f of e.target.files) { try { await lsAdd(f); } catch (x) { alert('Skin konnte nicht gelesen werden: ' + f.name); } }
+  for (const f of e.target.files) { try { await lsAdd(f); } catch (x) { alert('Skin konnte nicht gelesen werden (kein gültiges .osk/.zip oder zu groß): ' + f.name.slice(0, 80)); } }
   e.target.value = ''; lsPaint();
 });
 $('#gear1').onclick = $('#gear2').onclick = openSettings;
@@ -535,7 +542,9 @@ async function lsPaint() {
   box.innerHTML = `<button class="skin ${S.liveSkin ? '' : 'on'}" data-ls=""><b>Standard</b><small>ohne Skin</small></button>` + lsNames.map(n => `<button class="skin ${S.liveSkin === n ? 'on' : ''}" data-ls="${esc(n)}"><b>${esc(n)}</b><small>Tippen zum Aktivieren</small><span class="lsdel" data-lsdel="${esc(n)}" role="button" aria-label="Löschen">✕</span></button>`).join('');
 }
 async function lsAdd(f) {
-  const z = await JSZip.loadAsync(await f.arrayBuffer());
+  if (f.size > MAX_SKIN) throw new Error('Datei zu groß');
+  const head = new Uint8Array(await f.slice(0, 4).arrayBuffer()); if (head[0] !== 0x50 || head[1] !== 0x4b) throw new Error('Kein ZIP');
+  const z = zipGuard(await JSZip.loadAsync(await f.arrayBuffer()));
   if (!Object.values(z.files).some(x => /skin\.ini$|\.png$/i.test(x.name))) throw 0;
   const ini = Object.values(z.files).find(x => /(^|\/)skin\.ini$/i.test(x.name));
   let nm = f.name.replace(/\.(osk|zip)$/i, ''); const m = ini && /^\s*Name\s*:\s*(.+)$/im.exec(await ini.async('string')); if (m) nm = m[1].trim() || nm;
@@ -548,7 +557,7 @@ async function lsLoad(n) {
   const my = ++lsTok; SK = null; tintC.clear(); sT = -1e9; if (!n) return;
   try {
     const rec = await idb('readonly', st => st.get(n)); if (!rec) return;
-    const z = await JSZip.loadAsync(rec.blob), files = {};
+    const z = zipGuard(await JSZip.loadAsync(rec.blob)), files = {};
     for (const f of Object.values(z.files)) if (!f.dir) files[f.name.split(/[\\/]/).pop().toLowerCase()] = f;
     const sk = { img: {}, snd: {}, col: [], pre: 'default', ov: -2 };
     const ini = files['skin.ini'] ? await files['skin.ini'].async('string') : '';
@@ -577,7 +586,7 @@ const GAME_DB = () => new Promise((ok, no) => { const r = indexedDB.open('nicomi
 // Spinner bleiben bei allen Skins gleich: fehlen sie im Skin, kommen sie aus dem Standard-Skin des Spiels
 const SPW = {};
 async function withSpinner(blob) {
-  const z = await JSZip.loadAsync(blob), names = Object.keys(z.files);
+  const z = zipGuard(await JSZip.loadAsync(blob)), names = Object.keys(z.files);
   if (names.some(n => /spinner(spin|bonus)/i.test(n))) return blob;
   const ini = names.find(n => /(^|\/)skin\.ini$/i.test(n)), pre = ini ? ini.slice(0, ini.length - 'skin.ini'.length) : '';
   let add = 0;
@@ -617,7 +626,7 @@ async function loadGallery(q) {
   const box = $('#gsList'); if (!box) return; const my = ++gsTok, ql = q.trim().toLowerCase();
   GS = BUILTIN.filter(b => !ql || (b.presentationName + ' ' + b.author).toLowerCase().includes(ql));
   box.innerHTML = GS.map(gsCard).join('') + '<div class="note" id="gsMore">Lade Skins…</div>';
-  let denied = false; const page = async p => { try { const r = await fetch('/.netlify/functions/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); if (r.status === 401) denied = true; return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
+  let denied = false; const page = async p => { try { const r = await fetch('/api/skins?size=50&page=' + p + '&search=' + encodeURIComponent(q)); if (r.status === 401) denied = true; return r.ok ? ((await r.json()).skins || []) : []; } catch { return []; } };
   const seen = new Set(GS.map(x => x.url)); let end = false;
   for (const wave of [[1], [2, 3, 4], [5, 6, 7], [8, 9, 10]]) { // erste Seite sofort, Rest in Schüben
     if (end || denied || GS.length >= GS_MAX) break;
@@ -635,7 +644,7 @@ async function gsFetch(k) { // direkt vom Server; Proxy nur als Notlösung
   let buf = null;
   try { const r = await fetch(k.url, { signal: AbortSignal.timeout(20000) }); if (r.ok) buf = await r.arrayBuffer(); } catch {}
   if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
-  if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/.netlify/functions/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
+  if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/api/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
   return buf;
 }
 function gsGet(k) { // Vorab-Download beim Drüberfahren/Antippen, max. 6 im Speicher
@@ -704,7 +713,7 @@ async function load(reset) {
 function rowHtml(s, i) {
   const bs = s.beatmapset, b = s.beatmap, cov = bs.covers || {}, rp = s.has_replay || s.replay, mods = (s.mods || []).map(m => m.acronym || m);
   const img = cov['card@2x'] || cov.card || cov['list@2x'] || cov.list || '', sc = starCol(b.difficulty_rating);
-  return `<div class="row" tabindex="0" role="button" data-i="${i}" style="--bgi:url('${esc(img)}');--sc:${sc}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip star">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}${rp ? '' : '<span class="chip">kein Replay</span>'}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div><span class="play" aria-hidden="true">${ICON.play}</span></div>`;
+  return `<div class="row" tabindex="0" role="button" data-i="${i}" style="--bgi:url('${esc(cssUrl(img))}');--sc:${esc(sc)}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip star">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}${rp ? '' : '<span class="chip">kein Replay</span>'}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div><span class="play" aria-hidden="true">${ICON.play}</span></div>`;
 }
 function paint() {
   const q = $('#q').value.trim().toLowerCase(), only = $('#onlyRp').checked;
@@ -787,7 +796,7 @@ function openMap(s) {
   const bar = (l, v, mx = 10) => `<div class="bar"><span>${l}</span><i><u style="width:${Math.min(100, (+v || 0) / mx * 100)}%"></u></i><b>${(+v || 0).toFixed(1)}</b></div>`;
   const len = x => `${x / 60 | 0}:${String(Math.round(x) % 60).padStart(2, '0')}`;
   const total = s.total_score ?? s.score ?? 0;
-  $('#mvh').style.setProperty('--bgi', `url('${cov['cover@2x'] || cov.cover || cov.card || ''}')`);
+  $('#mvh').style.setProperty('--bgi', `url('${cssUrl(cov['cover@2x'] || cov.cover || cov.card || '')}')`);
   $('#mvt').textContent = bs.title; $('#mva').textContent = `${bs.artist} · Mapper: ${bs.creator}`;
   $('#mvb').innerHTML = `
   <div class="card"><h3>Beatmap</h3><div class="diff"><span class="st" style="background:${sc}">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span>${esc(b.version)}</div>
@@ -816,7 +825,7 @@ function showInfo() {
   const mods = (s.mods || []).map(m => m.acronym || m).join(' ') || 'Keine';
   const sgn = v => (v >= 0 ? '+' : '') + v.toFixed(1) + ' ms';
   const sc = M && M.real ? M.real : (s.total_score ?? s.score);
-  $('#infoBody').innerHTML = `<div class="hero" style="background-image:linear-gradient(transparent,#120f1d),url('${esc(cov.cover || cov.card || '')}')"><b>${esc(bs.title)}</b><span>${esc(bs.artist)}</span></div>
+  $('#infoBody').innerHTML = `<div class="hero" style="background-image:linear-gradient(transparent,#120f1d),url('${esc(cssUrl(cov.cover || cov.card || ''))}')"><b>${esc(bs.title)}</b><span>${esc(bs.artist)}</span></div>
   <h3>Map</h3>${R('Difficulty', b.version)}${R('Mapper', bs.creator)}${R('Sterne', b.difficulty_rating != null ? (+b.difficulty_rating).toFixed(2) + ' ★' : null)}${R('Status', b.status || bs.status)}${R('BPM', num(b.bpm))}${R('Länge', len(b.total_length))}${R('Circles / Slider / Spinner', b.count_circles != null ? `${b.count_circles} / ${b.count_sliders} / ${b.count_spinners}` : null)}${R('CS · AR · OD · HP', b.cs != null ? `${num(b.cs)} · ${num(b.ar)} · ${num(b.accuracy)} · ${num(b.drain)}` : null)}${R('Beatmap-ID', b.id)}${R('Beatmapset-ID', bs.id)}
   <div class="ir"><span>Auf osu! ansehen</span><a href="https://osu.ppy.sh/beatmaps/${esc(b.id)}" target="_blank" rel="noopener">osu.ppy.sh/beatmaps/${esc(b.id)}</a></div>
   <h3>Score</h3>${R('Rang', lab(s.rank))}${R('Score', sc != null ? Number(sc).toLocaleString('de-DE') : null)}${R('Accuracy', (s.accuracy * 100).toFixed(2) + ' %')}${R('PP', s.pp != null ? Math.round(s.pp * 100) / 100 : null)}${R('Max. Combo', s.max_combo)}${R('Mods', mods)}${R('300 / 100 / 50 / Miss', `${st.great ?? st.count_300 ?? '–'} / ${st.ok ?? st.count_100 ?? '–'} / ${st.meh ?? st.count_50 ?? '–'} / ${st.miss ?? st.count_miss ?? '–'}`)}${R('Gespielt am', new Date(s.ended_at || s.created_at).toLocaleString('de-DE'))}
@@ -832,6 +841,8 @@ function parseOsr(buf) {
   const str = () => { if (b() !== 11) return ''; let n = 0, s = 0, c; do { c = b(); n |= (c & 127) << s; s += 7; } while (c & 128); const t = new TextDecoder().decode(u.subarray(p, p + n)); p += n; return t; };
   const mode = b(); i(); const md5 = str(), player = str(); str(); p += 12; const score = i(), combo = sh(); b();
   const mods = i(); str(); p += 8; const len = i();
+  if (!(len > 13 && p + len <= buf.byteLength)) throw new Error('osr');
+  { const lo = d.getUint32(p + 5, true), hi = d.getUint32(p + 9, true); if (!(lo === 0xFFFFFFFF && hi === 0xFFFFFFFF) && (hi > 0 || lo > 150e6)) throw new Error('osr-zu-gross'); }
   return new Promise((res, rej) => LZMA.decompress(Array.from(u.subarray(p, p + len), x => x << 24 >> 24), t => {
     if (t == null) return rej(new Error('LZMA'));
     if (typeof t !== 'string') t = new TextDecoder().decode(new Uint8Array(t));
@@ -901,6 +912,7 @@ function vErr() { const c = V.error && V.error.code; return c === 2 ? 'Netzwerkf
 function vTry() {
   if (vi >= vsrc.length) { $('#vspin').hidden = true; $('#verr').hidden = false; $('#verrt').textContent = vErr(); vIcons(); return; }
   $('#verr').hidden = true; $('#vspin').hidden = false;
+  if (!/^https:\/\//i.test(vsrc[vi])) { vi++; return vTry(); }
   $('#vopen').href = $('#vlink').href = vsrc[vi]; V.src = vsrc[vi]; V.load(); vplay();
 }
 function playVideo(srcs) { vsrc = srcs; vi = 0; VP.hidden = false; cv.hidden = true; $('#ctl').hidden = true; V.defaultPlaybackRate = V.playbackRate = +$('#vspd').value; vTry(); vShow(); }
@@ -976,7 +988,7 @@ async function openReplay(s) {
     const osr = await parseOsr(osrBuf.slice(0));
     if (osr.mode !== 0) return msg('Aktuell wird nur osu!standard unterstützt.');
     msg('Lade Beatmap…');
-    const b = await fetch('/.netlify/functions/beatmap?id=' + s.beatmap.id);
+    const b = await fetch('/api/beatmap?id=' + s.beatmap.id);
     if (!b.ok) return msg('Beatmap konnte nicht geladen werden.');
     const mi = modInfo(s, osr.mods); if (s._osrBuf && !(s.mods || []).length && mi.bits) $('#title').textContent += ' +' + bitsToMods(mi.bits).join('');
     M = parseMap(await b.text(), mi.bits); M.speed = mi.speed; M.tc = mi.tc; F = osr.F; prep(M, F, mi.bits, osr.score);
@@ -999,7 +1011,7 @@ async function loadAudio(setId, file, bgName) {
   for (const u of [`https://api.nerinyan.moe/d/${setId}?noVideo=true&NoHitsound=true&NoStoryboard=true`, `https://api.nerinyan.moe/d/${setId}?noVideo=true`, `https://catboy.best/d/${setId}n`, `https://catboy.best/d/${setId}`, `https://osu.direct/api/d/${setId}`]) {
     try {
       const r = await fetch(u, { signal: AbortSignal.timeout(30000) }); if (!r.ok) continue;
-      const z = await JSZip.loadAsync(await r.arrayBuffer()), f = find(z, file);
+      const ab = await r.arrayBuffer(); if (ab.byteLength > MAX_MAPZIP) continue; const z = zipGuard(await JSZip.loadAsync(ab)), f = find(z, file);
       if (!f) continue;
       const audio = new Audio(URL.createObjectURL(new Blob([await f.async('arraybuffer')], { type: mime })));
       let bg = null; const bf = bgName && find(z, bgName);
@@ -1384,6 +1396,7 @@ async function openLocalReplay(file) {
   const gm = x => ($('#gMsg').textContent = x);
   try {
     if (!/\.osr$/i.test(file.name)) return gm('Bitte eine .osr-Replay-Datei wählen.');
+    if (file.size > MAX_OSR) return gm('Die Replay-Datei ist zu groß (max. 8 MB).');
     gm('Lese Replay…'); const buf = await file.arrayBuffer(), osr = await parseOsr(buf.slice(0));
     if (osr.mode !== 0) return gm('Aktuell wird nur osu!standard unterstützt.');
     gm('Suche Beatmap…'); const info = await lookupMd5(osr.md5);
