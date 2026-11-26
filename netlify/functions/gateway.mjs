@@ -1,5 +1,7 @@
 // Sammel-Endpunkt für alle API-Routen unter /api/*  (eine Netlify-Rate-Limit-Regel deckt alles ab)
-//   /api/osu      -> osu!-API v2 (Token bleibt im HttpOnly-Cookie, nur freigegebene Pfade + Parameter)
+//   /api/osu      -> osu!-API v2 (Token bleibt im HttpOnly-Cookie, nur freigegebene Pfade + Parameter).
+//                    Öffentliche Lese-Routen (Spielersuche, Scores) gehen auch ohne Login über ein App-Token (Gastmodus).
+//                    Replay-Downloads verlangt osu! immer von einem eingeloggten Nutzer.
 //   /api/beatmap  -> .osu-Datei einer Beatmap
 //   /api/skins    -> Skin-Liste (o!rdr), nur eingeloggt
 //   /api/skin     -> Skin-Datei laden (SSRF-geschützt), nur eingeloggt
@@ -60,24 +62,50 @@ async function validLogin(token) {
   } catch { return false; }
 }
 
+/* ---------- App-Token für den Gastmodus (Client Credentials, nur Scope "public") ---------- */
+let appTok = null, appTokPending = null;
+async function appToken() {
+  if (appTok && appTok.exp > Date.now() + 5 * 60 * 1000) return appTok.value;
+  if (appTokPending) return appTokPending;
+  const id = process.env.OSU_CLIENT_ID, secret = process.env.OSU_CLIENT_SECRET;
+  if (!id || !secret) return null;
+  appTokPending = (async () => {
+    try {
+      const r = await fetch(OSU + '/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ client_id: Number(id), client_secret: secret, grant_type: 'client_credentials', scope: 'public' }), signal: AbortSignal.timeout(8000) });
+      const t = await r.json().catch(() => ({}));
+      if (!r.ok || typeof t.access_token !== 'string' || !TOKEN_RE.test(t.access_token)) { console.error('guest: App-Token fehlgeschlagen, Status', r.status); return null; }
+      appTok = { value: t.access_token, exp: Date.now() + Math.max(60, Math.min(+t.expires_in || 3600, 86400)) * 1000 };
+      return appTok.value;
+    } catch { return null; } finally { appTokPending = null; }
+  })();
+  return appTokPending;
+}
+
 /* ---------- Eingabe-Prüfung ---------- */
 const int = (v, min, max, def) => { if (v == null || v === '') return def; if (!/^\d{1,9}$/.test(String(v))) return NaN; const n = +v; return n < min || n > max ? NaN : n; };
 const MODES = new Set(['osu', 'taiko', 'fruits', 'mania']);
 // Erlaubte osu!-Pfade + exakt erlaubte Parameter je Pfad
 const OSU_ROUTES = [
   { re: /^\/me\/osu$/, params: {} },
-  { re: /^\/search$/, params: { mode: v => (v === 'user' ? v : null), query: v => (typeof v === 'string' && v.length >= 1 && v.length <= 60 ? v : null), page: v => { const n = int(v, 1, 20); return Number.isNaN(n) ? null : String(n); } } },
-  { re: /^\/users\/\d{1,10}\/beatmaps\/most_played$/, params: { limit: v => lim(v, 50), offset: v => off(v) } },
-  { re: /^\/users\/\d{1,10}\/scores\/(recent|best)$/, params: { mode: v => (MODES.has(v) ? v : null), limit: v => lim(v, 100), offset: v => off(v), include_fails: v => (v === '0' || v === '1' ? v : null) } },
+  { guest: true, re: /^\/search$/, params: { mode: v => (v === 'user' ? v : null), query: v => (typeof v === 'string' && v.length >= 1 && v.length <= 60 ? v : null), page: v => { const n = int(v, 1, 20); return Number.isNaN(n) ? null : String(n); } } },
+  { guest: true, re: /^\/users\/\d{1,10}\/beatmaps\/most_played$/, params: { limit: v => lim(v, 50), offset: v => off(v) } },
+  { guest: true, re: /^\/users\/\d{1,10}\/scores\/(recent|best)$/, params: { mode: v => (MODES.has(v) ? v : null), limit: v => lim(v, 100), offset: v => off(v), include_fails: v => (v === '0' || v === '1' ? v : null) } },
   { re: /^\/scores\/([a-z]{3,8}\/)?\d{1,12}\/download$/, params: {} }
 ];
 const lim = (v, max) => { const n = int(v, 1, max); return Number.isNaN(n) || n == null ? null : String(n); };
 const off = v => { const n = int(v, 0, 1000); return Number.isNaN(n) || n == null ? null : String(n); };
 
-async function routeOsu(req, token) {
+async function routeOsu(req, token, ip) {
   const q = new URL(req.url).searchParams, path = q.get('path') || '';
   const rule = OSU_ROUTES.find(r => r.re.test(path));
   if (!rule) return fail(400, 'Pfad nicht erlaubt');
+  let guest = false;
+  if (!token) {
+    if (!rule.guest) return fail(401, 'login_required'); // z. B. /me/osu und Replay-Downloads
+    if (limited(ip + '|osu-guest', 40, 6e4)) return json(429, { error: 'Zu viele Anfragen' }, { 'Retry-After': '30' });
+    token = await appToken(); guest = true;
+    if (!token) return fail(503, 'Gastzugriff gerade nicht verfügbar');
+  }
   const out = new URLSearchParams();
   for (const [k, v] of q) {
     if (k === 'path') continue;
@@ -86,9 +114,11 @@ async function routeOsu(req, token) {
     out.set(k, val);
   }
   const qs = out.toString();
+  const call = tk => fetch(OSU + '/api/v2' + path + (qs ? '?' + qs : ''), { headers: { Authorization: 'Bearer ' + tk, 'x-api-version': '20220705', Accept: 'application/json' }, signal: AbortSignal.timeout(12000) });
   let r;
   try {
-    r = await fetch(OSU + '/api/v2' + path + (qs ? '?' + qs : ''), { headers: { Authorization: 'Bearer ' + token, 'x-api-version': '20220705', Accept: 'application/json' }, signal: AbortSignal.timeout(12000) });
+    r = await call(token);
+    if (r.status === 401 && !guest && rule.guest) { const at = await appToken(); if (at) r = await call(at); } // abgelaufener Login: öffentliche Daten trotzdem als Gast
   } catch { return fail(502, 'osu! nicht erreichbar'); }
   const buf = Buffer.from(await r.arrayBuffer());
   if (buf.length > 12e6) return fail(502, 'Antwort zu groß');
@@ -191,8 +221,8 @@ export default async (req, context) => {
     if (limited(clientIp(req, context) + '|' + route, max, win)) return json(429, { error: 'Zu viele Anfragen' }, { 'Retry-After': '30' });
     if (route === 'beatmap') return await routeBeatmap(req);
     const token = getToken(req);
+    if (route === 'osu') return await routeOsu(req, token, clientIp(req, context));
     if (!token) return fail(401, 'nicht eingeloggt');
-    if (route === 'osu') return await routeOsu(req, token);
     if (!(await validLogin(token))) return fail(401, 'nicht eingeloggt');
     return route === 'skins' ? await routeSkins(req) : await routeSkin(req);
   } catch (e) {

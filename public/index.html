@@ -376,11 +376,12 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   <div class="gcards">
     <label class="gcard" for="osrFile" id="gOsr"><span class="i" aria-hidden="true">📂</span><b>Replay-Datei öffnen</b><small>Öffne eine .osr-Datei von deinem Gerät (oder zieh sie hierher). Beatmap und Ton werden online geladen.</small></label>
     <input type="file" id="osrFile" accept=".osr" hidden>
+    <button class="gcard" id="gSearch"><span class="i" aria-hidden="true">🔎</span><b>Spieler suchen</b><small>Scores und Maps jedes Spielers ansehen, ohne Anmeldung. Replays von osu!-Servern brauchen die Anmeldung.</small></button>
     <button class="gcard" id="gPlay"><span class="i" aria-hidden="true">🎮</span><b>Spielen</b><small>nicominecith osu! direkt starten</small></button>
     <button class="gcard" id="gSet"><span class="i" aria-hidden="true">⚙️</span><b>Einstellungen</b><small>Eigenen Skin importieren, HUD, Cursor und Ton</small></button>
     <button class="gcard" id="gTut"><span class="i" aria-hidden="true">❓</span><b>Tutorial</b><small>Kurz erklärt, was die Seite kann</small></button>
   </div>
-  <p class="note" style="margin-top:14px">Deine eigenen Plays, die Spielersuche und die Skin-Galerie brauchen eine Anmeldung mit osu!. Alles andere geht auch ohne.</p>
+  <p class="note" style="margin-top:14px">Deine eigenen Plays, die Skin-Galerie und das Ansehen von Replays anderer Spieler brauchen eine Anmeldung mit osu! (osu! gibt Replays nur an angemeldete Nutzer heraus). Replay-Dateien (.osr) und alles andere gehen auch ohne.</p>
   <div id="gMsg" role="status"></div>
 </section>
 <main id="app" class="wrap" hidden>
@@ -390,7 +391,8 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
     <div class="hbtns">
       <button class="icon" id="gear1" data-ic="gear" aria-label="Einstellungen"></button>
       <button class="ghost" id="nicominecithBtn">▶ Spielen</button>
-      <a class="ghost" href="/.netlify/functions/auth?logout=1">Abmelden</a>
+      <button class="ghost" id="guestHome" type="button" hidden>← Start</button>
+      <a class="ghost" id="authLink" href="/.netlify/functions/auth?logout=1">Abmelden</a>
     </div>
   </header>
   <form id="usrch" autocomplete="off"><input id="uq" type="search" placeholder="Spieler suchen (Name)…" aria-label="Spieler suchen" maxlength="30"><button class="ghost" type="submit">Suchen</button><div id="ures" hidden></div></form>
@@ -413,6 +415,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
   <div id="mvb"></div>
   <div id="mvgo"><button id="mvinfo">Details</button><button id="mvplay" data-ic="play"><span>Replay ansehen</span></button></div>
+  <p id="mvlogin" class="note" hidden style="padding:0 16px 16px">osu! gibt Replays nur an angemeldete Nutzer heraus. Melde dich an oder öffne eine .osr-Datei. <a class="btn" href="/.netlify/functions/auth" style="margin-top:8px;display:inline-block">Mit osu! anmelden</a></p>
 </section>
 
 <section id="viewer" hidden>
@@ -708,6 +711,17 @@ const rel = d => { if (!d) return ''; const m = (Date.now() - new Date(d)) / 6e4
 
 const guestOn = () => { try { return localStorage.getItem('osuGuest') === '1'; } catch { return false; } };
 function showGuest() { $('#login').hidden = true; $('#app').hidden = true; $('#guest').hidden = false; }
+// Gastmodus: Spieler suchen und Scores ansehen ohne Login (Replay-Download bleibt dem Login vorbehalten)
+function enterGuestBrowse() {
+  me = null; target = null; scores = []; more = false;
+  $('#guest').hidden = true; $('#login').hidden = true; $('#app').hidden = false;
+  $('#who').innerHTML = '<b>Gast</b>';
+  const a = $('#authLink'); a.textContent = 'Anmelden'; a.href = '/.netlify/functions/auth';
+  $('#guestHome').hidden = false; $('#viewing').hidden = true;
+  load(true); $('#uq').focus();
+}
+$('#gSearch').onclick = enterGuestBrowse;
+$('#guestHome').onclick = () => { target = null; scores = []; $('#app').hidden = true; showGuest(); };
 function enterGuest() { try { localStorage.setItem('osuGuest', '1'); } catch {} if (!me) showGuest(); }
 async function init() {
   lsLoad(S.liveSkin);
@@ -719,6 +733,7 @@ async function init() {
   load(true);
 }
 async function load(reset) {
+  if (!target) { scores = []; more = false; $('#list').innerHTML = '<div class="msg">Suche oben einen Spieler, um seine Scores zu sehen.</div>'; $('#more').hidden = true; return; }
   if (reset) { scores = []; more = true; $('#list').innerHTML = '<div class="msg">Lade Scores…</div>'; }
   let r; try { r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 }); } catch { r = { ok: false, status: 'offline' }; }
   if (!r.ok) return ($('#list').innerHTML = `<div class="msg">${r.status === 'offline' ? 'Offline – diese Scores sind noch nicht gespeichert.' : `Scores konnten nicht geladen werden (${r.status}).`}</div>`);
@@ -744,11 +759,11 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 // --- Nutzersuche ---
 function setTarget(u) {
   target = u; $('#ures').hidden = true; $('#uq').value = '';
-  $('#viewing').hidden = u.id === me.id;
+  $('#viewing').hidden = !!me && u.id === me.id; $('#vback').hidden = !me;
   $('#vwho').innerHTML = `Replays von <b>${esc(u.username)}</b>`;
   load(true);
 }
-$('#vback').onclick = () => setTarget(me);
+$('#vback').onclick = () => { if (me) setTarget(me); };
 $('#usrch').onsubmit = async e => {
   e.preventDefault();
   const q = $('#uq').value.trim(), box = $('#ures'); if (!q) return;
@@ -768,6 +783,7 @@ document.addEventListener('click', e => { if (!e.target.closest('#usrch')) $('#u
 $('#nicoImp').onclick = async () => {
   const btn = $('#nicoImp'), fr = $('#nicominecithIf'), w = fr.contentWindow;
   if (!w || !fr.src) return;
+  if (!me) { btn.textContent = 'Import braucht Anmeldung'; setTimeout(() => (btn.textContent = '⬇ Maps importieren'), 2500); return; }
   btn.disabled = true;
   const lbl = x => (btn.textContent = x);
   try {
@@ -816,17 +832,17 @@ function openMap(s) {
   <div class="card"><h3>Beatmap</h3><div class="diff"><span class="st" style="background:${sc}">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span>${esc(b.version)}</div>
     ${bar('CS', b.cs)}${bar('AR', b.ar)}${bar('OD', b.accuracy)}${bar('HP', b.drain)}
     <div class="mini"><div><b>${Math.round(b.bpm || 0)}</b><small>BPM</small></div><div><b>${len(b.total_length || 0)}</b><small>Länge</small></div><div><b>${b.count_circles + b.count_sliders + b.count_spinners || '–'}</b><small>Objekte</small></div></div></div>
-  <div class="card"><h3>Dein Score</h3>
+  <div class="card"><h3>${me && target && target.id === me.id ? 'Dein Score' : 'Score'}</h3>
     <div class="sc"><span class="rk" style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</span><div><div class="tot">${Number(total).toLocaleString('de-DE')}</div><small style="color:var(--dim)">${(s.accuracy * 100).toFixed(2)}% · ${s.max_combo || 0}x${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small></div></div>
     <div class="chips" style="margin-top:10px">${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('') || '<span class="chip">Keine Mods</span>'}<span class="chip">${rel(s.ended_at || s.created_at)}</span></div>
     <div class="hits"><div><b style="color:#6ea8ff">${n('great', 'count_300')}</b><small>300</small></div><div><b style="color:#7de3d0">${n('ok', 'count_100')}</b><small>100</small></div><div><b style="color:#ffd166">${n('meh', 'count_50')}</b><small>50</small></div><div><b style="color:#ff4d6d">${n('miss', 'count_miss')}</b><small>Miss</small></div></div></div>`;
-  const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? 'Replay ansehen' : 'Kein Replay verfügbar';
+  const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? (me || s._osrBuf ? 'Replay ansehen' : 'Replay ansehen (Anmeldung nötig)') : 'Kein Replay verfügbar'; $('#mvlogin').hidden = true;
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
 $('#nicominecithBtn').onclick = async () => { const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); f.src = '/nicominecith/index.html'; } $('#nicominecithFrame').hidden = false; };
 $('#nicominecithClose').onclick = () => { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
-$('#mvplay').onclick = () => { if (curScore) openReplay(curScore); };
+$('#mvplay').onclick = () => { if (!curScore) return; if (!me && !curScore._osrBuf) { $('#mvlogin').hidden = false; return; } openReplay(curScore); };
 $('#mvinfo').onclick = () => showInfo();
 
 /* ---------- Map- & Score-Details ---------- */
@@ -996,7 +1012,7 @@ async function openReplay(s) {
     else {
       let r = await api(`/scores/${s.id}/download`);
       if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
-      if (!r.ok) return msg(`Replay-Download fehlgeschlagen (${r.status}).`);
+      if (!r.ok) return msg(r.status === 401 ? 'Für diesen Replay-Download ist die osu!-Anmeldung nötig.' : `Replay-Download fehlgeschlagen (${r.status}).`);
       osrBuf = await r.arrayBuffer();
     }
     const osr = await parseOsr(osrBuf.slice(0));
