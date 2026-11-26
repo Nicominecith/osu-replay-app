@@ -329,6 +329,52 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 .tut-actions{display:grid;gap:10px;margin-top:6px}.tut-actions .btn,.tut-actions .ghost{display:block;text-align:center;padding:13px 16px;text-decoration:none}
 @media (max-height:480px) and (orientation:landscape){.lg-guest{display:none}}
 @media(prefers-reduced-motion:reduce){.gcard{transition:none}}
+
+/* ===== UI-Feinschliff, angepasst nach Elementen von Uiverse.io (MIT-Lizenz), siehe THIRD_PARTY_NOTICES.md =====
+   Button-Glanz:   elijahwgummer-poc / honest-falcon-100
+   Schalter:       AbanoubMagdy1 / pink-panda-32
+   Lade-Punkte:    Praashoo7 / green-goat-59
+   Karten-Hover:   Brola2008 / calm-octopus-51
+   Suchfeld:       Bodyhc / afraid-eel-42  */
+.btn,.ghost{position:relative;transition:transform .2s ease,box-shadow .3s ease,background-color .3s ease,border-color .2s ease,color .2s ease}
+.btn{overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.25)}
+.btn::after{content:"";position:absolute;top:-80px;left:-80px;width:160px;height:160px;background:radial-gradient(ellipse at center,rgba(255,255,255,.75) 0%,transparent 80%);transform:rotate(45deg);opacity:0;transition:opacity .3s ease;pointer-events:none}
+.btn:hover::after,.btn:focus-visible::after{opacity:1}
+.btn:hover{background:#ff7ab4}
+.btn:active{transform:scale(.97);background:#e84c8f}
+.ghost:hover{border-color:var(--pink);color:var(--tx);box-shadow:0 0 0 3px rgba(255,95,162,.14)}
+.ghost:active{transform:scale(.97)}
+.ghost:disabled,.btn[aria-disabled=true]{opacity:.55;cursor:not-allowed}
+
+.sw{transition:background-color .3s ease,box-shadow .2s ease}
+.sw::after{transition:transform .3s cubic-bezier(0,2.18,.64,.69),background-color .2s ease}
+.sw:checked{box-shadow:0 0 12px rgba(255,95,162,.35)}
+.sw:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.chk{cursor:pointer;user-select:none;-webkit-user-select:none}
+
+.dots{display:inline-flex;vertical-align:middle;margin-right:10px}
+.dots i{width:.55em;height:.55em;margin:0 .14em;border-radius:50%;background:var(--pink);transform:scale(0);animation:dotPulse 1.4s ease-in-out infinite}
+.dots i:nth-child(2){background:#c28cff;animation-delay:.2s}.dots i:nth-child(3){background:var(--mint);animation-delay:.4s}
+@keyframes dotPulse{0%,70%,100%{transform:scale(0)}35%{transform:scale(1)}}
+
+.gcard{box-shadow:0 6px 18px rgba(0,0,0,.28);transition:transform .25s ease,border-color .2s ease,box-shadow .3s ease,border-radius .3s ease}
+.gcard:hover,.gcard:focus-visible{box-shadow:8px 12px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,95,162,.3);border-radius:18px 34px 18px 34px}
+.gcard:active{transform:scale(.98)}
+.card{transition:box-shadow .3s ease,transform .25s ease}
+.card:hover{box-shadow:0 10px 26px rgba(0,0,0,.4)}
+
+#usrch input,input[type=search]{box-shadow:0 0 10px rgba(0,0,0,.18);transition:box-shadow .3s ease,border-color .2s ease}
+#usrch input{border-radius:999px;padding:12px 18px}
+#usrch input:focus,input[type=search]:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,95,162,.2),0 0 18px rgba(255,95,162,.18)}
+#usrch button{transition:transform .25s ease,border-color .2s ease,color .2s ease}
+#usrch button:hover{transform:scale(1.06)}
+
+@media (prefers-reduced-motion:reduce){
+  .btn,.ghost,.sw,.sw::after,.gcard,.card,#usrch button,#usrch input,input[type=search]{transition:none!important}
+  .btn::after{display:none}
+  .dots i{animation:none;transform:scale(.8)}
+  .gcard:hover,.gcard:focus-visible{border-radius:18px}
+}
 </style>
 </head>
 <body>
@@ -403,7 +449,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   </div>
   <div class="tools">
     <input id="q" type="search" placeholder="Titel, Artist, Mapper oder Difficulty suchen" aria-label="Scores durchsuchen">
-    <label class="chk"><input type="checkbox" id="onlyRp" checked> nur mit Replay</label>
+    <label class="chk"><input type="checkbox" class="sw" id="onlyRp" checked> nur mit Replay</label>
   </div>
   <div id="list"></div>
   <button class="ghost more" id="more" hidden>Mehr laden</button>
@@ -467,6 +513,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
 <script>
 const $ = s => document.querySelector(s);
 const api = (p, q = {}) => fetch('/api/osu?' + new URLSearchParams({ path: p, ...q }), { credentials: 'same-origin' });
+const loadingHtml = t => `<div class="msg" role="status"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${esc(t)}</div>`;
 const esc = s => String(s ?? '').replace(/[&<>"'`]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]));
 // Nur saubere https-URLs in CSS url('…') zulassen (kein Ausbruch über Anführungszeichen, Klammern, Backslash)
 const cssUrl = u => (typeof u === 'string' && /^https:\/\/[^\s'"()\\<>`]{1,1500}$/.test(u) ? u : '');
@@ -734,7 +781,7 @@ async function init() {
 }
 async function load(reset) {
   if (!target) { scores = []; more = false; $('#list').innerHTML = '<div class="msg">Suche oben einen Spieler, um seine Scores zu sehen.</div>'; $('#more').hidden = true; return; }
-  if (reset) { scores = []; more = true; $('#list').innerHTML = '<div class="msg">Lade Scores…</div>'; }
+  if (reset) { scores = []; more = true; $('#list').innerHTML = loadingHtml('Lade Scores…'); }
   let r; try { r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 }); } catch { r = { ok: false, status: 'offline' }; }
   if (!r.ok) return ($('#list').innerHTML = `<div class="msg">${r.status === 'offline' ? 'Offline – diese Scores sind noch nicht gespeichert.' : `Scores konnten nicht geladen werden (${r.status}).`}</div>`);
   const a = await r.json(); scores = scores.concat(a); more = a.length === LIM; paint();
@@ -767,7 +814,7 @@ $('#vback').onclick = () => { if (me) setTarget(me); };
 $('#usrch').onsubmit = async e => {
   e.preventDefault();
   const q = $('#uq').value.trim(), box = $('#ures'); if (!q) return;
-  box.hidden = false; box.innerHTML = '<div class="msg">Suche…</div>';
+  box.hidden = false; box.innerHTML = loadingHtml('Suche…');
   try {
     const r = await api('/search', { mode: 'user', query: q });
     if (!r.ok) throw 0;
