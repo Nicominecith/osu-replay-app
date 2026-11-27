@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.44 (v44)
+- Schwarzer Bildschirm im Spiel behoben: Renderer wird einmalig auf WebGL gestellt (WebGPU rendert auf manchen Handys schwarz).
+- Spiel-Menü: zwei beschriftete Einträge "✕ Schließen" und "⬇ Maps importieren"; Import-Fenster als Bottom-Sheet für Handys, Button "Spiel neu laden", Hinweis wenn das Spiel nicht startet.
+- Cache-Version erhöht, damit die neue Spiel-Brücke sofort geladen wird.
+
 ## 0.43 (v43)
 - Spiel-Ansicht ohne obere Leiste, bildschirmfüllend. ✕-Schließen-Knopf und Map-Import sitzen jetzt im Spiel (schwebendes, verschiebbares Bedienfeld, mobiloptimiert mit großen Touch-Flächen und Safe-Area).
 - Map-Import robuster: 4 Mirrors mit Timeout, ZIP-Prüfung, echte Fehlermeldungen statt falschem "✓", Warten bis das Spiel bereit ist, Option "bereits importierte erneut laden", zusätzlich Dateiwahl für .osz.

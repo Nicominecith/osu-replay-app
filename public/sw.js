@@ -1,5 +1,5 @@
 // Service Worker: Offline-Unterstützung für Osu Replay
-const V = 'osu-replay-v43', DATA = V + '-data';
+const V = 'osu-replay-v44', DATA = V + '-data';
 const SHELL = ['/', '/index.html', '/manifest.json', '/vendor/jszip.min.js', '/vendor/lzma-d-min.js', '/banner.png', '/favicon.png'];
 const EXTRA = [];
 self.addEventListener('install', e => {

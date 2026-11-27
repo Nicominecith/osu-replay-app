@@ -13,16 +13,17 @@
   };
   const POS_KEY = 'nicoBridgePos';
   const dock = el('div', { id: 'nb', 'data-side': 'right' });
-  const closeBtn = host ? el('button', { id: 'nbClose', class: 'nb-btn', type: 'button', 'aria-label': 'Spiel schließen', title: 'Spiel schließen', text: '✕' }) : null;
-  const impBtn = el('button', { id: 'nbToggle', class: 'nb-btn', type: 'button', 'aria-label': 'Maps importieren', title: 'Maps importieren', 'aria-expanded': 'false', 'aria-controls': 'nbPanel', text: '⬇' });
+  const closeBtn = host ? el('button', { id: 'nbClose', class: 'nb-btn', type: 'button', 'aria-label': 'Spiel schließen', title: 'Spiel schließen', text: '✕ Schließen' }) : null;
+  const impBtn = el('button', { id: 'nbToggle', class: 'nb-btn', type: 'button', 'aria-label': 'Maps importieren', title: 'Maps importieren', 'aria-expanded': 'false', 'aria-controls': 'nbPanel', text: '⬇ Maps importieren' });
   const accountBtn = host ? el('button', { class: 'nb-act nb-main', type: 'button', text: '⬇ Maps aus deinem Account' }) : null;
+  const reloadBtn = el('button', { class: 'nb-act', type: 'button', text: '↻ Spiel neu laden' });
   const filesBtn = el('button', { class: 'nb-act', type: 'button', text: '📁 Dateien wählen (.osz)' });
   const force = el('input', { type: 'checkbox' });
   const forceLbl = host ? el('label', { class: 'nb-chk' }, force, el('span', { text: 'Auch bereits importierte erneut laden' })) : null;
   const status = el('p', { id: 'nbStatus', role: 'status', 'aria-live': 'polite' });
   const picker = el('input', { type: 'file', multiple: '', accept: '.osz,.osk,.osr,.zip,application/zip', hidden: '' });
   const panel = el('div', { id: 'nbPanel', role: 'dialog', 'aria-label': 'Maps importieren', hidden: '' },
-    el('h2', { text: 'Maps importieren' }), ...[accountBtn, filesBtn, forceLbl, status].filter(Boolean), picker);
+    el('h2', { text: 'Maps importieren' }), ...[accountBtn, filesBtn, forceLbl, status, reloadBtn].filter(Boolean), picker);
   dock.append(...[closeBtn, impBtn, panel].filter(Boolean));
   document.body.append(dock);
 
@@ -38,7 +39,7 @@
   try { const p = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); if (p && (p.side === 'left' || p.side === 'right') && isFinite(p.y)) applyPos(p.side, p.y * innerHeight); } catch { /* ignorieren */ }
 
   /* ---- Panel ---- */
-  const placePanel = () => { panel.style.top = '0px'; const r = panel.getBoundingClientRect(), over = r.bottom - (innerHeight - 8); if (over > 0) panel.style.top = -Math.min(over, r.top - 8) + 'px'; };
+  const placePanel = () => {}; // Panel sitzt fest unten (Bottom-Sheet), Position des Docks ist egal
   const setOpen = open => { panel.hidden = !open; impBtn.setAttribute('aria-expanded', String(open)); if (open) { placePanel(); dock.classList.add('nb-on'); } else wake(); };
   addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); e.stopPropagation(); setOpen(false); } }, true);
   addEventListener('resize', () => { if (!panel.hidden) placePanel(); });
@@ -101,5 +102,8 @@
       await host.importMaps({ deliver, status: say, force: force.checked });
     } catch { say('Import fehlgeschlagen.', 'err'); } finally { lock(false); }
   });
+  reloadBtn.addEventListener('click', () => location.reload());
+  // Startet das Spiel nicht (kein Canvas nach 15 s), Panel mit Hinweis öffnen
+  setTimeout(() => { if (!document.querySelector('#app canvas')) { say('Das Spiel startet nicht. Tippe auf "Spiel neu laden".', 'err'); setOpen(true); } }, 15000);
   wake();
 })();
