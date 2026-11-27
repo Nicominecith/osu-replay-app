@@ -688,14 +688,28 @@ async function loadGallery(q) {
   }
   const mo = $('#gsMore'); if (mo && my === gsTok) mo.textContent = denied ? (GS.length ? GS.length + ' Skins · für die Galerie bitte mit osu! anmelden' : 'Die Galerie braucht eine Anmeldung mit osu!.') : GS.length ? GS.length + ' Skins' : 'Nichts gefunden.';
 }
-async function gsFetch(k) { // direkt vom Server; Proxy nur als Notlösung
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const isZip = b => b && b.byteLength > 3 && new Uint8Array(b)[0] === 0x50 && new Uint8Array(b)[1] === 0x4b;
+async function gsFetch(k) { // direkt vom Server (nur wenn dieser CORS erlaubt), sonst über den Proxy mit Wiederholung
   let buf = null;
-  try { const r = await fetch(k.url, { signal: AbortSignal.timeout(20000) }); if (r.ok) buf = await r.arrayBuffer(); } catch {}
-  if (k.local && (!buf || new Uint8Array(buf)[0] !== 0x50)) throw new Error('Skin-Datei fehlt');
-  if (!buf || new Uint8Array(buf)[0] !== 0x50) { const r = await fetch('/api/skin?u=' + encodeURIComponent(k.url)); if (!r.ok) throw new Error(await r.text()); buf = await r.arrayBuffer(); }
-  return buf;
+  try { const r = await fetch(k.url, { signal: AbortSignal.timeout(k.local ? 20000 : 6000) }); if (r.ok) buf = await r.arrayBuffer(); } catch {}
+  if (k.local && !isZip(buf)) throw new Error('Skin-Datei fehlt');
+  if (isZip(buf)) return buf;
+  let lastErr = 'Download fehlgeschlagen';
+  for (let a = 0; a < 3; a++) {
+    try {
+      const r = await fetch('/api/skin?u=' + encodeURIComponent(k.url), { signal: AbortSignal.timeout(60000) });
+      if (r.ok) { buf = await r.arrayBuffer(); if (isZip(buf)) return buf; lastErr = 'Keine Skin-Datei'; break; }
+      if (r.status === 401) throw new Error('Bitte mit osu! anmelden');
+      if (r.status === 413) throw new Error('Skin ist zu groß');
+      if (r.status === 415) throw new Error('Keine Skin-Datei');
+      if (r.status === 429) { lastErr = 'Zu viele Anfragen, kurz warten'; await sleep(Math.min(8, +r.headers.get('Retry-After') || 4) * 1000); continue; }
+      lastErr = 'Skin-Server antwortet nicht'; await sleep(1200);
+    } catch (e) { if (/anmelden|zu groß|Keine Skin/.test(e.message)) throw e; lastErr = 'Verbindung fehlgeschlagen'; await sleep(1200); }
+  }
+  throw new Error(lastErr);
 }
-function gsGet(k) { // Vorab-Download beim Drüberfahren/Antippen, max. 6 im Speicher
+function gsGet(k) { // Vorab-Download nur am PC beim Drüberfahren (am Handy würde jedes Antippen das Limit verbrauchen), max. 6 im Speicher
   if (!gsBuf.has(k.url)) { gsBuf.set(k.url, gsFetch(k).catch(e => { gsBuf.delete(k.url); throw e; })); if (gsBuf.size > 6) gsBuf.delete(gsBuf.keys().next().value); }
   return gsBuf.get(k.url);
 }
@@ -710,11 +724,11 @@ async function gsUse(i, btn) {
     await lsAdd(new File([buf], nm + '.osk'));
     map[k.url] = S.liveSkin; try { localStorage.setItem('osuGalMap', JSON.stringify(map)); } catch {}
     done();
-  } catch (err) { sm.textContent = 'Fehler: ' + String(err.message || 'Download').slice(0, 40); setTimeout(() => sm.textContent = old, 3500); }
+  } catch (err) { sm.textContent = 'Fehler: ' + String(err.message || 'Download').slice(0, 60); setTimeout(() => sm.textContent = old, 5000); }
   btn.disabled = false;
 }
 let gsPf; const gsPre = e => { const b = e.target.closest && e.target.closest('[data-gs]'); if (!b) return; clearTimeout(gsPf); gsPf = setTimeout(() => { const k = GS[+b.dataset.gs]; if (k && !k.local && !gsMap()[k.url]) gsGet(k).catch(() => {}); }, 120); };
-setBody.addEventListener('mouseover', gsPre); setBody.addEventListener('touchstart', gsPre, { passive: true });
+if (!matchMedia('(pointer: coarse)').matches) setBody.addEventListener('mouseover', gsPre);
 const tintC = new Map(), tcCache = new Map();
 function tcBody(o, R, col) { // Traceable: nur der Slider-Rand, Innenfläche durchsichtig
   let c = tcCache.get(o); if (c && c.col === col) return c;
@@ -899,7 +913,9 @@ function openMap(s) {
 }
 let nicoHist = false; // Android-Zurück-Taste schließt das Spiel statt die Seite zu verlassen
 addEventListener('popstate', () => { const f = $('#nicominecithFrame'); if (!f.hidden) { nicoHist = false; f.hidden = true; $('#nicominecithIf').removeAttribute('src'); } });
-$('#nicominecithBtn').onclick = async () => { if (!nicoHist) { try { history.pushState({ nicoGame: 1 }, ''); nicoHist = true; } catch {} } const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); f.src = '/nicominecith/index.html'; } $('#nicominecithFrame').hidden = false; };
+// Schwarzer Bildschirm auf manchen Handys: WebGPU im Spiel rendert dort schwarz -> einmalig auf WebGL stellen (später in den Spiel-Einstellungen änderbar)
+function forceGameGl() { try { if (localStorage.getItem('osuGameGlSet')) return; const c = JSON.parse(localStorage.getItem(GKEY) || '{}') || {}; if (!c.renderer || c.renderer === 'auto') { c.renderer = 'webgl'; localStorage.setItem(GKEY, JSON.stringify(c)); } localStorage.setItem('osuGameGlSet', '1'); } catch {} }
+$('#nicominecithBtn').onclick = async () => { if (!nicoHist) { try { history.pushState({ nicoGame: 1 }, ''); nicoHist = true; } catch {} } const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); forceGameGl(); f.src = '/nicominecith/index.html?v=45'; } $('#nicominecithFrame').hidden = false; };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
 $('#mvplay').onclick = () => { if (!curScore) return; if (!me && !curScore._osrBuf) { $('#mvlogin').hidden = false; return; } openReplay(curScore); };
 $('#mvinfo').onclick = () => showInfo();

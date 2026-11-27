@@ -39,7 +39,7 @@ function limited(key, max, windowMs) {
   return false;
 }
 const clientIp = (req, ctx) => (ctx && ctx.ip) || req.headers.get('x-nf-client-connection-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
-const ROUTE_LIMITS = { osu: [90, 6e4], beatmap: [40, 6e4], skins: [30, 6e4], skin: [12, 6e4] };
+const ROUTE_LIMITS = { osu: [90, 6e4], beatmap: [40, 6e4], skins: [30, 6e4], skin: [60, 6e4] };
 
 /* ---------- Login prüfen: Token muss bei osu! tatsächlich gültig sein (nicht nur ein Cookie mit beliebigem Wert) ---------- */
 const TOKEN_RE = /^[A-Za-z0-9._~+/=-]{10,4096}$/;
@@ -181,7 +181,7 @@ function safeLookup(hostname, opts, cb) {
     cb(null, addrs[0].address, addrs[0].family);
   });
 }
-function safeGet(urlStr, maxBytes, hops = 3) {
+function safeGet(urlStr, maxBytes, hops = 3, stream = false) {
   return new Promise((resolve, reject) => {
     let u; try { u = new URL(urlStr); } catch { return reject(new Error('url')); }
     if (u.protocol !== 'https:' || u.username || u.password || (u.port && u.port !== '443') || !u.hostname.includes('.') || net.isIP(u.hostname.replace(/^\[|\]$/g, '')) || /^localhost$|\.(local|internal|localhost)$/i.test(u.hostname)) return reject(new Error('url'));
@@ -190,10 +190,11 @@ function safeGet(urlStr, maxBytes, hops = 3) {
         res.resume();
         if (hops <= 0) return reject(new Error('redirects'));
         let next; try { next = new URL(res.headers.location, u).toString(); } catch { return reject(new Error('url')); }
-        return safeGet(next, maxBytes, hops - 1).then(resolve, reject);
+        return safeGet(next, maxBytes, hops - 1, stream).then(resolve, reject);
       }
       if (res.statusCode !== 200) { res.resume(); return reject(new Error('status')); }
       if (+res.headers['content-length'] > maxBytes) { res.destroy(); return reject(new Error('size')); }
+      if (stream) return resolve(res); // Antwort wird weitergereicht (große Skins, kein 6-MB-Puffer)
       const chunks = []; let n = 0;
       res.on('data', c => { n += c.length; if (n > maxBytes) { res.destroy(); reject(new Error('size')); } else chunks.push(c); });
       res.on('end', () => resolve(Buffer.concat(chunks)));
@@ -203,13 +204,39 @@ function safeGet(urlStr, maxBytes, hops = 3) {
     req.on('error', reject);
   });
 }
+const SKIN_MAX = 25e6;
+// Reicht den Download als Stream weiter; der erste Block muss ein ZIP-Kopf ("PK") sein, danach gilt das Größenlimit
+export function peekStream(res, maxBytes) {
+  return new Promise((resolve, reject) => {
+    const onErr = e => reject(e);
+    res.once('error', onErr);
+    res.once('end', () => reject(new Error('empty')));
+    res.once('data', c => {
+      res.pause(); res.removeListener('error', onErr);
+      if (c.length < 4 || c[0] !== 0x50 || c[1] !== 0x4b) { res.destroy(); return reject(new Error('notzip')); }
+      let n = c.length;
+      resolve(new ReadableStream({
+        start(ctrl) {
+          ctrl.enqueue(new Uint8Array(c));
+          res.on('data', d => { n += d.length; if (n > maxBytes) { res.destroy(); try { ctrl.error(new Error('size')); } catch {} } else ctrl.enqueue(new Uint8Array(d)); });
+          res.on('end', () => { try { ctrl.close(); } catch {} });
+          res.on('error', e => { try { ctrl.error(e); } catch {} });
+          res.resume();
+        },
+        cancel() { res.destroy(); },
+      }));
+    });
+  });
+}
 async function routeSkin(req) {
   const u = new URL(req.url).searchParams.get('u') || '';
   if (u.length > 2000) return fail(400, 'URL nicht erlaubt');
-  let buf;
-  try { buf = await safeGet(u, 4.5e6); } catch (e) { return fail(e.message === 'size' ? 413 : e.message === 'url' || e.message === 'blocked' ? 400 : 502, 'Skin konnte nicht geladen werden'); }
-  if (buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4b) return fail(415, 'Keine Skin-Datei');
-  return new Response(buf, { status: 200, headers: { ...BASE_HEADERS, 'Cache-Control': 'private, max-age=86400', 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="skin.osk"' } });
+  let res, body;
+  try { res = await safeGet(u, SKIN_MAX, 3, true); body = await peekStream(res, SKIN_MAX); }
+  catch (e) { return fail(e.message === 'size' ? 413 : e.message === 'notzip' ? 415 : e.message === 'url' || e.message === 'blocked' ? 400 : 502, e.message === 'size' ? 'Skin ist zu groß' : e.message === 'notzip' ? 'Keine Skin-Datei' : 'Skin konnte nicht geladen werden'); }
+  const h = { ...BASE_HEADERS, 'Cache-Control': 'private, max-age=86400', 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="skin.osk"' };
+  const len = +res.headers['content-length']; if (len > 0) h['Content-Length'] = String(len);
+  return new Response(body, { status: 200, headers: h });
 }
 
 export default async (req, context) => {

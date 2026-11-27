@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.45 (v45)
+- Zusammengeführt: Spiel-Menüeinträge (Account-Import, Spiel schließen), Datei-Dialog-Fix, Exit und Zurück-Taste aus v44, plus WebGL-Umstellung gegen den schwarzen Bildschirm auf Handys.
+- Skin-Download repariert: Große Skins (bis 25 MB) kommen jetzt als Stream über den Proxy (vorher Abbruch bei über 4,5 MB). Vorab-Laden beim Antippen am Handy entfernt, das hat das Anfragelimit aufgebraucht. Bei "zu viele Anfragen" und Verbindungsfehlern wird bis zu 3x neu versucht, Fehlermeldungen sind lesbar.
+
 ## 0.44 (v44)
 - Spiel: Schwebendes Bedienfeld (✕/⬇) und Leiste sind weg. Stattdessen zwei neue Einträge im Spiel-Menü (Einstellungen → Maintenance → „Osu Replay"): „Maps aus deinem osu!-Konto importieren" und „Spiel schließen".
 - Import auf dem Handy repariert: Der Datei-Dialog des Spiels (Hauptmenü „Import" und „Import beatmaps (.osz)") hing an einem nicht eingebundenen Eingabefeld mit `.osz`-Filter, den Android nicht kennt. Jetzt ist das Feld eingebunden, der Filter entfällt auf Handys und die Auswahl wird nach Endung geprüft.
