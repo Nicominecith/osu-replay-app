@@ -1,0 +1,20 @@
+/* Schwebendes Bedienfeld im Spiel: Schließen + Maps importieren (Mobile zuerst) */
+#nb{position:fixed;z-index:2147483000;top:var(--nb-y,38%);right:max(8px,env(safe-area-inset-right));display:flex;flex-direction:column;align-items:flex-end;gap:10px;font:600 14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;color:#f1ecff;opacity:.55;transition:opacity .25s ease;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#nb[data-side=left]{right:auto;left:max(8px,env(safe-area-inset-left));align-items:flex-start}
+#nb:hover,#nb:focus-within,#nb.nb-on{opacity:1}
+.nb-btn{width:48px;height:48px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(18,15,29,.85);color:#fff;font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);touch-action:none}
+.nb-btn:active{transform:scale(.94)}
+.nb-btn:focus-visible,.nb-act:focus-visible{outline:2px solid #7de3d0;outline-offset:2px}
+#nbClose{border-color:rgba(255,95,162,.55)}
+#nbPanel{position:absolute;top:0;right:58px;width:min(300px,calc(100vw - 88px));max-height:calc(100dvh - 16px);overflow:auto;padding:12px;border-radius:16px;border:1px solid #2f2850;background:rgba(18,15,29,.97);box-shadow:0 10px 30px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;touch-action:pan-y;-webkit-user-select:text;user-select:text}
+#nb[data-side=left] #nbPanel{right:auto;left:58px}
+#nbPanel[hidden]{display:none}
+#nbPanel h2{margin:0 0 2px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#9b92c4}
+.nb-act{min-height:46px;padding:10px 14px;border-radius:12px;border:1px solid #2f2850;background:#1d1830;color:#f1ecff;font:inherit;text-align:left;cursor:pointer}
+.nb-act.nb-main{background:#ff5fa2;border-color:#ff5fa2;color:#1a0b14;font-weight:800}
+.nb-act:disabled{opacity:.5;cursor:not-allowed}
+.nb-chk{display:flex;gap:10px;align-items:center;min-height:36px;color:#9b92c4;font-size:.85rem}
+.nb-chk input{width:20px;height:20px;accent-color:#ff5fa2;flex:none}
+#nbStatus{margin:0;min-height:1.35em;font-size:.85rem;color:#9b92c4;word-break:break-word}
+#nbStatus.ok{color:#7de3d0}#nbStatus.err{color:#ff8fa3}#nbStatus.busy{color:#f1ecff}
+@media (prefers-reduced-motion:reduce){#nb,.nb-btn{transition:none}}

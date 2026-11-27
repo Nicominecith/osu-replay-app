@@ -133,9 +133,8 @@ video{width:100%;max-width:min(100%,calc((100vh - 230px)*16/9));max-width:min(10
 .skin{position:relative}.lsdel{position:absolute;top:4px;right:6px;color:var(--dim);padding:4px 8px}
 .lsup{display:block;text-align:center;cursor:pointer;margin-top:4px}
 #nicominecithBtn{background:linear-gradient(90deg,var(--lz),var(--lz2));color:#fff;border:0;font-weight:800}
-#nicominecithFrame{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 0}
-#nicominecithFrame iframe{flex:1;border:0;width:100%;min-height:0}
-#nicominecithFrame .wbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;background:#120f1d;color:var(--dim);font-size:.85rem}
+#nicominecithFrame{position:fixed;inset:0;z-index:20;background:#000;display:flex;overscroll-behavior:contain}
+#nicominecithFrame iframe{flex:1;border:0;width:100%;height:100%;min-height:0;display:block}
 :root{--lz:#ff66ab;--lz2:#b266ff;--card:#2a2140}
 body{background:radial-gradient(1200px 600px at 80% -10%,#3a1f5c55,transparent),var(--bg)}
 .wrap{max-width:1000px}
@@ -211,7 +210,6 @@ header{flex-wrap:wrap}
 @media(min-width:700px){.wrap{max-width:1000px;padding:24px}}
 @media(min-width:1100px){.wrap{max-width:1280px}#list{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:400px){.ghost{padding:8px 12px;font-size:.82rem}#who img{width:34px;height:34px}}
-#nicominecithFrame .wbar{flex-wrap:wrap}#nicominecithFrame .wbar span{flex:1 1 160px}
 
 /* --- Header-Layout v2 + Hintergrund --- */
 html{min-height:100%;background:var(--bg)}
@@ -455,7 +453,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   <button class="ghost more" id="more" hidden>Mehr laden</button>
 </main>
 
-<section id="nicominecithFrame" hidden><div class="wbar"><span>nicominecith osu! · nutzt automatisch deinen Replay-Skin (Einstellungen → Live-Ansicht)</span><button class="ghost" id="nicoImp" type="button">⬇ Maps importieren</button><button class="ghost" id="nicominecithClose">✕ Schließen</button></div><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
+<section id="nicominecithFrame" hidden><iframe id="nicominecithIf" title="nicominecith osu!" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe></section>
 
 <section id="mapview" hidden>
   <div id="mvh"><button class="icon back" id="mvback" data-ic="x" aria-label="Zurück"></button><h2 id="mvt"></h2><p id="mva"></p></div>
@@ -826,39 +824,49 @@ $('#usrch').onsubmit = async e => {
 $('#ures').onclick = e => { const b = e.target.closest('[data-u]'); if (b) setTarget(window._us[b.dataset.u]); };
 document.addEventListener('click', e => { if (!e.target.closest('#usrch')) $('#ures').hidden = true; });
 
-// --- Maps aus dem osu!-Account ins Spiel importieren ---
-$('#nicoImp').onclick = async () => {
-  const btn = $('#nicoImp'), fr = $('#nicominecithIf'), w = fr.contentWindow;
-  if (!w || !fr.src) return;
-  if (!me) { btn.textContent = 'Import braucht Anmeldung'; setTimeout(() => (btn.textContent = '⬇ Maps importieren'), 2500); return; }
-  btn.disabled = true;
-  const lbl = x => (btn.textContent = x);
-  try {
-    let done = []; try { done = JSON.parse(localStorage.getItem('osuImported') || '[]'); } catch {}
-    lbl('Lade Mapliste…');
-    const ids = new Map();
-    for (const [path, q] of [[`/users/${me.id}/beatmaps/most_played`, { limit: 50 }], [`/users/${me.id}/scores/best`, { mode: 'osu', limit: 50 }]]) {
-      try { const r = await api(path, q); if (r.ok) for (const x of await r.json()) { const bs = x.beatmapset; if (bs && bs.id) ids.set(bs.id, bs.title); } } catch {}
-    }
-    const todo = [...ids].filter(([id]) => !done.includes(id)).slice(0, 15);
-    if (!todo.length) { lbl('Alles importiert ✓'); setTimeout(() => { lbl('⬇ Maps importieren'); btn.disabled = false; }, 2500); return; }
-    let n = 0;
-    for (const [id, title] of todo) {
-      lbl(`Importiere ${++n}/${todo.length}…`);
-      let buf = null;
-      for (const u of [`https://api.nerinyan.moe/d/${id}?noVideo=true`, `https://catboy.best/d/${id}`]) {
-        try { const r = await fetch(u); if (r.ok) { buf = await r.arrayBuffer(); break; } } catch {}
+// --- Maps aus dem osu!-Account ins Spiel importieren (Bedienung sitzt im Spiel: nicominecith/host-bridge.js) ---
+const MAP_MIRRORS = id => [`https://api.nerinyan.moe/d/${id}?noVideo=true`, `https://catboy.best/d/${id}n`, `https://catboy.best/d/${id}`, `https://osu.direct/api/d/${id}`];
+async function fetchMapZip(id) {
+  for (const u of MAP_MIRRORS(id)) {
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(60000) }); if (!r.ok) continue;
+      const ab = await r.arrayBuffer(); if (ab.byteLength < 1000 || ab.byteLength > MAX_MAPZIP) continue;
+      const h = new Uint8Array(ab, 0, 2); if (h[0] !== 0x50 || h[1] !== 0x4b) continue; // muss ein ZIP/.osz sein
+      return ab;
+    } catch { /* nächster Mirror */ }
+  }
+  return null;
+}
+let nicoImporting = false;
+window.nicoHost = {
+  close() { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); },
+  async importMaps({ deliver, status, force = false }) {
+    if (nicoImporting) return; nicoImporting = true;
+    try {
+      if (!me) { status('Für den Import aus dem Account ist die osu!-Anmeldung nötig. Du kannst stattdessen .osz-Dateien wählen.', 'err'); return; }
+      let done = []; try { done = JSON.parse(localStorage.getItem('osuImported') || '[]'); } catch {}
+      if (force) done = [];
+      status('Lade Mapliste…', 'busy');
+      const ids = new Map(); let listFailed = false;
+      for (const [path, q] of [[`/users/${me.id}/beatmaps/most_played`, { limit: 50 }], [`/users/${me.id}/scores/best`, { mode: 'osu', limit: 50 }]]) {
+        try { const r = await api(path, q); if (r.ok) { for (const x of await r.json()) { const bs = x.beatmapset; if (bs && bs.id) ids.set(bs.id, bs.title); } } else listFailed = true; } catch { listFailed = true; }
       }
-      if (!buf) continue;
-      const file = new File([buf], `${id} ${String(title).replace(/[\\/:*?"<>|]/g, '')}.osz`, { type: 'application/x-osu-beatmap-archive' });
-      const ev = new Event('drop', { cancelable: true }); Object.defineProperty(ev, 'dataTransfer', { value: { files: [file] } });
-      w.dispatchEvent(ev); done.push(id);
-      try { localStorage.setItem('osuImported', JSON.stringify(done)); } catch {}
-      await new Promise(r => setTimeout(r, 1500));
-    }
-    lbl(`${n} Maps importiert ✓`);
-  } catch { lbl('Import fehlgeschlagen'); }
-  setTimeout(() => { lbl('⬇ Maps importieren'); btn.disabled = false; }, 3000);
+      if (!ids.size) { status(listFailed ? 'Mapliste konnte nicht geladen werden. Bitte später erneut versuchen.' : 'In deinem Account wurden keine Maps gefunden.', 'err'); return; }
+      const all = [...ids].filter(([id]) => !done.includes(id)), todo = all.slice(0, 10);
+      if (!todo.length) { status('Alles schon importiert. Mit "Auch bereits importierte erneut laden" kannst du es erzwingen.', 'ok'); return; }
+      let ok = 0, fail = 0;
+      for (const [id, title] of todo) {
+        const name = String(title || id).replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80) || String(id);
+        status(`Lade ${ok + fail + 1}/${todo.length}: ${name.slice(0, 36)}`, 'busy');
+        const ab = await fetchMapZip(id);
+        if (!ab) { fail++; continue; }
+        await deliver(`${id} ${name}.osz`, ab); ok++; done.push(id);
+        try { localStorage.setItem('osuImported', JSON.stringify(done)); } catch {}
+      }
+      const left = all.length - todo.length;
+      status(`${ok} importiert${fail ? `, ${fail} nicht ladbar (Mirror nicht erreichbar)` : ''}.${left ? ` Noch ${left} übrig: nochmal tippen.` : ''}`, ok ? 'ok' : 'err');
+    } catch { status('Import fehlgeschlagen.', 'err'); } finally { nicoImporting = false; }
+  }
 };
 $('#q').oninput = $('#onlyRp').onchange = paint;
 $('#more').onclick = () => load(false);
@@ -887,7 +895,6 @@ function openMap(s) {
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
 $('#nicominecithBtn').onclick = async () => { const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); f.src = '/nicominecith/index.html'; } $('#nicominecithFrame').hidden = false; };
-$('#nicominecithClose').onclick = () => { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
 $('#mvplay').onclick = () => { if (!curScore) return; if (!me && !curScore._osrBuf) { $('#mvlogin').hidden = false; return; } openReplay(curScore); };
 $('#mvinfo').onclick = () => showInfo();
