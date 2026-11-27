@@ -11,7 +11,7 @@ const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]
 inline.forEach((code, i) => { try { new vm.Script(code, { filename: `index.html#script${i}` }); } catch (e) { fail(`index.html Inline-Skript ${i}`, e); } });
 console.log(`index.html: ${inline.length} Inline-Skripte geprüft`);
 
-const files = ['public/sw.js', 'public/nicominecith/host-bridge.js', ...readdirSync('netlify/functions').map(f => 'netlify/functions/' + f), ...readdirSync('scripts').map(f => 'scripts/' + f), ...readdirSync('tests').map(f => 'tests/' + f)];
+const files = ['public/sw.js', ...readdirSync('netlify/functions').map(f => 'netlify/functions/' + f), ...readdirSync('scripts').map(f => 'scripts/' + f), ...readdirSync('tests').map(f => 'tests/' + f)];
 for (const f of files) { try { execFileSync(process.execPath, ['--check', f], { stdio: 'pipe' }); } catch (e) { fail(f, new Error(String(e.stderr).split('\n')[0])); } }
 console.log(`${files.length} Dateien mit node --check geprüft`);
 

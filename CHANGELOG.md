@@ -1,9 +1,10 @@
 # Changelog
 
 ## 0.44 (v44)
-- Schwarzer Bildschirm im Spiel behoben: Renderer wird einmalig auf WebGL gestellt (WebGPU rendert auf manchen Handys schwarz).
-- Spiel-Menü: zwei beschriftete Einträge "✕ Schließen" und "⬇ Maps importieren"; Import-Fenster als Bottom-Sheet für Handys, Button "Spiel neu laden", Hinweis wenn das Spiel nicht startet.
-- Cache-Version erhöht, damit die neue Spiel-Brücke sofort geladen wird.
+- Spiel: Schwebendes Bedienfeld (✕/⬇) und Leiste sind weg. Stattdessen zwei neue Einträge im Spiel-Menü (Einstellungen → Maintenance → „Osu Replay"): „Maps aus deinem osu!-Konto importieren" und „Spiel schließen".
+- Import auf dem Handy repariert: Der Datei-Dialog des Spiels (Hauptmenü „Import" und „Import beatmaps (.osz)") hing an einem nicht eingebundenen Eingabefeld mit `.osz`-Filter, den Android nicht kennt. Jetzt ist das Feld eingebunden, der Filter entfällt auf Handys und die Auswahl wird nach Endung geprüft.
+- Hauptmenü-Knopf „Exit" schließt das eingebettete Spiel und bringt zur App zurück.
+- Handy: Die Zurück-Taste schließt das Spiel, statt die Seite zu verlassen.
 
 ## 0.43 (v43)
 - Spiel-Ansicht ohne obere Leiste, bildschirmfüllend. ✕-Schließen-Knopf und Map-Import sitzen jetzt im Spiel (schwebendes, verschiebbares Bedienfeld, mobiloptimiert mit großen Touch-Flächen und Safe-Area).

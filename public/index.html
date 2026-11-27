@@ -839,7 +839,10 @@ async function fetchMapZip(id) {
 }
 let nicoImporting = false;
 window.nicoHost = {
-  close() { $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src'); },
+  close() { // Spiel schließen (aus dem Spiel-Menü); den Verlaufseintrag für die Zurück-Taste wieder abräumen
+    $('#nicominecithFrame').hidden = true; $('#nicominecithIf').removeAttribute('src');
+    if (typeof nicoHist !== 'undefined' && nicoHist) { nicoHist = false; try { if (history.state && history.state.nicoGame) history.back(); } catch {} }
+  },
   async importMaps({ deliver, status, force = false }) {
     if (nicoImporting) return; nicoImporting = true;
     try {
@@ -894,9 +897,9 @@ function openMap(s) {
   const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? (me || s._osrBuf ? 'Replay ansehen' : 'Replay ansehen (Anmeldung nötig)') : 'Kein Replay verfügbar'; $('#mvlogin').hidden = true;
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
-// Schwarzer Bildschirm auf manchen Handys: WebGPU im Spiel ist dort kaputt -> auf WebGL zwingen (einmalig, später änderbar in den Spiel-Einstellungen)
-function forceGameGl() { try { const c = JSON.parse(localStorage.getItem(GKEY) || '{}') || {}; if (!localStorage.getItem('osuGameGlSet')) { if (!c.renderer || c.renderer === 'auto') { c.renderer = 'webgl'; localStorage.setItem(GKEY, JSON.stringify(c)); } localStorage.setItem('osuGameGlSet', '1'); } } catch {} }
-$('#nicominecithBtn').onclick = async () => { const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); forceGameGl(); f.src = '/nicominecith/index.html?v=44'; } $('#nicominecithFrame').hidden = false; };
+let nicoHist = false; // Android-Zurück-Taste schließt das Spiel statt die Seite zu verlassen
+addEventListener('popstate', () => { const f = $('#nicominecithFrame'); if (!f.hidden) { nicoHist = false; f.hidden = true; $('#nicominecithIf').removeAttribute('src'); } });
+$('#nicominecithBtn').onclick = async () => { if (!nicoHist) { try { history.pushState({ nicoGame: 1 }, ''); nicoHist = true; } catch {} } const f = $('#nicominecithIf'); if (!f.src) { await Promise.race([syncGameSkin(), new Promise(r => setTimeout(r, 4000))]); f.src = '/nicominecith/index.html'; } $('#nicominecithFrame').hidden = false; };
 $('#mvback').onclick = () => { $('#mapview').hidden = true; };
 $('#mvplay').onclick = () => { if (!curScore) return; if (!me && !curScore._osrBuf) { $('#mvlogin').hidden = false; return; } openReplay(curScore); };
 $('#mvinfo').onclick = () => showInfo();

@@ -36,12 +36,11 @@ flowchart LR
 ## Frontend
 Alles in `public/index.html` (CSS, HTML, zwei Inline-Skripte). Offline-Cache über `sw.js`. Replay-Rendering auf Canvas, `.osr`-Parser und LZMA lokal (`public/vendor/`). Das Spiel `public/nicominecith/` ist ein fertiger Build und läuft im iframe (eigene, lockerere CSP).
 
-## Spiel-Bedienfeld (`public/nicominecith/host-bridge.*`)
-Das Spiel ist ein fertiger Build. Schließen und Map-Import sitzen deshalb in einem kleinen Overlay, das `nicominecith/index.html` per `<link>` und `<script>` einbindet (zwei Zeilen im `<head>`). Wird der Build ersetzt, müssen diese zwei Zeilen wieder ergänzt werden.
-- ✕ ruft `window.parent.nicoHost.close()` auf. ⬇ öffnet das Import-Panel.
-- Import aus dem Account: `nicoHost.importMaps()` (in `public/index.html`) lädt die Maps über mehrere Mirrors, prüft ZIP-Signatur und Größe und übergibt sie über `deliver()` als `drop`-Ereignis an das Spiel. Zusätzlich gibt es die Dateiwahl für `.osz`.
-- Läuft das Spiel ohne Host (direkt geöffnet), entfallen ✕ und Account-Import.
-- Die Import-Logik ist in `tests/nico-import.test.mjs` abgedeckt.
+## Spiel-Menü: Map-Import und Schließen (`public/nicominecith/assets/*.js`)
+- Kein Overlay mehr: Die Bedienung sitzt im Spielmenü selbst (Einstellungen → Maintenance → „Osu Replay") und im Hauptmenü („Import", „Exit").
+- Die Host-App stellt `window.nicoHost` bereit (`public/index.html`): `close()` schließt das Spiel, `importMaps()` lädt Maps aus dem osu!-Konto über mehrere Mirrors (ZIP-Signatur und Größe werden geprüft).
+- Im Spiel gibt es dazu drei Methoden an der Game-Klasse: `pickFiles()` (robuster Datei-Dialog für Handys), `importAccount()` (ruft `nicoHost.importMaps()` und übergibt jede Datei direkt an `importFiles()`) und `closeGame()`.
+- Hinweis: Die Spiel-Dateien sind ein fertiger Build (minifiziert). Änderungen daran sind Patches; `tests/nico-game-menu.test.mjs` prüft, dass sie vorhanden sind.
 
 ## Bekannte technische Schulden
 - `index.html` ist eine einzige große Datei. Aufteilen in Module/Build (z. B. Vite) wäre der nächste Schritt und würde `'unsafe-inline'` in der CSP überflüssig machen.
