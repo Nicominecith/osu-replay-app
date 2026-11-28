@@ -2,7 +2,7 @@
    (t, playing, M, F, rate, end, audio, S, me, curScore, osrBuf, $, esc, openReplay, openLocalReplay …). */
 (() => {
   'use strict';
-  const VER = '0.49', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
+  const VER = '0.50', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
   const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} } };
   let lang = ls.get('osuLang') || (/^de/i.test(navigator.language) ? 'de' : 'en');
   const T = (d, e) => lang === 'en' ? e : d;
@@ -109,7 +109,8 @@
   const viewer = q('#viewer'), stage = q('#stage'), cvEl = q('#cv');
   const ov = el('div', { id: 'xOv' }), keys = el('div', { id: 'xKeys' }, '<b id="xKps">0 KPS</b><i>M1</i><i>M2</i><i>K1</i><i>K2</i>');
   const urc = el('canvas', { id: 'xUr', width: 320, height: 26 }), urT = el('div', { id: 'xUrT' }), fpsEl = el('div', { id: 'xFps', hidden: '' });
-  ov.append(keys, urc, urT, fpsEl); stage.append(ov);
+  const urBox = el('div', { class: 'ur' }); urBox.append(urT, urc);
+  const strip = el('div', { id: 'xStrip' }); strip.append(urBox, keys); ov.append(fpsEl); stage.append(ov); stage.after(strip);
   const syncOv = () => { const r = cvEl.getBoundingClientRect(), sr = stage.getBoundingClientRect(); if (!r.width) return; Object.assign(ov.style, { inset: 'auto', left: r.left - sr.left + 'px', top: r.top - sr.top + 'px', width: r.width + 'px', height: r.height + 'px' }); };
   if (window.ResizeObserver) { const ro = new ResizeObserver(syncOv); ro.observe(stage); ro.observe(cvEl); } addEventListener('resize', syncOv); addEventListener('orientationchange', () => setTimeout(syncOv, 250));
   const tl = el('div', { id: 'xTl' }, '<canvas></canvas><i></i>'), tlc = tl.firstChild, tlx = tlc.getContext('2d'), cur = tl.lastChild;
@@ -308,7 +309,7 @@
   function applyLite() { document.body.classList.toggle('x-lite', lite()); if (lite() && typeof S !== 'undefined') { S.trail = false; } }
 
   /* ---------- Hub: Menü, Hilfe, Über, Neu, Diagnose (62–66, 70, 71, 90, 94, 97) ---------- */
-  const CHANGES = [['0.49', ['Player responsive: kompakte Kopfzeile am Handy, Seitenleiste auf Tablet/PC, Tasten-Overlay und UR-Balken überlappen nicht mehr']], ['0.48', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und App-Optionen sind jetzt in den Einstellungen','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
+  const CHANGES = [['0.50', ['Tasten-Anzeige (M1/M2/K1/K2, KPS) und UR-Balken liegen jetzt in einer Leiste unter dem Spielfeld, nicht mehr im Replay']], ['0.49', ['Player responsive: kompakte Kopfzeile am Handy, Seitenleiste auf Tablet/PC, Tasten-Overlay und UR-Balken überlappen nicht mehr']], ['0.48', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und App-Optionen sind jetzt in den Einstellungen','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
   const ROAD = [['osu!taiko / catch / mania', 'wip'], ['A/B-Replay-Vergleich', 'wip'], ['PP-Verlauf (Live)', 'wip'], ['Embed-Widget', 'wip'], ['Over-/Underaim-Analyse', 'wip']];
   const GAME = () => [T('Touch-Optimierung','Touch optimisation'), T('Keybind-Editor','Keybind editor'), T('Offset-Kalibrierung','Offset calibration'), T('Practice-Modus','Practice mode'), T('Eigene Plays als .osr speichern','Save own plays as .osr'), T('HUD-Editor','HUD editor'), T('Fertige Community-Skins','Ready-made community skins')];
   const FORMATS = () => [['.osr', T('Replay – direkt abspielen', 'Replay – play directly')], ['.osz', T('Beatmap-Paket – in nicominecith osu! importieren', 'Beatmap pack – import into nicominecith osu!')], ['.osk', T('Skin – Cursor, Hitcircles, Zahlen, Sounds', 'Skin – cursor, hitcircles, numbers, sounds')], [T('Audio/Bilder', 'Audio/images'), T('kommen aus der Beatmap (mp3, ogg, wav, jpg, png)', 'come from the beatmap (mp3, ogg, wav, jpg, png)')]];

@@ -113,3 +113,26 @@ body.x-lite *{animation:none!important;transition:none!important;backdrop-filter
   #viewer{grid-template-columns:200px minmax(0,1fr)}
 }
 @media (min-width:1400px) and (orientation:landscape){#viewer{column-gap:28px;padding-left:28px;padding-right:28px}}
+
+/* ---- v0.50: Tasten + UR unter dem Spielfeld ---- */
+#xStrip{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;width:100%;max-width:1100px;margin:0 auto;padding:8px 2px 0;box-sizing:border-box}
+#xStrip .ur{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1 1 180px;min-width:0}
+#xStrip #xUrT{position:static;transform:none;min-height:1em;font-size:12px;text-shadow:none;color:var(--tx)}
+#xStrip #xUr{position:static;transform:none;width:min(320px,100%);height:24px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+#xStrip #xKeys{position:static;margin:0 auto}
+#xStrip #xKeys b{text-shadow:none}
+#xStrip #xKeys i{background:var(--panel);border-color:var(--line)}
+#xStrip #xKeys i.on{background:var(--pink);border-color:#fff}
+body.x-cine #xStrip{display:none!important}
+@media(max-width:480px){#xStrip #xKeys i{width:34px;height:34px}#xStrip #xKeys b{min-width:52px}}
+@media (max-width:639px),(orientation:portrait){canvas{max-width:min(100%,calc((100dvh - 370px)*4/3))}}
+@media (min-width:640px) and (orientation:landscape){
+  #viewer{grid-template-rows:auto auto auto auto minmax(0,1fr) auto auto auto auto}
+  #xStrip{grid-column:2;grid-row:6;max-width:none;margin:0;padding:8px 0 0}
+  #ctl{grid-row:7}#xTl{grid-row:8}#xBar{grid-row:9}
+  canvas{max-width:min(100%,calc((100dvh - 270px)*4/3))}
+}
+@media (min-width:640px) and (orientation:landscape) and (max-height:560px){
+  canvas{max-width:min(100%,calc((100dvh - 195px)*4/3))}
+  #xStrip{padding-top:4px;flex-wrap:nowrap}#xStrip #xKeys i{width:30px;height:30px}#xStrip #xUr{height:18px}
+}
