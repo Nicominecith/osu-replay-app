@@ -32,29 +32,14 @@
 body.x-cine #title,body.x-cine #vbar,body.x-cine #ctl,body.x-cine #xBar,body.x-cine #xTl,body.x-cine #msg,body.x-cine #xProg,body.x-cine #xHelp{display:none!important}
 #xCineX{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;display:none}
 body.x-cine #xCineX{display:block}
-#xFab{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:55;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--tx);font-size:20px;cursor:pointer;box-shadow:0 6px 20px #0008;transition:transform .15s}
-#xFab:hover{transform:scale(1.06)}
-#xFab .nw{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#1a0b14;border-radius:999px;font:800 10px system-ui;padding:2px 6px}
-#viewer:not([hidden]) ~ #xFab,body.x-view #xFab{bottom:calc(150px + env(safe-area-inset-bottom))}
-#xLast{position:fixed;left:70px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:55;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--tx);padding:10px 16px;font-size:.9rem;cursor:pointer}
-#xSheet{position:fixed;inset:0;z-index:70;background:#000a;display:grid;place-items:end center;animation:xf .18s ease}
-#xSheet[hidden]{display:none}
-@keyframes xf{from{opacity:0}to{opacity:1}}
-#xBox{width:min(640px,100%);max-height:min(88dvh,760px);background:var(--bg);border:1px solid var(--line);border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:xu .22s ease}
-@keyframes xu{from{transform:translateY(40px)}to{transform:none}}
-@media(min-width:700px){#xSheet{place-items:center}#xBox{border-radius:20px}}
-#xHd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
-#xHd b{flex:1;font-size:1.05rem}
-#xTabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none}
-#xTabs button{flex:0 0 auto;border:1px solid var(--line);background:none;color:var(--dim);border-radius:999px;padding:8px 14px;cursor:pointer}
-#xTabs button.on{background:var(--pink);border-color:var(--pink);color:#1a0b14;font-weight:700}
-#xBody{overflow:auto;padding:4px 16px 20px;color:var(--tx);font-size:.93rem;line-height:1.5}
-#xBody h3{margin:16px 0 6px;font-size:1rem}#xBody p{margin:6px 0;color:var(--dim)}
-#xBody table{width:100%;border-collapse:collapse}#xBody td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
-#xBody kbd{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-family:ui-monospace,monospace;font-size:.85em}
-#xBody .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-#xBody input[type=text],#xBody textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--tx);padding:12px;font:inherit}
-#xBody textarea{min-height:90px;resize:vertical}
+#xLast{position:fixed;left:12px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:55;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--tx);padding:10px 16px;font-size:.9rem;cursor:pointer}
+#xHub .xdb{overflow:auto;padding:4px 16px 20px;color:var(--tx);font-size:.93rem;line-height:1.5}
+#xHub .xdb h3{margin:16px 0 6px;font-size:1rem}#xHub .xdb p{margin:6px 0;color:var(--dim)}
+#xHub .xdb table{width:100%;border-collapse:collapse}#xHub .xdb td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+#xHub .xdb kbd{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-family:ui-monospace,monospace;font-size:.85em}
+#xHub .xdb .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+#xHub .xdb input[type=text],#xHub .xdb textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--tx);padding:12px;font:inherit}
+#xHub .xdb textarea{min-height:90px;resize:vertical}
 .xi{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;margin:6px 0;background:var(--panel)}
 .xi>div{flex:1;min-width:0}.xi b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xi small{color:var(--dim)}
 .xi button{flex:0 0 auto}
@@ -72,3 +57,24 @@ body.x-lite *{animation:none!important;transition:none!important;backdrop-filter
 @media (orientation:landscape) and (max-height:520px){#title,#vbar{display:none}#stage{max-height:calc(100dvh - 120px)}#cv{max-height:calc(100dvh - 130px);width:auto;margin:0 auto;display:block}#xBar{padding-top:4px;padding-bottom:4px}.xb{height:36px}}
 @media(max-width:600px){#ctl{position:sticky;bottom:0;background:var(--bg);z-index:4}#ctl button{min-width:48px;min-height:48px}#xStats{position:fixed;left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:55dvh}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+#xHub{width:100%;max-width:1000px;margin:18px auto 28px;padding:0 2px;display:grid;gap:12px}
+#login #xHub{max-width:none;margin:0}
+#xQ{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:6px}
+#xQ b{font-size:1rem}#xQ small{color:var(--dim)}
+#xQ .qr{display:flex;gap:8px;margin-top:4px}#xQ .qr input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:999px;color:var(--tx);padding:12px 16px;font:inherit}
+#xQ .qr .btn{padding:0 22px;width:auto;flex:0 0 auto}
+#xGrid{display:grid;gap:10px;grid-template-columns:1fr;align-items:start}
+@media(min-width:760px){#xGrid{grid-template-columns:1fr 1fr}#xGrid details[data-k="replays"]{grid-column:1/-1}}
+@media(min-width:1180px){#xHub{max-width:1100px}}
+.xd{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.xd summary{cursor:pointer;padding:14px 16px;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px;min-height:48px}
+.xd summary::-webkit-details-marker{display:none}
+.xd summary::after{content:"▾";margin-left:auto;color:var(--dim);transition:transform .2s}
+.xd[open] summary::after{transform:rotate(180deg)}
+.xd[open] summary{border-bottom:1px solid var(--line)}
+.xd .nw{background:var(--pink);color:#1a0b14;border-radius:999px;font:800 10px system-ui;padding:2px 7px}
+#xHub .xdb{padding:4px 14px 16px;overflow-wrap:anywhere}
+#xHub .xdb ul{padding-left:18px;margin:6px 0}
+#xHub .xdb button.ghost,#xHub .xdb button.btn{min-height:44px}
+@media(max-width:480px){#xQ .qr{flex-direction:column}#xQ .qr .btn{height:46px}}

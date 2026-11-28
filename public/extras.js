@@ -2,7 +2,7 @@
    (t, playing, M, F, rate, end, audio, S, me, curScore, osrBuf, $, esc, openReplay, openLocalReplay …). */
 (() => {
   'use strict';
-  const VER = '0.46', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
+  const VER = '0.47', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
   const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} } };
   let lang = ls.get('osuLang') || (/^de/i.test(navigator.language) ? 'de' : 'en');
   const T = (d, e) => lang === 'en' ? e : d;
@@ -306,26 +306,40 @@
   function applyLite() { document.body.classList.toggle('x-lite', lite()); if (lite() && typeof S !== 'undefined') { S.trail = false; } }
 
   /* ---------- Hub: Menü, Hilfe, Über, Neu, Diagnose (62–66, 70, 71, 90, 94, 97) ---------- */
-  const CHANGES = [['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
-  const ROAD = [['osu!taiko / catch / mania', 'wip'], ['A/B-Replay-Vergleich', 'wip'], ['PP-Verlauf (Live)', 'wip'], ['Embed-Widget', 'wip'], ['Over-/Underaim-Analyse', 'wip'], ['Keybind-Editor im Spiel', 'wip'], ['Practice-Modus mit Loop-Punkten', 'wip']];
+  const CHANGES = [['0.47', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und Einstellungen sind direkt in der Startseite und der Spielerliste','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
+  const ROAD = [['osu!taiko / catch / mania', 'wip'], ['A/B-Replay-Vergleich', 'wip'], ['PP-Verlauf (Live)', 'wip'], ['Embed-Widget', 'wip'], ['Over-/Underaim-Analyse', 'wip']];
+  const GAME = () => [T('Touch-Optimierung','Touch optimisation'), T('Keybind-Editor','Keybind editor'), T('Offset-Kalibrierung','Offset calibration'), T('Practice-Modus','Practice mode'), T('Eigene Plays als .osr speichern','Save own plays as .osr'), T('HUD-Editor','HUD editor'), T('Fertige Community-Skins','Ready-made community skins')];
   const FORMATS = () => [['.osr', T('Replay – direkt abspielen', 'Replay – play directly')], ['.osz', T('Beatmap-Paket – in nicominecith osu! importieren', 'Beatmap pack – import into nicominecith osu!')], ['.osk', T('Skin – Cursor, Hitcircles, Zahlen, Sounds', 'Skin – cursor, hitcircles, numbers, sounds')], [T('Audio/Bilder', 'Audio/images'), T('kommen aus der Beatmap (mp3, ogg, wav, jpg, png)', 'come from the beatmap (mp3, ogg, wav, jpg, png)')]];
   const SC = () => [['Space', T('Abspielen / Pause', 'Play / pause')], ['← →', T('5 s zurück / vor', '5 s back / forward')], [', .', T('Frame zurück / vor (Shift: 1 ms)', 'Frame back / forward (Shift: 1 ms)')], ['[ ]', T('Vorheriger / nächster Miss', 'Previous / next miss')], ['R', T('Neustart', 'Restart')], ['↑ ↓', T('Lautstärke', 'Volume')], ['M', T('Ton: alles / Musik / Hitsounds / stumm', 'Audio: all / music / hitsounds / mute')], ['Z', T('Zoom 2x / 3x / aus', 'Zoom 2x / 3x / off')], ['S', T('Statistik', 'Stats')], ['P', T('Screenshot', 'Screenshot')], ['N', T('Notiz', 'Note')], ['C', T('Kino-Modus', 'Cinema mode')], ['Ctrl+K', T('Schnell-Import', 'Quick import')], ['?', T('Diese Übersicht', 'This overview')]];
-  const sheet = el('div', { id: 'xSheet', hidden: '' }, '<div id="xBox" role="dialog" aria-modal="true"><div id="xHd"><b></b><button class="xb" type="button" data-c="1" aria-label="Close">✕</button></div><div id="xTabs"></div><div id="xBody"></div></div>');
-  const fab = el('button', { id: 'xFab', type: 'button', 'aria-label': 'Menu' }, '☰'); document.body.append(fab, sheet, drop, tbox);
-  let tab = 'tools'; const seenV = () => ls.get('osuSeenVer') === VER;
-  if (!seenV()) fab.append(el('span', { class: 'nw' }, 'NEU'));
-  const TABS = () => [['tools', T('Werkzeuge', 'Tools')], ['replays', T('Replays', 'Replays')], ['help', T('Hilfe', 'Help')], ['new', T('Neu', 'New')], ['about', T('Über', 'About')], ['diag', T('Diagnose', 'Diagnostics')]];
-  function openSheet(t2) { if (t2) tab = t2; sheet.hidden = false; if (tab === 'new') { ls.set('osuSeenVer', VER); const n = fab.querySelector('.nw'); n && n.remove(); } renderSheet(); }
-  function closeSheet() { sheet.hidden = true; }
-  fab.onclick = () => openSheet(); sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('[data-c]')) closeSheet(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+  const hub = el('section', { id: 'xHub' }, '<div id="xQ"><b></b><small></small><div class="qr"><input type="text" id="xLink" placeholder="https://osu.ppy.sh/scores/…" autocomplete="off" aria-label="Link"><button class="btn" type="button" data-a="imp"></button></div></div><div id="xGrid"></div>');
+  const sheet = hub; document.body.append(drop, tbox);
+  const SECS = ['replays', 'tools', 'help', 'new', 'diag', 'about'];
+  const seenV = () => ls.get('osuSeenVer') === VER;
+  const TABS = () => [['replays', '▶ ' + T('Meine Replays', 'My replays')], ['tools', '⚙ ' + T('App & Einstellungen', 'App & settings')], ['help', '❓ ' + T('Hilfe', 'Help')], ['new', '✨ ' + T('Neu & Roadmap', 'New & roadmap')], ['diag', '🛠 ' + T('Feedback & Diagnose', 'Feedback & diagnostics')], ['about', 'ℹ ' + T('Über', 'About')]];
+  function buildHub() {
+    const g = q('#xGrid'); if (g.children.length) return;
+    g.innerHTML = SECS.map(k => `<details class="xd" data-k="${k}"${k === 'replays' ? ' open' : ''}><summary></summary><div class="xdb" id="xS_${k}"></div></details>`).join('');
+    g.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.k === 'new' && d.open) { ls.set('osuSeenVer', VER); const n = d.querySelector('.nw'); n && n.remove(); } }, true);
+  }
+  function placeHub() {
+    const host = [['#app', 0], ['#guest', 0], ['#login', 0]].map(([s2]) => q(s2)).find(h => h && !h.hidden);
+    if (host && hub.parentNode !== host) { host.append(hub); renderSheet(); } else if (!host && hub.parentNode) hub.remove();
+  }
+  new MutationObserver(placeHub).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['hidden'] }); placeHub();
+  function openSheet(t2) { const d = q(`#xGrid details[data-k="${t2 || 'replays'}"]`); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }
+  function closeSheet() {}
   async function renderSheet() {
-    q('#xHd b').textContent = 'Osu Replay · v' + VER;
-    q('#xTabs').innerHTML = TABS().map(([k, n]) => `<button type="button" data-tab="${k}" class="${k === tab ? 'on' : ''}">${n}</button>`).join('');
-    const b = q('#xBody');
+    buildHub();
+    q('#xQ b').textContent = '🔗 ' + T('Schnell-Import', 'Quick import');
+    q('#xQ small').textContent = T('osu!-Score-Link, .osr-Link oder Beatmap-Set-Link/-ID einfügen.', 'Paste an osu! score link, .osr link or beatmap set link/ID.');
+    q('#xQ button').textContent = T('Laden', 'Load');
+    TABS().forEach(([k, n]) => { const sm = q(`#xGrid details[data-k="${k}"] summary`); if (sm) sm.innerHTML = n + (k === 'new' && !seenV() ? ' <span class="nw">NEU</span>' : ''); });
+    await Promise.all(SECS.map(renderTab));
+  }
+  async function renderTab(tab) {
+    const b = q('#xS_' + tab); if (!b) return;
     if (tab === 'tools') {
-      b.innerHTML = `<h3>${T('Schnell-Import', 'Quick import')}</h3><p>${T('osu!-Score-Link, .osr-Link oder Beatmap-Set-Link/-ID einfügen.', 'Paste an osu! score link, .osr link or beatmap set link/ID.')}</p><input type="text" id="xLink" placeholder="https://osu.ppy.sh/scores/…" autocomplete="off"><div class="row"><button class="btn" data-a="imp" style="padding:10px 20px">${T('Laden', 'Load')}</button></div>
-      <h3>${T('Sprache', 'Language')}</h3><div class="row"><button class="ghost" data-a="lang-de">Deutsch</button><button class="ghost" data-a="lang-en">English</button></div>
+      b.innerHTML = `<h3>${T('Sprache', 'Language')}</h3><div class="row"><button class="ghost" data-a="lang-de">Deutsch</button><button class="ghost" data-a="lang-en">English</button></div><p>${T('Die Übersetzung deckt Startseite und Player-Leiste ab, nicht jeden Satz im Tutorial oder in den Einstellungen.', 'The translation covers the home page and player bar, not every sentence in the tutorial or settings.')}</p>
       <h3>${T('Leistung', 'Performance')}</h3><div class="row"><button class="ghost" data-a="lite">${lite() ? T('Energiesparmodus: AN', 'Power saving: ON') : T('Energiesparmodus: aus', 'Power saving: off')}</button></div><p>${T('Schaltet Trail, Animationen und Unschärfe ab – für ältere Handys.', 'Disables trail, animations and blur – for older phones.')}</p>
       <h3>${T('Einstellungen sichern / teilen', 'Back up / share settings')}</h3><div class="row"><button class="ghost" data-a="exp">${T('Code kopieren', 'Copy code')}</button><button class="ghost" data-a="imps">${T('Code einfügen', 'Paste code')}</button><button class="ghost" data-a="reset">${T('Auf Standard zurücksetzen', 'Reset to defaults')}</button></div>
       <h3>${T('Speicher', 'Storage')}</h3><p id="xSt">…</p><div class="row"><button class="ghost" data-a="cc">${T('Offline-Cache leeren', 'Clear offline cache')}</button><button class="ghost" data-a="cr">${T('Gespeicherte Replays löschen', 'Delete saved replays')}</button></div>`;
@@ -341,7 +355,7 @@
       <h3>${T('Unterstützte Dateien', 'Supported files')}</h3><table>${FORMATS().map(([k, d]) => `<tr><td><kbd>${k}</kbd></td><td>${d}</td></tr>`).join('')}</table>
       <h3>${T('Spielmodi', 'Game modes')}</h3><table>${MODES.map((m, i) => `<tr><td>${m}</td><td><span class="tag ${i ? 'wip' : 'ok'}">${i ? T('in Entwicklung', 'in development') : T('unterstützt', 'supported')}</span></td></tr>`).join('')}</table>`;
     } else if (tab === 'new') {
-      b.innerHTML = CHANGES.map(([v, l]) => `<h3>v${v}</h3><ul>${l.map(x => `<li>${x}</li>`).join('')}</ul>`).join('') + `<h3>${T('Roadmap', 'Roadmap')}</h3>` + ROAD.map(([n, k]) => `<div class="xi"><div>${n}</div><span class="tag ${k}">${T('geplant', 'planned')}</span></div>`).join('') + `<h3>${T('Wunschliste', 'Wish list')}</h3><p>${T('Schreib im Tab „Diagnose“ dein Feature-Wunsch und kopiere ihn an den Entwickler.', 'Write your feature wish in the “Diagnostics” tab and send it to the developer.')}</p>`;
+      b.innerHTML = CHANGES.map(([v, l]) => `<h3>v${v}</h3><ul>${l.map(x => `<li>${x}</li>`).join('')}</ul>`).join('') + `<h3>${T('Roadmap', 'Roadmap')}</h3>` + ROAD.map(([n, k]) => `<div class="xi"><div>${n}</div><span class="tag ${k}">${T('geplant', 'planned')}</span></div>`).join('') + `<h3>${T('Eingebautes Spiel', 'Built-in game')}</h3><p>${T('Das Spiel ist ein fertig gebautes Paket. Jeder dieser Punkte braucht eigene Arbeit.', 'The game is a prebuilt package. Each of these needs its own work.')}</p>` + GAME().map(n => `<div class="xi"><div>${n}</div><span class="tag wip">${T('geplant', 'planned')}</span></div>`).join('') + `<h3>${T('Wunschliste', 'Wish list')}</h3><p>${T('Schreib im Tab „Diagnose“ dein Feature-Wunsch und kopiere ihn an den Entwickler.', 'Write your feature wish in the “Diagnostics” tab and send it to the developer.')}</p>`;
     } else if (tab === 'about') {
       b.innerHTML = `<h3>Osu Replay</h3><p>${T('Kostenloses Fan-Projekt von Nicominecith. Inoffiziell: gehört nicht zu osu! oder ppy. osu! ist eine Marke von ppy Pty Ltd.', 'Free fan project by Nicominecith. Unofficial: not affiliated with osu! or ppy. osu! is a trademark of ppy Pty Ltd.')}</p>
       <h3>${T('Technik', 'Tech')}</h3><p>HTML5 Canvas · Web Audio · LZMA · Netlify Functions · PWA · IndexedDB</p><h3>${T('Kontakt', 'Contact')}</h3><p><a href="https://github.com/Nicominecith" target="_blank" rel="noopener" style="color:var(--mint)">github.com/Nicominecith</a></p>
@@ -354,7 +368,6 @@
   const diagText = () => `Osu Replay v${VER}\nUA: ${navigator.userAgent}\nScreen: ${screen.width}x${screen.height} @${devicePixelRatio}\nOnline: ${navigator.onLine}\nLang: ${lang}\nReplay: ${M ? q('#title').textContent : '-'}\nFPS: ${fpsV.toFixed(0)}\n--- Log ---\n${LOG.slice(-30).join('\n')}`;
   sheet.addEventListener('click', e => sheetClick(e).catch(err => { console.warn('Menü', err); toast(T('Aktion fehlgeschlagen.', 'Action failed.'), 1); }));
   async function sheetClick(e) {
-    const t2 = e.target.closest('[data-tab]'); if (t2) { tab = t2.dataset.tab; return openSheet(); }
     const o = e.target.closest('[data-open]'); if (o) return openSaved(o.dataset.open);
     const fv = e.target.closest('[data-fav]'); if (fv) { const r = await db('readonly', s => s.get(fv.dataset.fav)); r.fav = !r.fav; await db('readwrite', s => s.put(r)); return renderSheet(); }
     const rm = e.target.closest('[data-rm]'); if (rm) { await db('readwrite', s => s.delete(rm.dataset.rm)); return renderSheet(); }
@@ -382,7 +395,7 @@
   const orig = new WeakMap(), ATTR = ['aria-label', 'title', 'placeholder'];
   function tr(node) {
     if (node.nodeType === 3) { const s = node.nodeValue, k = s.trim(); if (!k) return; if (!orig.has(node)) { if (!EN[k]) return; orig.set(node, s); } const o = orig.get(node), ok = o.trim(); node.nodeValue = lang === 'en' && EN[ok] ? o.replace(ok, EN[ok]) : o; return; }
-    if (node.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(node.tagName) || node.id === 'xSheet') return;
+    if (node.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(node.tagName) || node.id === 'xHub') return;
     for (const a of ATTR) { const v = node.getAttribute(a); if (v == null) continue; const key = '_o' + a; if (!node[key]) { if (!EN[v]) continue; node[key] = v; } node.setAttribute(a, lang === 'en' && EN[node[key]] ? EN[node[key]] : node[key]); }
     node.childNodes.forEach(tr);
   }
