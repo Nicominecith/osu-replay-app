@@ -211,3 +211,14 @@ body.x-cine #xStrip{display:none!important}
 body.xm-alt #xStrip,body.xm-alt [data-x=zm]{display:none!important}
 
 #xLast{display:none!important}
+
+.x-teams{display:grid;gap:10px}.x-groups{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.x-teams:empty,.x-groups:empty{display:none}
+.x-team{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,95,162,.35);background:linear-gradient(120deg,rgba(255,95,162,.18),rgba(125,227,208,.08));color:var(--tx,#f1ecff);text-decoration:none;font:inherit;transition:transform .15s,border-color .15s}
+a.x-team:hover,a.x-team:focus-visible{transform:translateY(-1px);border-color:var(--pink,#ff5fa2)}
+.x-team-logo{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+.x-team-ph{display:grid;place-items:center;font-size:1.5rem;font-weight:700}
+.x-team-txt{display:flex;flex-direction:column;min-width:0;flex:1}.x-team-txt b{font-size:1.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.x-team-txt small{color:var(--dim,#9b92c4);text-transform:uppercase;letter-spacing:.08em;font-size:.68rem}
+.x-team-tag{padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);font-weight:700;font-size:.8rem;letter-spacing:.05em}
+.x-team-go{color:var(--dim,#9b92c4);font-size:1.1rem}
+.x-group{--gc:#ff5fa2;display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 6px;border-radius:999px;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:color-mix(in srgb,var(--gc) 14%,transparent);font:inherit;font-size:.88rem}
+.x-group b{padding:2px 8px;border-radius:999px;background:var(--gc);color:#111;font-size:.72rem;letter-spacing:.04em}

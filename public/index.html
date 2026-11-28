@@ -374,7 +374,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   .gcard:hover,.gcard:focus-visible{border-radius:18px}
 }
 </style>
-<link rel="stylesheet" href="/extras.css?v=60">
+<link rel="stylesheet" href="/extras.css?v=64">
 </head>
 <body>
 <div id="offlineBar" hidden>Du bist offline – gespeicherte Inhalte werden genutzt.</div>
@@ -957,14 +957,19 @@ async function showPlayerProfile(id, knownUser = null) {
       : (g && typeof g === 'object' ? { ...g, _kind: 'group' } : null))
       .filter(g => g && (g.name || g.short_name || g.id));
     const teamAndGroups = [...team, ...groups];
-    const membershipMarkup = teamAndGroups.length ? teamAndGroups.map(g => {
-      const label = g.name || g.short_name || (g._kind === 'team' ? 'Team' : 'Gruppe');
-      const short = g.short_name && g.short_name !== label ? ` (${g.short_name})` : '';
-      const url = g.url || (g._kind === 'team' && g.id ? `https://osu.ppy.sh/teams/${Number(g.id)}` : '');
-      return url
-        ? `<a class="x-profile-tag" href="${esc(url)}" target="_blank" rel="noopener">${esc(label + short)} ↗</a>`
-        : `<span class="x-profile-tag">${esc(label + short)}</span>`;
-    }).join('')
+    const hexC = c => (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c) ? c : '');
+    const httpsU = x => (typeof x === 'string' && /^https:\/\//.test(x) ? x : '');
+    const teamCard = g => {
+      const label = g.name || g.short_name || 'Team', url = g.url || (g.id ? `https://osu.ppy.sh/teams/${Number(g.id)}` : ''), fl = httpsU(g.flag_url);
+      const inner = `${fl ? `<img class="x-team-logo" src="${esc(fl)}" alt="" loading="lazy" onerror="this.remove()">` : `<span class="x-team-logo x-team-ph">${esc((label[0] || 'T').toUpperCase())}</span>`}<span class="x-team-txt"><small>Team</small><b>${esc(label)}</b></span>${g.short_name ? `<span class="x-team-tag">${esc(g.short_name)}</span>` : ''}${url ? '<span class="x-team-go" aria-hidden="true">↗</span>' : ''}`;
+      return url ? `<a class="x-team" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="x-team">${inner}</div>`;
+    };
+    const groupChip = g => {
+      const label = g.name || g.short_name || 'Gruppe', c = hexC(g.colour);
+      return `<span class="x-group" ${c ? `style="--gc:${c}"` : ''} title="${esc(g.description || label)}">${g.short_name ? `<b>${esc(g.short_name)}</b>` : ''}<span>${esc(label)}</span></span>`;
+    };
+    const membershipMarkup = teamAndGroups.length
+      ? (team.length ? `<div class="x-teams">${team.map(teamCard).join('')}</div>` : '') + (groups.length ? `<div class="x-groups">${groups.map(groupChip).join('')}</div>` : '')
       : '<p>osu! meldet für dieses Profil aktuell keine Team- oder Gruppenzugehörigkeit.</p>';
     body.innerHTML = `<div class="x-profile-hero" style="--profile-bg:url('${esc(cssUrl(u.cover && (u.cover.url || u.cover.custom_url) || ''))}')"><img class="x-profile-avatar" src="${esc(u.avatar_url || '')}" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%23352b50%22/%3E%3Ccircle cx=%2250%22 cy=%2236%22 r=%2218%22 fill=%22%23b9afd0%22/%3E%3Cpath d=%22M15 94c2-24 16-36 35-36s33 12 35 36%22 fill=%22%23b9afd0%22/%3E%3C/svg%3E'"><div><h2>${esc(u.username || 'Unbekannt')}</h2><p>${esc(u.country && u.country.name || 'Land unbekannt')} · ${esc(u.playmode || 'osu!standard')}</p><a href="https://osu.ppy.sh/users/${Number(u.id)}" target="_blank" rel="noopener">Auf osu! öffnen ↗</a></div></div>
     <div class="x-profile-stats">${stat('Globaler Rang',rank)}${stat('Landesrang',countryRank)}${stat('PP',st.pp != null ? Math.round(st.pp).toLocaleString('de-DE') : '–')}${stat('Accuracy',st.hit_accuracy != null ? Number(st.hit_accuracy).toFixed(2)+'%' : '–')}${stat('Level',st.level && st.level.current != null ? `${st.level.current}` : '–')}${stat('Spielzeit',st.play_time != null ? `${Math.round(st.play_time/3600)} h` : '–')}</div>
