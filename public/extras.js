@@ -2,7 +2,7 @@
    (t, playing, M, F, rate, end, audio, S, me, curScore, osrBuf, $, esc, openReplay, openLocalReplay …). */
 (() => {
   'use strict';
-  const VER = '0.47', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
+  const VER = '0.48', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
   const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} } };
   let lang = ls.get('osuLang') || (/^de/i.test(navigator.language) ? 'de' : 'en');
   const T = (d, e) => lang === 'en' ? e : d;
@@ -306,7 +306,7 @@
   function applyLite() { document.body.classList.toggle('x-lite', lite()); if (lite() && typeof S !== 'undefined') { S.trail = false; } }
 
   /* ---------- Hub: Menü, Hilfe, Über, Neu, Diagnose (62–66, 70, 71, 90, 94, 97) ---------- */
-  const CHANGES = [['0.47', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und Einstellungen sind direkt in der Startseite und der Spielerliste','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
+  const CHANGES = [['0.48', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und App-Optionen sind jetzt in den Einstellungen','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
   const ROAD = [['osu!taiko / catch / mania', 'wip'], ['A/B-Replay-Vergleich', 'wip'], ['PP-Verlauf (Live)', 'wip'], ['Embed-Widget', 'wip'], ['Over-/Underaim-Analyse', 'wip']];
   const GAME = () => [T('Touch-Optimierung','Touch optimisation'), T('Keybind-Editor','Keybind editor'), T('Offset-Kalibrierung','Offset calibration'), T('Practice-Modus','Practice mode'), T('Eigene Plays als .osr speichern','Save own plays as .osr'), T('HUD-Editor','HUD editor'), T('Fertige Community-Skins','Ready-made community skins')];
   const FORMATS = () => [['.osr', T('Replay – direkt abspielen', 'Replay – play directly')], ['.osz', T('Beatmap-Paket – in nicominecith osu! importieren', 'Beatmap pack – import into nicominecith osu!')], ['.osk', T('Skin – Cursor, Hitcircles, Zahlen, Sounds', 'Skin – cursor, hitcircles, numbers, sounds')], [T('Audio/Bilder', 'Audio/images'), T('kommen aus der Beatmap (mp3, ogg, wav, jpg, png)', 'come from the beatmap (mp3, ogg, wav, jpg, png)')]];
@@ -322,10 +322,11 @@
     g.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.k === 'new' && d.open) { ls.set('osuSeenVer', VER); const n = d.querySelector('.nw'); n && n.remove(); } }, true);
   }
   function placeHub() {
-    const host = [['#app', 0], ['#guest', 0], ['#login', 0]].map(([s2]) => q(s2)).find(h => h && !h.hidden);
-    if (host && hub.parentNode !== host) { host.append(hub); renderSheet(); } else if (!host && hub.parentNode) hub.remove();
+    const st = q('#settings'), sb = q('#setBody');
+    if (!st || !sb || st.hidden) return;
+    if (hub.parentNode !== sb) { sb.append(hub); renderSheet(); }
   }
-  new MutationObserver(placeHub).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['hidden'] }); placeHub();
+  for (const id of ['#settings', '#setBody']) new MutationObserver(placeHub).observe(q(id), { attributes: true, attributeFilter: ['hidden'], childList: id === '#setBody' });
   function openSheet(t2) { const d = q(`#xGrid details[data-k="${t2 || 'replays'}"]`); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }
   function closeSheet() {}
   async function renderSheet() {

@@ -78,3 +78,5 @@ body.x-lite *{animation:none!important;transition:none!important;backdrop-filter
 #xHub .xdb ul{padding-left:18px;margin:6px 0}
 #xHub .xdb button.ghost,#xHub .xdb button.btn{min-height:44px}
 @media(max-width:480px){#xQ .qr{flex-direction:column}#xQ .qr .btn{height:46px}}
+
+#setBody #xHub{max-width:none;margin:20px 0 8px}#setBody #xGrid{grid-template-columns:1fr!important}
