@@ -148,3 +148,9 @@ body.x-cine #xStrip{display:none!important}
 .xsec{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px 16px}
 .xsec .xst{margin:12px 0 4px}
 .xsec .xback{min-height:40px}
+
+#xLang{position:fixed;inset:0;z-index:100000;background:radial-gradient(circle at 50% 30%,#2a1448,#0d0b1a 70%);display:grid;place-items:center;padding:20px;padding-top:calc(20px + env(safe-area-inset-top));padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+#xLang .xl-box{width:min(420px,100%);display:grid;gap:12px;text-align:center}
+#xLang .xl-ic{font-size:56px}#xLang h2{margin:0;font-size:1.6rem}#xLang p{margin:0 0 10px;color:var(--dim)}
+#xLang .btn{min-height:60px;font-size:1.15rem;width:100%}
+#xLang .btn.alt{background:transparent;color:var(--tx);border:2px solid var(--pink)}
