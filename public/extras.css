@@ -80,3 +80,36 @@ body.x-lite *{animation:none!important;transition:none!important;backdrop-filter
 @media(max-width:480px){#xQ .qr{flex-direction:column}#xQ .qr .btn{height:46px}}
 
 #setBody #xHub{max-width:none;margin:20px 0 8px}#setBody #xGrid{grid-template-columns:1fr!important}
+
+/* ---- Player responsive (v0.49) ---- */
+#xOv{container-type:size}
+@container (max-width:560px){
+  #xKeys{right:6px;bottom:46px}
+  #xKeys i{width:30px;height:30px;font-size:10px;border-radius:7px}
+  #xKeys b{min-width:46px;font-size:10px}
+  #xUr{width:min(260px,70%);bottom:3px;height:22px}
+  #xUrT{bottom:26px;font-size:11px}
+  #xFps{font-size:10px;padding:2px 6px}
+}
+@media (max-width:639px),(orientation:portrait){
+  #viewer{padding-left:10px;padding-right:10px}
+  #title{font-size:.95rem;line-height:1.25;padding:8px 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #vbar{flex-wrap:nowrap;gap:6px;padding:4px 0 6px}
+  #vbar .vb{height:40px;padding:0 10px;font-size:.85rem;gap:6px;white-space:nowrap}
+  canvas{max-width:min(100%,calc((100dvh - 310px)*4/3))}
+  #xTl,#xBar,#xProg,#xHelp{max-width:1100px;width:calc(100% - 24px);margin-left:auto;margin-right:auto;box-sizing:border-box}
+}
+@media (max-width:639px){#vbar .vb{flex:1 1 0;min-width:0;justify-content:center}#vbar .vb span{overflow:hidden;text-overflow:ellipsis}}
+@media (min-width:640px) and (orientation:landscape){
+  #viewer{grid-template-columns:clamp(210px,22vw,300px) minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr) auto auto auto;align-content:stretch}
+  #title{grid-column:1;grid-row:1}#vbar{grid-column:1;grid-row:2}#msg{grid-column:1;grid-row:3;align-self:start}
+  #xProg{grid-column:1;grid-row:4;margin:6px 0}#xHelp{grid-column:1;grid-row:5;margin:6px 0;align-self:start;overflow:auto}
+  #stage{grid-column:2;grid-row:1/6}
+  #ctl{grid-column:2;grid-row:6;padding:8px 0}#xTl{grid-column:2;grid-row:7;margin:4px 0 0}#xBar{grid-column:2;grid-row:8;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+  canvas{max-width:min(100%,calc((100dvh - 215px)*4/3))}
+}
+@media (min-width:640px) and (orientation:landscape) and (max-height:560px){
+  canvas{max-width:min(100%,calc((100dvh - 150px)*4/3))}
+  #viewer{grid-template-columns:200px minmax(0,1fr)}
+}
+@media (min-width:1400px) and (orientation:landscape){#viewer{column-gap:28px;padding-left:28px;padding-right:28px}}
