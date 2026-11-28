@@ -16,6 +16,7 @@
 #rankView .rt button[aria-pressed=true]{background:var(--pink);border-color:var(--pink);color:#fff}
 #rankView .rr{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border:1px solid var(--line);background:var(--panel);border-radius:12px;margin-bottom:6px}
 #rankView .rr:nth-child(-n+3) .rn{color:var(--mint);font-weight:700}
+#rankView .rr[data-id]{cursor:pointer}#rankView .rr[data-id]:hover,#rankView .rr[data-id]:focus-visible{border-color:var(--pink)}
 #rankView .rn{text-align:center;color:var(--dim)}
 #rankView .ru{display:flex;align-items:center;gap:10px;min-width:0}
 #rankView .ru img{width:34px;height:34px;border-radius:8px;object-fit:cover;background:var(--line);flex:none}
@@ -41,7 +42,7 @@
     const pp = type === 'performance';
     $('#rkList').innerHTML = rows.map((x, i) => {
       const u = x.user || {}, main = pp ? nf(x.pp) + ' pp' : nf(x.ranked_score), sub = pp ? nf(x.ranked_score) + ' ' + T('Punkte', 'score') : nf(x.pp) + ' pp';
-      return `<div class="rr"><div class="rn">#${i + 1}</div><div class="ru">${u.avatar_url ? `<img loading="lazy" decoding="async" alt="" src="${esc(u.avatar_url)}">` : '<img alt="">'}<div style="min-width:0"><b>${esc(u.username)}</b><small>${esc(u.country_code || '')} · ${(+x.hit_accuracy || 0).toFixed(2)}% · ${nf(x.play_count)} ${T('Plays', 'plays')}</small></div></div><div class="rv"><b>${main}</b><small>${sub}</small></div></div>`;
+      return `<div class="rr" data-id="${+u.id || 0}" role="button" tabindex="0"><div class="rn">#${i + 1}</div><div class="ru">${u.avatar_url ? `<img loading="lazy" decoding="async" alt="" src="${esc(u.avatar_url)}">` : '<img alt="">'}<div style="min-width:0"><b>${esc(u.username)}</b><small>${esc(u.country_code || '')} · ${(+x.hit_accuracy || 0).toFixed(2)}% · ${nf(x.play_count)} ${T('Plays', 'plays')}</small></div></div><div class="rv"><b>${main}</b><small>${sub}</small></div></div>`;
     }).join('') || `<div class="rm">${T('Keine Daten.', 'No data.')}</div>`;
   }
   async function load(force) {
@@ -63,7 +64,10 @@
     $('#rkModes').innerHTML = MODES.map(([, n], i) => `<button type="button" data-m="${i}" aria-pressed="${i === mode}">${n}</button>`).join('');
     $('#rkType').innerHTML = [['performance', 'pp'], ['score', T('Punkte', 'Score')]].map(([k, n]) => `<button type="button" data-t="${k}" aria-pressed="${k === type}">${n}</button>`).join('');
   }
+  const prof = e => { const r = e.target.closest('.rr[data-id]'); if (!r || !+r.dataset.id || typeof showPlayerProfile !== 'function') return false; showPlayerProfile(+r.dataset.id); return true; };
+  v.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && prof(e)) e.preventDefault(); });
   v.addEventListener('click', e => {
+    if (prof(e)) return;
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'rkBack') return close();
     if (b.id === 'rkReload') return load(true);
