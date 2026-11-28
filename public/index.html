@@ -374,7 +374,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   .gcard:hover,.gcard:focus-visible{border-radius:18px}
 }
 </style>
-<link rel="stylesheet" href="/extras.css?v=53">
+<link rel="stylesheet" href="/extras.css?v=59">
 </head>
 <body>
 <div id="offlineBar" hidden>Du bist offline – gespeicherte Inhalte werden genutzt.</div>
@@ -799,7 +799,7 @@ async function init() {
 async function load(reset) {
   if (!target) { scores = []; more = false; $('#list').innerHTML = '<div class="msg">Suche oben einen Spieler, um seine Scores zu sehen.</div>'; $('#more').hidden = true; return; }
   if (reset) { scores = []; more = true; $('#list').innerHTML = loadingHtml('Lade Scores…'); }
-  let r; try { r = await api(`/users/${target.id}/scores/${tab}`, { mode: 'osu', limit: LIM, offset: scores.length, include_fails: 1 }); } catch { r = { ok: false, status: 'offline' }; }
+  let r; try { r = await api(`/users/${target.id}/scores/${tab}`, { mode: window.xmApi ? xmApi() : 'osu', limit: LIM, offset: scores.length, include_fails: 1 }); } catch { r = { ok: false, status: 'offline' }; }
   if (!r.ok) return ($('#list').innerHTML = `<div class="msg">${r.status === 'offline' ? 'Offline – diese Scores sind noch nicht gespeichert.' : `Scores konnten nicht geladen werden (${r.status}).`}</div>`);
   const a = await r.json(); scores = scores.concat(a); more = a.length === LIM; paint();
 }
@@ -1181,17 +1181,17 @@ async function openReplay(s) {
     if (s._osrBuf) osrBuf = s._osrBuf; // lokale .osr-Datei (ohne Anmeldung)
     else {
       let r = await api(`/scores/${s.id}/download`);
-      if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
+      if (!r.ok && s.legacy_score_id) r = await api(`/scores/${s.mode || s.ruleset || 'osu'}/${s.legacy_score_id}/download`);
       if (!r.ok) return msg(r.status === 401 ? 'Für diesen Replay-Download ist die osu!-Anmeldung nötig.' : `Replay-Download fehlgeschlagen (${r.status}).`);
       osrBuf = await r.arrayBuffer();
     }
     const osr = await parseOsr(osrBuf.slice(0));
-    if (osr.mode !== 0) return msg('Aktuell wird nur osu!standard unterstützt.');
+    if (osr.mode > 3 || !window.xmBuild) return msg('Aktuell wird nur osu!standard unterstützt.');
     msg('Lade Beatmap…');
     const b = await fetch('/api/beatmap?id=' + s.beatmap.id);
     if (!b.ok) return msg('Beatmap konnte nicht geladen werden.');
     const mi = modInfo(s, osr.mods); if (s._osrBuf && !(s.mods || []).length && mi.bits) $('#title').textContent += ' +' + bitsToMods(mi.bits).join('');
-    M = parseMap(await b.text(), mi.bits); M.speed = mi.speed; M.tc = mi.tc; F = osr.F; prep(M, F, mi.bits, osr.score);
+    { const mt = await b.text(); F = osr.F; if (osr.mode) M = xmBuild(osr.mode, mt, F, mi); else { M = parseMap(mt, mi.bits); M.speed = mi.speed; M.tc = mi.tc; prep(M, F, mi.bits, osr.score); } M.mode = osr.mode; }
     msg('Lade Ton…');
     const pk = M.audio ? await loadAudio(s.beatmapset.id, M.audio, M.bg) : null;
     audio = pk && pk.audio; bgImg = pk && pk.bg;
@@ -1248,7 +1248,7 @@ function syncAudio() {
 function tick(n) {
   if (!$('#viewer').hidden && M) {
     if (playing) { t += Math.min(50, Math.max(0, n - last)) * +$('#spd').value * rate; if (t >= end) { t = end; playing = false; } }
-    try { draw(t); syncAudio(); schedSnd(); } catch (e) { console.error(e); }
+    try { draw(t); syncAudio(); if (!M.mode) schedSnd(); } catch (e) { console.error(e); }
     $('#seek').value = t; $('#pp').textContent = playing ? '❚❚' : '▶';
     const sec = Math.max(0, t / 1000 / rate) | 0; $('#time').textContent = `${sec / 60 | 0}:${String(sec % 60).padStart(2, '0')}`;
   }
@@ -1445,6 +1445,7 @@ function revArrow(o, atEnd, R, al, t) {
   g.restore();
 }
 function draw(t) {
+  if (M.mode) return xmDraw(t);
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 960, 720); g.globalAlpha = 1;
   if (S.bg && bgImg && bgImg.naturalWidth) {
     const k = Math.max(960 / bgImg.naturalWidth, 720 / bgImg.naturalHeight), w = bgImg.naturalWidth * k, hh = bgImg.naturalHeight * k;
@@ -1600,7 +1601,7 @@ async function openLocalReplay(file) {
     if (!/\.osr$/i.test(file.name)) return gm('Bitte eine .osr-Replay-Datei wählen.');
     if (file.size > MAX_OSR) return gm('Die Replay-Datei ist zu groß (max. 8 MB).');
     gm('Lese Replay…'); const buf = await file.arrayBuffer(), osr = await parseOsr(buf.slice(0));
-    if (osr.mode !== 0) return gm('Aktuell wird nur osu!standard unterstützt.');
+    if (osr.mode > 3 || !window.xmBuild) return gm('Aktuell wird nur osu!standard unterstützt.');
     gm('Suche Beatmap…'); const info = await lookupMd5(osr.md5);
     if (!info) return gm(navigator.onLine ? 'Die Beatmap zu diesem Replay wurde nicht gefunden.' : 'Offline: Die Beatmap zu diesem Replay ist noch nicht gespeichert.');
     gm('');
@@ -1653,6 +1654,7 @@ try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0);
 
 init();
 </script>
-<script src="/extras.js?v=57"></script>
+<script src="/extras.js?v=59"></script>
+<script src="/modes.js?v=1"></script>
 </body>
 </html>

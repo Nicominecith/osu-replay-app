@@ -202,3 +202,10 @@ body.x-cine #xStrip{display:none!important}
 #xProfile[hidden]{display:none!important}
 #who[role=button]{pointer-events:auto;touch-action:manipulation}
 .x-replay-owner{display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.07);color:var(--text);cursor:pointer}
+
+/* ---- v0.59: Modus-Umschalter ---- */
+#xMode{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+#xMode button{flex:1 0 auto;min-height:42px;padding:0 14px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--tx);font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+#xMode button small{font-size:inherit;font-weight:700}
+#xMode button[aria-pressed=true]{background:var(--pink);color:#1a0b14;border-color:var(--pink)}
+body.xm-alt #xStrip,body.xm-alt [data-x=zm]{display:none!important}

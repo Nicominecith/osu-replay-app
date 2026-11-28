@@ -8,9 +8,24 @@
   "orientation": "any",
   "background_color": "#12091a",
   "theme_color": "#12091a",
-  "lang": "de",
+  "lang": "en",
   "icons": [
-    { "src": "favicon.png", "sizes": "any", "type": "image/png", "purpose": "any" },
-    { "src": "favicon.png", "sizes": "any", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/",
+  "categories": [
+    "games",
+    "entertainment"
   ]
 }

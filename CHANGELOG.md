@@ -1,3 +1,12 @@
+## v0.59
+- osu!taiko, osu!catch und osu!mania: Replays ansehen (Auto-Erkennung aus der .osr), eigene Darstellung je Modus, Statistik/Graph/Marker aus den Eingaben geschätzt.
+- Modus-Umschalter (osu! / taiko / catch / mania) für die Score-Listen; Scroll-Geschwindigkeit für taiko/mania.
+- Neue Datei public/modes.js, Tests in tests/modes.test.mjs.
+
+## v0.58
+- Versionen (App, Service-Worker-Cache, package.json) vereinheitlicht; Manifest: id, Sprache, Kategorien.
+- docs/ROADMAP.md: Status der 100-Punkte-Liste.
+
 ## v0.57
 - Fixed profile team/group display: reads the osu! `team` object separately from `groups`.
 - Supports group entries returned as either strings or objects, and links teams/groups when a URL or team ID is available.
