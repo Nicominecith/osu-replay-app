@@ -921,15 +921,33 @@ async function showPlayerProfile(id, knownUser = null) {
       if (!u) throw fetchError;
     }
     if (!u) throw new Error('Profil nicht verfügbar');
-    const st = u.statistics || {}, groups = Array.isArray(u.groups) ? u.groups : [];
+    const st = u.statistics || {};
+    const rawGroups = Array.isArray(u.groups) ? u.groups : [];
     const badges = Array.isArray(u.badges) ? u.badges : [];
     const stat = (label, value) => `<div class="x-profile-stat"><b>${esc(value == null || value === '' ? '–' : value)}</b><small>${label}</small></div>`;
     const rank = st.global_rank ? `#${Number(st.global_rank).toLocaleString('de-DE')}` : '–';
     const countryRank = st.country_rank ? `#${Number(st.country_rank).toLocaleString('de-DE')}` : '–';
-    const team = groups.filter(g => g.is_probationary || g.has_listing || g.name || g.short_name);
+    // osu! liefert die Team-Mitgliedschaft als u.team; Gruppen stehen separat in u.groups.
+    const rawTeam = u.team && typeof u.team === 'object' ? u.team : null;
+    const team = rawTeam && (rawTeam.name || rawTeam.short_name || rawTeam.id)
+      ? [{ ...rawTeam, _kind: 'team' }] : [];
+    const groups = rawGroups.map(g => typeof g === 'string'
+      ? { name: g, _kind: 'group' }
+      : (g && typeof g === 'object' ? { ...g, _kind: 'group' } : null))
+      .filter(g => g && (g.name || g.short_name || g.id));
+    const teamAndGroups = [...team, ...groups];
+    const membershipMarkup = teamAndGroups.length ? teamAndGroups.map(g => {
+      const label = g.name || g.short_name || (g._kind === 'team' ? 'Team' : 'Gruppe');
+      const short = g.short_name && g.short_name !== label ? ` (${g.short_name})` : '';
+      const url = g.url || (g._kind === 'team' && g.id ? `https://osu.ppy.sh/teams/${Number(g.id)}` : '');
+      return url
+        ? `<a class="x-profile-tag" href="${esc(url)}" target="_blank" rel="noopener">${esc(label + short)} ↗</a>`
+        : `<span class="x-profile-tag">${esc(label + short)}</span>`;
+    }).join('')
+      : '<p>osu! meldet für dieses Profil aktuell keine Team- oder Gruppenzugehörigkeit.</p>';
     body.innerHTML = `<div class="x-profile-hero" style="--profile-bg:url('${esc(cssUrl(u.cover && (u.cover.url || u.cover.custom_url) || ''))}')"><img class="x-profile-avatar" src="${esc(u.avatar_url || '')}" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%23352b50%22/%3E%3Ccircle cx=%2250%22 cy=%2236%22 r=%2218%22 fill=%22%23b9afd0%22/%3E%3Cpath d=%22M15 94c2-24 16-36 35-36s33 12 35 36%22 fill=%22%23b9afd0%22/%3E%3C/svg%3E'"><div><h2>${esc(u.username || 'Unbekannt')}</h2><p>${esc(u.country && u.country.name || 'Land unbekannt')} · ${esc(u.playmode || 'osu!standard')}</p><a href="https://osu.ppy.sh/users/${Number(u.id)}" target="_blank" rel="noopener">Auf osu! öffnen ↗</a></div></div>
     <div class="x-profile-stats">${stat('Globaler Rang',rank)}${stat('Landesrang',countryRank)}${stat('PP',st.pp != null ? Math.round(st.pp).toLocaleString('de-DE') : '–')}${stat('Accuracy',st.hit_accuracy != null ? Number(st.hit_accuracy).toFixed(2)+'%' : '–')}${stat('Level',st.level && st.level.current != null ? `${st.level.current}` : '–')}${stat('Spielzeit',st.play_time != null ? `${Math.round(st.play_time/3600)} h` : '–')}</div>
-    <div class="x-profile-section"><h3>Team & Gruppen</h3>${team.length ? team.map(g => `<span class="x-profile-tag">${esc(g.name || g.short_name || 'Gruppe')}${g.short_name ? ` (${esc(g.short_name)})` : ''}</span>`).join('') : '<p>Keine Team- oder Gruppenzugehörigkeit von osu! gemeldet.</p>'}</div>
+    <div class="x-profile-section"><h3>Team & Gruppen</h3>${membershipMarkup}</div>
     <div class="x-profile-section"><h3>Badges</h3>${badges.length ? `<div class="x-badges">${badges.map(b => `<a href="${esc(b.url || '#')}" target="_blank" rel="noopener" title="${esc(b.description || b.name || 'Badge')}"><img src="${esc(b.image_url || '')}" alt="${esc(b.name || 'Badge')}"></a>`).join('')}</div>` : '<p>Keine Badges vorhanden.</p>'}</div>
     <div class="x-profile-section"><h3>Über mich</h3><p>${esc((u.profile && u.profile.first_name) || 'Keine weiteren öffentlichen Profilangaben.')}</p><small>Mitglied seit ${u.join_date ? new Date(u.join_date).toLocaleDateString('de-DE') : '–'} · ${Number(u.follower_count || 0).toLocaleString('de-DE')} Follower</small></div>`;
   } catch (err) { body.innerHTML = `<div class="msg">${esc(err.message || 'Spielerprofil konnte nicht geladen werden.')}</div>`; }
@@ -1635,6 +1653,6 @@ try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0);
 
 init();
 </script>
-<script src="/extras.js?v=56"></script>
+<script src="/extras.js?v=57"></script>
 </body>
 </html>

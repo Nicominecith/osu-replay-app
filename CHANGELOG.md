@@ -1,3 +1,8 @@
+## v0.57
+- Fixed profile team/group display: reads the osu! `team` object separately from `groups`.
+- Supports group entries returned as either strings or objects, and links teams/groups when a URL or team ID is available.
+- Shows an explicit API-data message only when neither team nor group membership is present in the returned profile.
+
 ## v0.56
 - Fixed replay opening: removed calls to an undefined `el()` helper that stopped map details and replay loading.
 - Fixed profile panel creation using native DOM APIs; own profile and replay-owner profile buttons now open the profile view.
