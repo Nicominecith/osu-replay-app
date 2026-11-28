@@ -374,7 +374,7 @@ header{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-
   .gcard:hover,.gcard:focus-visible{border-radius:18px}
 }
 </style>
-<link rel="stylesheet" href="/extras.css?v=59">
+<link rel="stylesheet" href="/extras.css?v=60">
 </head>
 <body>
 <div id="offlineBar" hidden>Du bist offline – gespeicherte Inhalte werden genutzt.</div>
@@ -617,7 +617,9 @@ async function lsLoad(n) {
       else if (/^HitCircleOverlap$/i.test(m[1])) sk.ov = +m[2];
     }
     sk.col = sk.col.filter(Boolean);
+    sk.mania = []; { let cur = null; for (const ln of ini.split(/\r?\n/)) { const sm = /^\s*\[(.+?)\]/.exec(ln); if (sm) { cur = sm[1].toLowerCase() === 'mania' ? {} : null; if (cur) sk.mania.push(cur); continue; } const kv = cur && /^\s*([A-Za-z0-9]+)\s*:\s*(.*?)\s*$/.exec(ln); if (kv) cur[kv[1].toLowerCase()] = kv[2]; } }
     const img = async b => { for (const [fn, hd] of [[b + '@2x.png', 2], [b + '.png', 1], [b + '@2x.jpg', 2], [b + '.jpg', 1]]) if (files[fn]) { try { const im = new Image(); im.src = URL.createObjectURL(await files[fn].async('blob')); await im.decode().catch(() => {}); if (im.naturalWidth) { im.hd = hd; return im; } } catch {} } return null; };
+    sk.load = img;
     const want = ['hitcircle', 'hitcircleoverlay', 'approachcircle', 'cursor', 'cursortrail', 'sliderb0', 'sliderfollowcircle', 'reversearrow', 'sliderendcircle', 'spinner-background', 'spinner-bottom', 'spinner-top', 'spinner-middle2', 'spinner-middle', 'spinner-circle', 'spinner-approachcircle', 'spinner-spin', 'hit300', 'hit100', 'hit50', 'hit0'];
     for (let i = 0; i < 10; i++) want.push(sk.pre + '-' + i);
     await Promise.all(want.map(async w => { sk.img[w] = await img(w); }));
@@ -1654,7 +1656,7 @@ try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0);
 
 init();
 </script>
-<script src="/extras.js?v=59"></script>
-<script src="/modes.js?v=1"></script>
+<script src="/extras.js?v=60"></script>
+<script src="/modes.js?v=2"></script>
 </body>
 </html>

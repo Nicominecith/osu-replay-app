@@ -209,3 +209,5 @@ body.x-cine #xStrip{display:none!important}
 #xMode button small{font-size:inherit;font-weight:700}
 #xMode button[aria-pressed=true]{background:var(--pink);color:#1a0b14;border-color:var(--pink)}
 body.xm-alt #xStrip,body.xm-alt [data-x=zm]{display:none!important}
+
+#xLast{display:none!important}

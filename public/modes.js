@@ -53,8 +53,9 @@
   /* ---------- Catch ---------- */
   function catchObjs(rw, base, H) {
     const out = [], d = base.d, TR = d.SliderTickRate || 1, SM = d.SliderMultiplier || 1.4;
+    let ci = -1; const n0 = out.length;
     rw.forEach((r, i) => {
-      const b = base.ho[i]; if (r.ty & 8) return;
+      const b = base.ho[i]; if (r.ty & 8) return; if ((r.ty & 4) || ci < 0) ci++; const from = out.length;
       if ((r.ty & 2) && b && b.pts) {
         H.buildPath(b); out.push({ t: b.t, end: b.t, k: 'fruit', x: r.x, type: 0 });
         if (!b.path || !b.d) return;
@@ -64,6 +65,7 @@
           out.push({ t: b.t + (s + 1) * span, end: 0, k: 'fruit', x: H.posAt(b, s % 2 ? 0 : 1)[0], type: 0 });
         }
       } else out.push({ t: r.t, end: r.t, k: 'fruit', x: r.x, type: 0 });
+      for (let j = from; j < out.length; j++) { out[j].ci = ci; out[j].fi = i; }
     });
     for (const o of out) { o.end = o.t; o.x = clamp(o.x, 0, 512); }
     return out.sort((a, b) => a.t - b.t);
@@ -121,50 +123,89 @@
     g.font = '800 40px system-ui'; g.fillText(c + 'x', 20, 690);
     const j = lastJ(m, t); if (j && j.txt && t - j.jt < 450 && t >= j.jt) { g.globalAlpha = 1 - (t - j.jt) / 450; g.textAlign = 'center'; g.font = '800 30px system-ui'; g.fillStyle = JC[j.res]; g.fillText(j.txt, m.mode === 3 ? 480 : m.mode === 1 ? 200 : 480, m.mode === 1 ? 290 : 400); g.globalAlpha = 1; }
   }
+  /* ---------- Skin-Unterstützung ---------- */
+  const si_ = (m, n) => (m.sk && m.sk.img[n]) || null;
+  const dimg = (im, x, y, w, h, al = 1) => { g.globalAlpha = al; g.drawImage(im, x - w / 2, y - h / 2, w, h); g.globalAlpha = 1; };
+  const base_ = v => String(v || '').replace(/\\/g, '/').split('/').pop().replace(/\.(png|jpg)$/i, '').toLowerCase();
+  function maniaIni(K) { return (SK && SK.mania && SK.mania.find(o => +o.keys === K)) || {}; }
+  function maniaNames(K) {
+    const ini = maniaIni(K), n = [];
+    for (let c = 0; c < K; c++) { const d = (K % 2 && c === (K - 1) / 2) ? 'S' : Math.min(c, K - 1 - c) % 2 ? '2' : '1', nb = base_(ini['noteimage' + c]) || 'mania-note' + d; n.push(nb, base_(ini['noteimage' + c + 'h']) || nb + 'h', base_(ini['noteimage' + c + 'l']) || nb + 'l', base_(ini['noteimage' + c + 't']) || nb + 't', base_(ini['keyimage' + c]) || 'mania-key' + d.toLowerCase(), base_(ini['keyimage' + c + 'd']) || 'mania-key' + d.toLowerCase() + 'd'); }
+    return [...new Set([...n, 'mania-stage-hint'])];
+  }
+  const SKN = { 1: ['taikohitcircle', 'taikohitcircleoverlay', 'taikobigcircle', 'taikobigcircleoverlay', 'taiko-roll-middle', 'taiko-roll-end', 'taiko-bar-left', 'taiko-bar-right', 'taiko-drum-inner', 'taiko-drum-outer'], 2: ['fruit-apple', 'fruit-apple-overlay', 'fruit-grapes', 'fruit-grapes-overlay', 'fruit-orange', 'fruit-orange-overlay', 'fruit-pear', 'fruit-pear-overlay', 'fruit-drop', 'fruit-drop-overlay', 'fruit-catcher-idle', 'fruit-catcher-idle-0'] };
+  async function ensureSkin(m) {
+    if (m.skFor === SK) return; m.skFor = SK; m.sk = null; const my = SK; if (!my || !my.load) return;
+    const names = m.mode === 3 ? maniaNames(m.keys) : SKN[m.mode], img = {};
+    await Promise.all(names.map(async n => { img[n] = await my.load(n); }));
+    if (SK === my && M === m) m.sk = { img, ini: m.mode === 3 ? maniaIni(m.keys) : {} };
+  }
+  const TCOL = { don: '#eb452c', kat: '#438eac' };
+
   function taiko(m, t) {
-    const y = 380, hx = 200, sp = m.sm * .22 * spd() / .7, f = fAt(F, t);
-    g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, y - 70, 960, 140); g.fillStyle = 'rgba(20,16,40,.9)'; g.fillRect(0, y - 70, 130, 140);
+    const y = 380, hx = 200, sp = m.sm * .22 * spd() / .7, f = fAt(F, t), bl = si_(m, 'taiko-bar-left'), br = si_(m, 'taiko-bar-right');
+    if (br) g.drawImage(br, 130, y - 70, 830, 140); else { g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, y - 70, 960, 140); }
+    if (bl) g.drawImage(bl, 0, y - 70, 130, 140); else { g.fillStyle = 'rgba(20,16,40,.9)'; g.fillRect(0, y - 70, 130, 140); }
     g.strokeStyle = '#ffffffaa'; g.lineWidth = 4; g.beginPath(); g.arc(hx, y, 40, 0, 7); g.stroke();
     for (const o of m.ho) {
       const x = hx + (o.t - t) * sp, xe = hx + (o.end - t) * sp; if (x > 1040) break; if (xe < 100) continue;
-      if (o.k === 'roll') { g.fillStyle = '#ffd16688'; g.strokeStyle = '#ffd166'; g.lineWidth = 3; const hh = o.big ? 64 : 44; g.beginPath(); g.roundRect(Math.max(x, 130), y - hh / 2, Math.max(10, xe - Math.max(x, 130)), hh, hh / 2); g.fill(); g.stroke(); continue; }
+      if (o.k === 'roll') {
+        const hh = o.big ? 64 : 44, x1 = Math.max(x, 130), rm = si_(m, 'taiko-roll-middle'), re = si_(m, 'taiko-roll-end');
+        if (rm) { g.drawImage(rm, x1, y - hh / 2, Math.max(10, xe - x1), hh); if (re) dimg(re, xe, y, hh, hh); continue; }
+        g.fillStyle = '#ffd16688'; g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.beginPath(); g.roundRect(x1, y - hh / 2, Math.max(10, xe - x1), hh, hh / 2); g.fill(); g.stroke(); continue;
+      }
       if (o.k === 'swell') { const sx = Math.max(x, hx); g.fillStyle = '#ff9f4a'; g.strokeStyle = '#fff'; g.lineWidth = 4; g.beginPath(); g.arc(sx, y, 48, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#fff'; g.font = '800 22px system-ui'; g.fillText(o.hits || 0, sx, y); continue; }
       if (o.res > 0 && t >= o.hitT) { const dt = t - o.hitT; if (dt < 200) { g.strokeStyle = '#fff'; g.globalAlpha = 1 - dt / 200; g.lineWidth = 4; g.beginPath(); g.arc(hx, y, 40 + dt / 5, 0, 7); g.stroke(); g.globalAlpha = 1; } continue; }
       if (x < 120) continue;
-      g.globalAlpha = o.res === 0 && t > o.t ? .35 : 1; g.fillStyle = o.k === 'don' ? '#ec4b4b' : '#4b9bec'; g.strokeStyle = '#fff'; g.lineWidth = 4; g.beginPath(); g.arc(x, y, o.big ? 42 : 30, 0, 7); g.fill(); g.stroke(); g.globalAlpha = 1;
+      const al = o.res === 0 && t > o.t ? .35 : 1, ci = si_(m, o.big ? 'taikobigcircle' : 'taikohitcircle');
+      if (ci) { const d = o.big ? 92 : 66, ov = si_(m, o.big ? 'taikobigcircleoverlay' : 'taikohitcircleoverlay'); dimg(tinted(ci, TCOL[o.k]), x, y, d, d, al); if (ov) dimg(ov, x, y, d, d, al); continue; }
+      g.globalAlpha = al; g.fillStyle = o.k === 'don' ? '#ec4b4b' : '#4b9bec'; g.strokeStyle = '#fff'; g.lineWidth = 4; g.beginPath(); g.arc(x, y, o.big ? 42 : 30, 0, 7); g.fill(); g.stroke(); g.globalAlpha = 1;
     }
-    const k = f.k, P = Math.PI; g.fillStyle = '#2a2442'; g.beginPath(); g.arc(66, y, 54, 0, 7); g.fill();
-    g.lineWidth = 14; for (const [bit, a0, a1, col] of [[2, P / 2, P * 1.5, '#4b9bec'], [8, -P / 2, P / 2, '#4b9bec']]) { g.strokeStyle = k & bit ? col : '#4b9bec44'; g.beginPath(); g.arc(66, y, 47, a0, a1); g.stroke(); }
+    const k = f.k, P = Math.PI, di = si_(m, 'taiko-drum-inner'), dout = si_(m, 'taiko-drum-outer');
+    if (di || dout) { if (dout) dimg(dout, 66, y, 112, 112, k & 10 ? 1 : .6); if (di) dimg(di, 66, y, 72, 72, k & 5 ? 1 : .6); return; }
+    g.fillStyle = '#2a2442'; g.beginPath(); g.arc(66, y, 54, 0, 7); g.fill();
+    g.lineWidth = 14; for (const [bit, a0, a1] of [[2, P / 2, P * 1.5], [8, -P / 2, P / 2]]) { g.strokeStyle = k & bit ? '#4b9bec' : '#4b9bec44'; g.beginPath(); g.arc(66, y, 47, a0, a1); g.stroke(); }
     for (const [bit, a0, a1] of [[1, P / 2, P * 1.5], [4, -P / 2, P / 2]]) { g.fillStyle = k & bit ? '#ec4b4b' : '#ec4b4b44'; g.beginPath(); g.arc(66, y, 34, a0, a1); g.fill(); }
   }
   function mania(m, t) {
-    const K = m.keys, lw = Math.min(78, 700 / K) | 0, x0 = (960 - lw * K) / 2, JL = 600, sp = spd(), msk = fAt(F, t).x | 0;
-    g.fillStyle = 'rgba(0,0,0,.62)'; g.fillRect(x0, 0, lw * K, 720);
-    for (let c = 0; c < K; c++) { if (msk >> c & 1) { const gr = g.createLinearGradient(0, JL - 260, 0, JL); gr.addColorStop(0, 'rgba(125,227,208,0)'); gr.addColorStop(1, 'rgba(125,227,208,.38)'); g.fillStyle = gr; g.fillRect(x0 + c * lw, JL - 260, lw, 260); } g.fillStyle = '#ffffff14'; g.fillRect(x0 + c * lw, 0, 1, 720); }
-    g.fillRect(x0 + K * lw, 0, 1, 720); g.fillStyle = '#ff5fa2'; g.fillRect(x0, JL, lw * K, 5);
+    const K = m.keys, JL = 600, sp = spd(), msk = fAt(F, t).x | 0, ini = (m.sk && m.sk.ini) || {}, tot = Math.min(78, 700 / K) * K;
+    let cw = String(ini.columnwidth || '').split(',').map(Number).filter(v => v > 0); if (cw.length < K) cw = Array(K).fill(1); cw = cw.slice(0, K); const sum = cw.reduce((a, b) => a + b, 0), W = cw.map(v => tot * v / sum), X = []; let ax = (960 - tot) / 2; for (const w of W) { X.push(ax); ax += w; }
+    const x0 = X[0];
+    g.fillStyle = 'rgba(0,0,0,.62)'; g.fillRect(x0, 0, tot, 720);
+    const nm = (c, suf = '') => { const d = (K % 2 && c === (K - 1) / 2) ? 'S' : Math.min(c, K - 1 - c) % 2 ? '2' : '1'; return base_(ini['noteimage' + c + suf.toLowerCase()]) || (base_(ini['noteimage' + c]) || 'mania-note' + d) + suf.toLowerCase(); };
+    const kn = (c, dn) => { const d = (K % 2 && c === (K - 1) / 2) ? 's' : Math.min(c, K - 1 - c) % 2 ? '2' : '1'; return base_(ini['keyimage' + c + (dn ? 'd' : '')]) || 'mania-key' + d + (dn ? 'd' : ''); };
+    for (let c = 0; c < K; c++) { if (msk >> c & 1) { const gr = g.createLinearGradient(0, JL - 260, 0, JL); gr.addColorStop(0, 'rgba(125,227,208,0)'); gr.addColorStop(1, 'rgba(125,227,208,.38)'); g.fillStyle = gr; g.fillRect(X[c], JL - 260, W[c], 260); } g.fillStyle = '#ffffff14'; g.fillRect(X[c], 0, 1, 720); }
+    g.fillRect(x0 + tot, 0, 1, 720); const hint = si_(m, 'mania-stage-hint'); if (hint) g.drawImage(hint, x0, JL - 8, tot, 24); else { g.fillStyle = '#ff5fa2'; g.fillRect(x0, JL, tot, 5); }
+    for (let c = 0; c < K; c++) { const kim = si_(m, kn(c, msk >> c & 1)) || si_(m, kn(c, 0)); if (kim) g.drawImage(kim, X[c], JL + 6, W[c], Math.min(120, W[c] * kim.naturalHeight / kim.naturalWidth)); }
     const col = c => (K % 2 && c === (K - 1) / 2 ? '#ffd166' : Math.min(c, K - 1 - c) % 2 ? '#6ea8ff' : '#e8e8ff');
+    const note = (c, y, w, al, suf = '') => { const im = si_(m, nm(c, suf)) || (suf ? si_(m, nm(c)) : null); if (im) { g.globalAlpha = al; g.drawImage(im, X[c], y - Math.min(60, w * im.naturalHeight / im.naturalWidth), w, Math.min(60, w * im.naturalHeight / im.naturalWidth)); g.globalAlpha = 1; return; } g.globalAlpha = al; g.fillStyle = col(c); g.beginPath(); g.roundRect(X[c] + 3, y - 13, w - 6, 26, 6); g.fill(); g.globalAlpha = 1; };
     for (const o of m.ho) {
-      const yh = JL - (o.t - t) * sp; if (yh < -90) break; const yt = JL - (o.end - t) * sp, x = x0 + o.col * lw;
+      const yh = JL - (o.t - t) * sp; if (yh < -90) break; const yt = JL - (o.end - t) * sp, c = o.col, w = W[c], dim = o.res === 0 && t > o.t;
       if (o.k === 'hold') {
         if (o.tres != null && t >= (o.relT ?? o.end)) continue; const held = o.res > 0 && t >= o.hitT, hy = held ? Math.min(JL, yh) : yh; if (hy < -90 && yt < -90) continue;
-        g.globalAlpha = o.res === 0 && t > o.t ? .3 : .55; g.fillStyle = col(o.col); g.fillRect(x + lw * .2, yt, lw * .6, hy - yt); g.globalAlpha = o.res === 0 && t > o.t ? .3 : 1; g.beginPath(); g.roundRect(x + 3, hy - 13, lw - 6, 26, 6); g.fill(); g.globalAlpha = 1; continue;
+        const body = si_(m, nm(c, 'L'));
+        if (body) { g.globalAlpha = dim ? .3 : 1; g.drawImage(body, X[c], yt, w, Math.max(1, hy - yt)); g.globalAlpha = 1; } else { g.globalAlpha = dim ? .3 : .55; g.fillStyle = col(c); g.fillRect(X[c] + w * .2, yt, w * .6, hy - yt); g.globalAlpha = 1; }
+        if (si_(m, nm(c, 'T'))) note(c, yt, w, dim ? .3 : 1, 'T'); note(c, hy, w, dim ? .3 : 1, 'H'); continue;
       }
-      if (o.res > 0 && t >= o.hitT) continue; if (yh > 760) continue;
-      g.globalAlpha = o.res === 0 && t > o.t ? .3 : 1; g.fillStyle = col(o.col); g.beginPath(); g.roundRect(x + 3, yh - 13, lw - 6, 26, 6); g.fill(); g.globalAlpha = 1;
+      if (o.res > 0 && t >= o.hitT) continue; if (yh > 760) continue; note(c, yh, w, dim ? .3 : 1);
     }
   }
   function catcher(m, t) {
     const sx = x => 96 + x * 1.5, CY = 620, pre = m.pre, rr = (54.4 - 4.48 * m.cs) * .55, f = fAt(F, t), nx = F[Math.min(F.length - 1, F.indexOf(f) + 1)], cx = nx.t > f.t && t > f.t ? f.x + (nx.x - f.x) * Math.min(1, (t - f.t) / (nx.t - f.t)) : f.x;
     g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(96, 0, 768, 720);
-    const pal = ['#ff5fa2', '#7de3d0', '#ffd166', '#a78bfa'];
+    const pal = ['#ff5fa2', '#7de3d0', '#ffd166', '#a78bfa'], FR = ['apple', 'grapes', 'orange', 'pear'];
     for (const o of m.ho) {
-      const dt = o.t - t; if (dt > pre) break; if (dt < -400) continue; const caught = o.res > 0 && t >= o.t; if (caught) continue;
-      const y = CY - dt / pre * (CY - 40); if (y > 700) continue; g.globalAlpha = o.res === 0 && dt < 0 ? .35 : 1;
-      g.fillStyle = o.k === 'fruit' ? pal[(o.t / 1000 | 0) % 4] : '#8fd3ff'; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(sx(o.x), y, o.k === 'fruit' ? rr * 1.5 : rr * .7, 0, 7); g.fill(); if (o.k === 'fruit') g.stroke(); g.globalAlpha = 1;
+      const dt = o.t - t; if (dt > pre) break; if (dt < -400) continue; if (o.res > 0 && t >= o.t) continue;
+      const y = CY - dt / pre * (CY - 40); if (y > 700) continue; const al = o.res === 0 && dt < 0 ? .35 : 1, cc = (SK && SK.col.length ? SK.col[(o.ci || 0) % SK.col.length] : pal[(o.ci || 0) % 4]);
+      const nmn = o.k === 'fruit' ? 'fruit-' + FR[(o.fi || 0) % 4] : 'fruit-drop', im = si_(m, nmn);
+      if (im) { const d = o.k === 'fruit' ? rr * 3 : rr * 1.5, ov = si_(m, nmn + '-overlay'); dimg(tinted(im, cc), sx(o.x), y, d, d, al); if (ov) dimg(ov, sx(o.x), y, d, d, al); continue; }
+      g.globalAlpha = al; g.fillStyle = o.k === 'fruit' ? cc : '#8fd3ff'; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(sx(o.x), y, o.k === 'fruit' ? rr * 1.5 : rr * .7, 0, 7); g.fill(); if (o.k === 'fruit') g.stroke(); g.globalAlpha = 1;
     }
-    const w = catchW(m.cs) * 1.5; g.fillStyle = f.k & 1 ? '#ffd166' : '#fff'; g.beginPath(); g.roundRect(sx(cx) - w / 2, CY, w, 16, 8); g.fill(); g.beginPath(); g.arc(sx(cx), CY - 8, 14, 0, 7); g.fill();
+    const w = catchW(m.cs) * 1.5, ci = si_(m, 'fruit-catcher-idle') || si_(m, 'fruit-catcher-idle-0');
+    if (ci) { const cw2 = w * 1.25, ch = cw2 * ci.naturalHeight / ci.naturalWidth; g.drawImage(ci, sx(cx) - cw2 / 2, CY + 18 - ch, cw2, ch); return; }
+    g.fillStyle = f.k & 1 ? '#ffd166' : '#fff'; g.beginPath(); g.roundRect(sx(cx) - w / 2, CY, w, 16, 8); g.fill(); g.beginPath(); g.arc(sx(cx), CY - 8, 14, 0, 7); g.fill();
   }
-  window.xmDraw = t => { const m = M; bg(); m.mode === 1 ? taiko(m, t) : m.mode === 3 ? mania(m, t) : catcher(m, t); hud(m, t); };
+  window.xmDraw = t => { const m = M; if (m.skFor !== SK) ensureSkin(m).catch(() => {}); bg(); m.mode === 1 ? taiko(m, t) : m.mode === 3 ? mania(m, t) : catcher(m, t); hud(m, t); };
   window.xmBuild = (mode, txt, F2, mi) => { const m = build(mode, txt, F2, mi, { parseMap, buildPath, posAt, slideFrac }); const ti = q('#title'); if (ti) ti.textContent += ' · ' + NAMES[mode]; return m; };
 
   /* ---------- Scroll-Geschwindigkeit + Modus-abhängige UI ---------- */

@@ -1,3 +1,7 @@
+## v0.60
+- Skin-Unterstützung in taiko, catch und mania (Noten, Hold-Körper, Tasten, Früchte, Catcher, Trommel, Roll-Bahnen, skin.ini [Mania]).
+- Knopf „Letztes Replay“ im Startmenü entfernt.
+
 ## v0.59
 - osu!taiko, osu!catch und osu!mania: Replays ansehen (Auto-Erkennung aus der .osr), eigene Darstellung je Modus, Statistik/Graph/Marker aus den Eingaben geschätzt.
 - Modus-Umschalter (osu! / taiko / catch / mania) für die Score-Listen; Scroll-Geschwindigkeit für taiko/mania.

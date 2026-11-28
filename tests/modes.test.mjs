@@ -61,3 +61,12 @@ test('Einbindung: Skripte, Umschalter und Hooks vorhanden', () => {
   for (const k of ['xmDraw', 'xmBuild', 'xmApi']) assert.ok(idx.includes(k), k);
   assert.ok(readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8').includes('/modes.js'));
 });
+test('Skin-Lader stellt sk.load und [Mania]-Abschnitte bereit', () => {
+  assert.ok(idx.includes('sk.load = img;') && idx.includes('sk.mania = []'));
+  const mj = readFileSync(new URL('../public/modes.js', import.meta.url), 'utf8');
+  for (const k of ['taikohitcircle', 'mania-stage-hint', 'fruit-catcher-idle', 'columnwidth']) assert.ok(mj.includes(k), k);
+});
+test('Knopf „Letztes Replay“ wird nicht mehr eingeblendet', () => {
+  const ex = readFileSync(new URL('../public/extras.js', import.meta.url), 'utf8');
+  assert.ok(!ex.includes('document.body.append(lastBtn)') && ex.includes('async function showLast() {}'));
+});
