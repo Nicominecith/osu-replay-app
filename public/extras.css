@@ -136,3 +136,5 @@ body.x-cine #xStrip{display:none!important}
   canvas{max-width:min(100%,calc((100dvh - 195px)*4/3))}
   #xStrip{padding-top:4px;flex-wrap:nowrap}#xStrip #xKeys i{width:30px;height:30px}#xStrip #xUr{height:18px}
 }
+
+#xStats .xclose{position:sticky;top:0;float:right;z-index:2;min-width:44px;height:44px;margin:-4px -4px 0 8px;background:var(--bg)}

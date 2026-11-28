@@ -2,7 +2,7 @@
    (t, playing, M, F, rate, end, audio, S, me, curScore, osrBuf, $, esc, openReplay, openLocalReplay …). */
 (() => {
   'use strict';
-  const VER = '0.50', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
+  const VER = '0.51', MODES = ['osu!standard', 'osu!taiko', 'osu!catch', 'osu!mania'];
   const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} } };
   let lang = ls.get('osuLang') || (/^de/i.test(navigator.language) ? 'de' : 'en');
   const T = (d, e) => lang === 'en' ? e : d;
@@ -184,7 +184,7 @@
   function buildStatsStatic() {
     const s = M.stats || {}, ev = M.ev || [], last = ev[ev.length - 1], acc = last ? last.a : 1;
     const mode = MODES[X.mode] || MODES[0], pp = curScore && typeof curScore.pp === 'number' ? curScore.pp.toFixed(0) + ' pp' : '–';
-    sp.innerHTML = `<b>${T('Statistik', 'Statistics')}</b> <span class="tag ok">${mode} ✓</span>
+    sp.innerHTML = `<button type="button" class="xb xclose" data-xclose aria-label="${T('Schließen', 'Close')}">✕</button><b>${T('Statistik', 'Statistics')}</b> <span class="tag ok">${mode} ✓</span>
     <div class="g" style="margin-top:8px"><div><b style="color:#6ea8ff">${s.n3 ?? 0}</b><small>300</small></div><div><b style="color:#7de3d0">${s.n1 ?? 0}</b><small>100</small></div><div><b style="color:#ffd166">${s.n5 ?? 0}</b><small>50</small></div>
     <div><b style="color:#ff4d6d">${s.miss ?? 0}</b><small>Miss</small></div><div><b>${s.mx ?? 0}x</b><small>Max Combo</small></div><div><b>${(acc * 100).toFixed(2)}%</b><small>Acc</small></div>
     <div><b>${s.ur ? s.ur.toFixed(1) : '–'}</b><small>UR</small></div><div><b>${s.avg != null ? s.avg.toFixed(1) + ' ms' : '–'}</b><small>${T('Ø Fehler', 'avg error')}</small></div><div><b>${pp}</b><small>PP</small></div></div>
@@ -205,7 +205,7 @@
     renderNotes();
   }
   function renderNotes() { const ul = sp.querySelector('#xsN'); if (!ul) return; const n = notes(); ul.innerHTML = n.length ? n.map((x, i) => `<li><button class="lk" data-note="${i}">${fmt(x.t / (rate || 1))} · ${esc(x.txt)}</button><button class="lk" data-del="${i}" aria-label="x">✕</button></li>`).join('') : `<li><span>${T('Noch keine. Mit „N“ oder 📝 hinzufügen.', 'None yet. Add with “N” or 📝.')}</span></li>`; }
-  sp.addEventListener('click', e => { const a = e.target.closest('[data-note]'), d = e.target.closest('[data-del]'); if (a) setT(notes()[a.dataset.note].t - 1000 * (rate || 1)); if (d) { const n = notes(); n.splice(+d.dataset.del, 1); ls.set(notesKey(), JSON.stringify(n)); renderNotes(); drawMarks(); } });
+  sp.addEventListener('click', e => { if (e.target.closest('[data-xclose]')) { SHORT.st(); return; } const a = e.target.closest('[data-note]'), d = e.target.closest('[data-del]'); if (a) setT(notes()[a.dataset.note].t - 1000 * (rate || 1)); if (d) { const n = notes(); n.splice(+d.dataset.del, 1); ls.set(notesKey(), JSON.stringify(n)); renderNotes(); drawMarks(); } });
   function updStats(i) {
     const ev = M.ev || []; let l = 0, r = ev.length - 1; while (l < r) { const m = (l + r + 1) >> 1; ev[m].t <= t ? l = m : r = m - 1; } const e = ev[l] && ev[l].t <= t ? ev[l] : null;
     const L = sp.querySelector('#xsL'); if (L) setTxt(L, e ? `${(e.a * 100).toFixed(2)}% · ${e.c}x · ${(e.h * 100).toFixed(0)}%` : '–');
@@ -309,7 +309,7 @@
   function applyLite() { document.body.classList.toggle('x-lite', lite()); if (lite() && typeof S !== 'undefined') { S.trail = false; } }
 
   /* ---------- Hub: Menü, Hilfe, Über, Neu, Diagnose (62–66, 70, 71, 90, 94, 97) ---------- */
-  const CHANGES = [['0.50', ['Tasten-Anzeige (M1/M2/K1/K2, KPS) und UR-Balken liegen jetzt in einer Leiste unter dem Spielfeld, nicht mehr im Replay']], ['0.49', ['Player responsive: kompakte Kopfzeile am Handy, Seitenleiste auf Tablet/PC, Tasten-Overlay und UR-Balken überlappen nicht mehr']], ['0.48', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und App-Optionen sind jetzt in den Einstellungen','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
+  const CHANGES = [['0.51', ['Statistik-Fenster hat einen Schließen-Knopf (auch Esc)']], ['0.50', ['Tasten-Anzeige (M1/M2/K1/K2, KPS) und UR-Balken liegen jetzt in einer Leiste unter dem Spielfeld, nicht mehr im Replay']], ['0.49', ['Player responsive: kompakte Kopfzeile am Handy, Seitenleiste auf Tablet/PC, Tasten-Overlay und UR-Balken überlappen nicht mehr']], ['0.48', ['Kein Menü-Overlay mehr: Import, Replays, Hilfe, Neuigkeiten und App-Optionen sind jetzt in den Einstellungen','Responsive Raster für Handy, Tablet und PC','Roadmap um Spiel-Funktionen erweitert']], ['0.46', ['Player: Frame-Schritte, Timeline-Marker, Hit-Error-Bar, Input-Overlay mit KPS, Statistik mit Graph und Heatmap, Zoom, Kino-Modus, Screenshot, Clip-Aufnahme', 'Gespeicherte Replays, Favoriten, „Zurück zum letzten Replay“, Demo-Modus', 'Schnell-Import per Link/ID, Drag & Drop auf der ganzen Seite, Beispiel-Map beim ersten Spielstart', 'Deutsch/Englisch, Toasts, Hilfe bei Fehlern, Speicherverwaltung, Diagnose']], ['0.45', ['Spiel-Menü: Account-Import und Schließen, Datei-Dialog-Fix, WebGL-Umstellung, Skin-Download repariert']]];
   const ROAD = [['osu!taiko / catch / mania', 'wip'], ['A/B-Replay-Vergleich', 'wip'], ['PP-Verlauf (Live)', 'wip'], ['Embed-Widget', 'wip'], ['Over-/Underaim-Analyse', 'wip']];
   const GAME = () => [T('Touch-Optimierung','Touch optimisation'), T('Keybind-Editor','Keybind editor'), T('Offset-Kalibrierung','Offset calibration'), T('Practice-Modus','Practice mode'), T('Eigene Plays als .osr speichern','Save own plays as .osr'), T('HUD-Editor','HUD editor'), T('Fertige Community-Skins','Ready-made community skins')];
   const FORMATS = () => [['.osr', T('Replay – direkt abspielen', 'Replay – play directly')], ['.osz', T('Beatmap-Paket – in nicominecith osu! importieren', 'Beatmap pack – import into nicominecith osu!')], ['.osk', T('Skin – Cursor, Hitcircles, Zahlen, Sounds', 'Skin – cursor, hitcircles, numbers, sounds')], [T('Audio/Bilder', 'Audio/images'), T('kommen aus der Beatmap (mp3, ogg, wav, jpg, png)', 'come from the beatmap (mp3, ogg, wav, jpg, png)')]];
@@ -408,6 +408,8 @@
 
   /* ---------- Link-Parameter (49) ---------- */
   function fromUrl() { const p = new URLSearchParams(location.search), s = p.get('score'); if (s && /^\d+$/.test(s)) setTimeout(() => quickImport('https://osu.ppy.sh/scores/' + s), 1800); }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && X.stats) SHORT.st(); });
 
   /* ---------- Start ---------- */
   applyLite(); hint(); dropTxt(); btnTitles(); if (lang === 'en') translate(); requestAnimationFrame(loop); fromUrl();
