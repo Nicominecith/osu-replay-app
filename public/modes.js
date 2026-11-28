@@ -8,7 +8,7 @@
   const raw = txt => { const o = []; let sec = ''; for (let l of txt.split('\n')) { l = l.trim(); if (!l || l.startsWith('//')) continue; if (l[0] === '[') { sec = l; continue; } if (sec === '[HitObjects]') { const a = l.split(','); o.push({ x: +a[0], y: +a[1], t: +a[2], ty: +a[3], hs: +a[4] | 0, a }); } } return o; };
 
   /* ---------- Taiko ---------- */
-  const taikoObjs = (rw, base) => rw.map((r, i) => { const b = base.ho[i] || {}, big = !!(r.hs & 4); if (r.ty & 8) return { t: r.t, end: +r.a[5] || r.t, k: 'swell', type: 0 }; if (r.ty & 2) return { t: r.t, end: b.end || r.t, k: 'roll', big, type: 0 }; return { t: r.t, end: r.t, k: r.hs & 10 ? 'kat' : 'don', big, type: 0 }; });
+  const taikoObjs = (rw, base) => rw.map((r, i) => { const b = base.ho[i] || {}, big = !!(r.hs & 4); if (r.ty & 8) return { t: r.t, end: +r.a[5] || r.t, k: 'swell', type: 0 }; if (r.ty & 2) return { t: r.t, end: b.end || r.t, k: 'roll', big, type: 0 }; return { t: r.t, end: r.t, k: r.hs & 10 ? 'kat' : 'don', big, type: 0, hs: r.hs }; });
   function taikoPresses(F) { const P = []; let pk = 0; for (const f of F) { const nb = f.k & ~pk; if (nb & 5) P.push({ t: f.t, kind: 'don' }); if (nb & 10) P.push({ t: f.t, kind: 'kat' }); pk = f.k; } return P; }
   function judgeTaiko(O, F, od, bits) {
     if (bits & 16) od = Math.min(10, od * 1.4); if (bits & 2) od /= 2;
@@ -29,7 +29,7 @@
   }
 
   /* ---------- Mania ---------- */
-  function maniaObjs(rw, keys) { return rw.map(r => { const col = clamp(Math.floor(r.x * keys / 512), 0, keys - 1); return r.ty & 128 ? { t: r.t, end: Math.max(r.t, parseInt(r.a[5], 10) || r.t), k: 'hold', col, type: 0 } : { t: r.t, end: r.t, k: 'note', col, type: 0 }; }); }
+  function maniaObjs(rw, keys) { return rw.map(r => { const col = clamp(Math.floor(r.x * keys / 512), 0, keys - 1); return r.ty & 128 ? { t: r.t, end: Math.max(r.t, parseInt(r.a[5], 10) || r.t), k: 'hold', col, type: 0, hs: r.hs } : { t: r.t, end: r.t, k: 'note', col, type: 0, hs: r.hs }; }); }
   function judgeMania(O, F, keys, od) {
     const w = [16.5, 64 - 3 * od, 97 - 3 * od, 127 - 3 * od, 151 - 3 * od, 188 - 3 * od], J = [], E = [], cols = Array.from({ length: keys }, () => ({ pr: [], rl: [] }));
     let pm = 0; for (const f of F) { const m = f.x | 0, nb = m & ~pm, rb = pm & ~m; for (let c = 0; c < keys; c++) { if (nb >> c & 1) cols[c].pr.push(f.t); if (rb >> c & 1) cols[c].rl.push(f.t); } pm = m; }
@@ -57,14 +57,14 @@
     rw.forEach((r, i) => {
       const b = base.ho[i]; if (r.ty & 8) return; if ((r.ty & 4) || ci < 0) ci++; const from = out.length;
       if ((r.ty & 2) && b && b.pts) {
-        H.buildPath(b); out.push({ t: b.t, end: b.t, k: 'fruit', x: r.x, type: 0 });
+        H.buildPath(b); out.push({ t: b.t, end: b.t, k: 'fruit', x: r.x, type: 0, hs: r.hs | 0 });
         if (!b.path || !b.d) return;
         const span = (b.end - b.t) / b.slides, tp = SM * 100 / TR, n = Math.min(200, Math.floor(b.len / tp));
         for (let s = 0; s < b.slides; s++) {
           for (let j = 1; j <= n; j++) { const f = j * tp / b.len; if (f >= 1) break; out.push({ t: b.t + s * span + (s % 2 ? 1 - f : f) * span, end: 0, k: 'drop', x: H.posAt(b, f)[0], type: 0 }); }
-          out.push({ t: b.t + (s + 1) * span, end: 0, k: 'fruit', x: H.posAt(b, s % 2 ? 0 : 1)[0], type: 0 });
+          out.push({ t: b.t + (s + 1) * span, end: 0, k: 'fruit', x: H.posAt(b, s % 2 ? 0 : 1)[0], type: 0, hs: r.hs | 0 });
         }
-      } else out.push({ t: r.t, end: r.t, k: 'fruit', x: r.x, type: 0 });
+      } else out.push({ t: r.t, end: r.t, k: 'fruit', x: r.x, type: 0, hs: r.hs | 0 });
       for (let j = from; j < out.length; j++) { out[j].ci = ci; out[j].fi = i; }
     });
     for (const o of out) { o.end = o.t; o.x = clamp(o.x, 0, 512); }
@@ -82,6 +82,7 @@
     const J = r.J.sort((a, b) => a.jt - b.jt), ev = []; let c = 0, mx = 0, got = 0, tot = 0, h = 1; const st = { n3: 0, n1: 0, n5: 0, miss: 0 };
     for (const j of J) { j.brk ? c = 0 : j.res > 0 && c++; mx = Math.max(mx, c); got += j.pts; tot += j.mx; h = clamp(h + (j.res ? .02 : -.1), 0, 1); st[j.res === 3 ? 'n3' : j.res === 2 ? 'n1' : j.res === 1 ? 'n5' : 'miss']++; j.c = c; ev.push({ t: j.jt, a: tot ? got / tot : 1, c, h }); }
     const E = r.E, avg = E.length ? E.reduce((a, b) => a + b, 0) / E.length : 0, sd = E.length ? Math.sqrt(E.reduce((a, b) => a + (b - avg) ** 2, 0) / E.length) : 0;
+    const snd = []; for (const o of O) if (o.hitT != null && o.res > 0 && (mode !== 2 || o.k === 'fruit')) snd.push({ t: o.hitT, hs: o.hs | 0 }); snd.sort((a, b) => a.t - b.t); base.snd = snd;
     base.mode = mode; base.ho = O; base.ev = ev; base.jl = J; base.r = 0; base.stats = { ...st, mx, cb: 0, sb: 0, mh: 1, ur: sd * 10 / (rate || 1), avg: avg / (rate || 1) };
     return base;
   }
