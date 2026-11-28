@@ -138,3 +138,13 @@ body.x-cine #xStrip{display:none!important}
 }
 
 #xStats .xclose{position:sticky;top:0;float:right;z-index:2;min-width:44px;height:44px;margin:-4px -4px 0 8px;background:var(--bg)}
+
+/* ---- v0.52: Knöpfe statt Akkordeon ---- */
+#xGrid{display:block!important}
+.xnav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xn{min-height:64px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--tx);font:inherit;font-weight:700;padding:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.xn:active,.xn:hover{border-color:var(--pink)}
+.xn .nw{background:var(--pink);color:#1a0b14;border-radius:999px;font:800 10px system-ui;padding:2px 7px}
+.xsec{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px 16px}
+.xsec .xst{margin:12px 0 4px}
+.xsec .xback{min-height:40px}
