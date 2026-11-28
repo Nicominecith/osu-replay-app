@@ -1,3 +1,8 @@
+## v0.56
+- Fixed replay opening: removed calls to an undefined `el()` helper that stopped map details and replay loading.
+- Fixed profile panel creation using native DOM APIs; own profile and replay-owner profile buttons now open the profile view.
+- Improved mobile profile overlay stacking and touch interaction.
+
 ## v0.55
 - Fixed replay-owner display: replaces the broken emoji placeholder with a styled player/avatar control.
 - Made own-profile opening work by tap and keyboard, with a mobile full-screen profile panel.

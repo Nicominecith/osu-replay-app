@@ -790,8 +790,10 @@ async function init() {
   me = await r.json(); target = me;
   $('#app').hidden = false;
   $('#who').innerHTML = `<img src="${esc(me.avatar_url)}" alt=""><b>${esc(me.username)}</b>`;
-  $('#who').style.cursor = 'pointer'; $('#who').title = 'Eigenes Profil öffnen'; $('#who').setAttribute('role','button'); $('#who').setAttribute('tabindex','0'); $('#who').onclick = () => showPlayerProfile(me.id, me);
-  $('#who').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPlayerProfile(me.id, me); } };
+  $('#who').style.cursor = 'pointer'; $('#who').title = 'Eigenes Profil öffnen'; $('#who').setAttribute('role','button'); $('#who').setAttribute('tabindex','0');
+  const openOwnProfile = () => showPlayerProfile(Number(me && me.id), me);
+  $('#who').onclick = openOwnProfile;
+  $('#who').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOwnProfile(); } };
   load(true);
 }
 async function load(reset) {
@@ -899,7 +901,8 @@ $('#list').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { const b 
 function ensureProfilePanel() {
   let panel = $('#xProfile');
   if (panel) return panel;
-  panel = el('section', { id: 'xProfile', class: 'x-profile', hidden: '' });
+  panel = document.createElement('section');
+  panel.id = 'xProfile'; panel.className = 'x-profile'; panel.hidden = true;
   panel.innerHTML = `<div class="x-profile-head"><button type="button" data-profile-close>← Zurück</button><button type="button" data-profile-close aria-label="Schließen">✕</button></div><div id="xProfileBody"></div>`;
   document.body.append(panel);
   panel.addEventListener('click', e => { if (e.target === panel || e.target.closest('[data-profile-close]')) panel.hidden = true; });
@@ -936,7 +939,9 @@ function addReplayOwner(s) {
   title.parentElement.querySelector('.x-replay-owner')?.remove();
   const owner = s.user || (s.user_id ? { id: s.user_id, username: s.username || 'Spieler' } : null);
   if (!owner) return;
-  const b = el('button', { type: 'button', class: 'x-replay-owner', 'data-profile': Number(owner.id) || 0 }, `👤 Replay von ${owner.username || 'Spieler'} · Profil ansehen ↗`);
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'x-replay-owner'; b.dataset.profile = String(Number(owner.id) || 0);
+  b.textContent = `👤 Replay von ${owner.username || 'Spieler'} · Profil ansehen ↗`;
   title.insertAdjacentElement('afterend', b);
 }
 document.addEventListener('click', e => {
@@ -967,7 +972,7 @@ function openMap(s) {
     <div class="hits"><div><b style="color:#6ea8ff">${n('great', 'count_300')}</b><small>300</small></div><div><b style="color:#7de3d0">${n('ok', 'count_100')}</b><small>100</small></div><div><b style="color:#ffd166">${n('meh', 'count_50')}</b><small>50</small></div><div><b style="color:#ff4d6d">${n('miss', 'count_miss')}</b><small>Miss</small></div></div></div>`;
   const owner = s.user || (s.user_id ? { id: s.user_id, username: s.username || 'Spieler' } : null);
   let ownerBox = $('#mv-owner');
-  if (!ownerBox) { ownerBox = el('div', { id: 'mv-owner', class: 'x-owner-card' }); $('#mvb').prepend(ownerBox); }
+  if (!ownerBox) { ownerBox = document.createElement('div'); ownerBox.id = 'mv-owner'; ownerBox.className = 'x-owner-card'; $('#mvb').prepend(ownerBox); }
   ownerBox.innerHTML = owner ? `<img src="${esc(owner.avatar_url || '')}" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%23352b50%22/%3E%3Ccircle cx=%2250%22 cy=%2236%22 r=%2218%22 fill=%22%23b9afd0%22/%3E%3Cpath d=%22M15 94c2-24 16-36 35-36s33 12 35 36%22 fill=%22%23b9afd0%22/%3E%3C/svg%3E'"><div><small>Replay von</small><b>${esc(owner.username || 'Spieler')}</b></div><button type="button" data-profile="${Number(owner.id)||0}">Profil ansehen ↗</button>` : `<div><small>Replay-Spieler</small><b>${me && target && target.id === me.id ? esc(me.username) : 'Spielerinformationen nicht verfügbar'}</b></div>`;
   if (!s.user && s.user_id) hydrateScoreOwner(s).then(u => { if (u && curScore === s && ownerBox.isConnected) ownerBox.innerHTML = `<img src="${esc(u.avatar_url || '')}" alt=""><div><small>Replay von</small><b>${esc(u.username || 'Spieler')}</b></div><button type="button" data-profile="${Number(u.id)||0}">Profil ansehen ↗</button>`; });
   const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? (me || s._osrBuf ? 'Replay ansehen' : 'Replay ansehen (Anmeldung nötig)') : 'Kein Replay verfügbar'; $('#mvlogin').hidden = true;
@@ -1630,6 +1635,6 @@ try { if (!localStorage.getItem('osuTutDone')) showTut(0); } catch { showTut(0);
 
 init();
 </script>
-<script src="/extras.js?v=55"></script>
+<script src="/extras.js?v=56"></script>
 </body>
 </html>

@@ -196,3 +196,9 @@ body.x-cine #xStrip{display:none!important}
 .x-profile-avatar{background:#352b50}
 
 .x-score-owner img[hidden] + .x-owner-fallback{display:inline-flex}
+
+/* v56: native DOM fix for profile/replay controls */
+#xProfile{position:fixed!important;inset:0!important;z-index:2147483000!important;display:block;overflow-y:auto;overscroll-behavior:contain;background:var(--bg,#17131f);color:var(--text,#fff);padding:env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box}
+#xProfile[hidden]{display:none!important}
+#who[role=button]{pointer-events:auto;touch-action:manipulation}
+.x-replay-owner{display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.07);color:var(--text);cursor:pointer}
