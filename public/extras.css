@@ -177,3 +177,22 @@ body.x-cine #xStrip{display:none!important}
 .x-profile-section{margin:12px 0}.x-profile-section h3{margin:0 0 12px}.x-profile-tag{display:inline-block;margin:3px;padding:7px 10px;border-radius:999px;background:rgba(255,120,190,.13);border:1px solid rgba(255,120,190,.25)}
 .x-badges{display:flex;flex-wrap:wrap;gap:12px}.x-badges img{width:86px;height:86px;object-fit:contain;border-radius:8px}
 @media(max-width:560px){.x-profile-hero{align-items:center;min-height:130px;padding:14px;gap:12px}.x-profile-avatar{width:76px;height:76px}.x-owner-card{flex-wrap:wrap}.x-owner-card button{width:100%}}
+
+/* v55: klare Spieler-Buttons und zuverlässige Profilansicht auf Mobilgeräten */
+.x-score-owner{appearance:none;-webkit-appearance:none;display:inline-flex!important;align-items:center;gap:8px;max-width:100%;min-height:34px;margin:6px 0 3px;padding:4px 11px!important;border:1px solid #51436f!important;border-radius:999px!important;background:#241b38!important;color:#f1ecff!important;font:600 13px/1.2 system-ui,sans-serif!important;box-shadow:none!important;text-align:left;cursor:pointer}
+.x-score-owner img{width:24px;height:24px;flex:0 0 24px;border-radius:50%;object-fit:cover;background:#3a2d52}
+.x-score-owner img[hidden]{display:none}
+.x-score-owner .x-owner-fallback{display:none;width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#3a2d52;color:#c9b9e8;align-items:center;justify-content:center;font-size:13px}
+.x-score-owner img:not([src]),.x-score-owner img[src=""]{display:none}
+.x-score-owner img[src=""] + .x-owner-fallback,.x-score-owner img:not([src]) + .x-owner-fallback{display:inline-flex}
+.x-score-owner:hover{background:#34264d!important;border-color:#ff66ab!important}
+#who[role=button]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#who[role=button]:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px}
+#xProfile{position:fixed;inset:0;z-index:40;display:block;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);padding:env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom))}
+#xProfile[hidden]{display:none!important}
+#xProfile .x-profile-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:10px;padding:10px 0 14px;background:var(--bg)}
+#xProfile .x-profile-head button{border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--tx);padding:9px 14px}
+#xProfileBody{max-width:980px;margin:0 auto}
+.x-profile-avatar{background:#352b50}
+
+.x-score-owner img[hidden] + .x-owner-fallback{display:inline-flex}

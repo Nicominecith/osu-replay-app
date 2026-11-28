@@ -1,3 +1,9 @@
+## v0.55
+- Fixed replay-owner display: replaces the broken emoji placeholder with a styled player/avatar control.
+- Made own-profile opening work by tap and keyboard, with a mobile full-screen profile panel.
+- Profile data now falls back to already-loaded player information if the profile API request fails.
+- Added avatar fallbacks when osu! avatar images are unavailable.
+
 # Changelog
 
 ## 0.54 (v54)
