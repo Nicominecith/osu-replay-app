@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.54 (v54)
+- Spielerprofile im osu!-Stil: Avatar, Land, Spielmodus, globale/Landes-Rangliste, PP, Accuracy, Level, Spielzeit, Team-/Gruppenzugehörigkeit, Badges und Mitgliedschaft.
+- Eigenes Profil über den Account-Button; Profile anderer Spieler aus Suche, Scoreliste, Map-/Replay-Ansicht öffnen.
+- Replay-Ansicht und Scorekarten zeigen den zugehörigen Spieler mit direktem Profil-Link.
+- Öffentliches osu!-Profil-Endpunkt im API-Gateway für Gast- und eingeloggte Nutzer ergänzt.
+
+
 ## 0.46 (v46)
 - Neues Modul `public/extras.js` + `extras.css` (siehe docs/ARCHITECTURE.md).
 - Player: Frame-für-Frame (, .), Timeline mit Miss/50/100-Markern, Breaks und Notizen, Sprung zu Misses (auch 10 s davor), Neustart, Hit-Error-Bar mit UR, Input-Overlay (K1/K2/M1/M2, KPS), Statistik-Panel (300/100/50/Miss, Combo, Acc, UR, Ø-Fehler, Accuracy-/HP-Verlauf, Klick-Heatmap, Cursor-Tempo), Zoom auf den Cursor, Ton-Modi (alles/Musik/Hitsounds/stumm), Screenshot, 10-s-Clip (.webm), .osr speichern, teilbarer Link mit Zeitmarke, Notizen, Kino-Modus, FPS-Anzeige.

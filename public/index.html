@@ -790,6 +790,7 @@ async function init() {
   me = await r.json(); target = me;
   $('#app').hidden = false;
   $('#who').innerHTML = `<img src="${esc(me.avatar_url)}" alt=""><b>${esc(me.username)}</b>`;
+  $('#who').style.cursor = 'pointer'; $('#who').title = 'Eigenes Profil öffnen'; $('#who').onclick = () => showPlayerProfile(me.id, me);
   load(true);
 }
 async function load(reset) {
@@ -802,7 +803,8 @@ async function load(reset) {
 function rowHtml(s, i) {
   const bs = s.beatmapset, b = s.beatmap, cov = bs.covers || {}, rp = s.has_replay || s.replay, mods = (s.mods || []).map(m => m.acronym || m);
   const img = cov['card@2x'] || cov.card || cov['list@2x'] || cov.list || '', sc = starCol(b.difficulty_rating);
-  return `<div class="row" tabindex="0" role="button" data-i="${i}" style="--bgi:url('${esc(cssUrl(img))}');--sc:${esc(sc)}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small><div class="chips"><span class="chip star">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}${rp ? '' : '<span class="chip">kein Replay</span>'}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div><span class="play" aria-hidden="true">${ICON.play}</span></div>`;
+  const owner = s.user || (s.user_id ? { id: s.user_id, username: s.username || 'Spieler' } : null);
+  return `<div class="row" tabindex="0" role="button" data-i="${i}" style="--bgi:url('${esc(cssUrl(img))}');--sc:${esc(sc)}"><div class="mid"><b>${esc(bs.title)}</b><small>${esc(bs.artist)} · ${esc(bs.creator)}</small>${owner ? `<button type="button" class="x-score-owner" data-profile="${Number(owner.id)||0}">👤 ${esc(owner.username || 'Spieler')}</button>` : ''}<div class="chips"><span class="chip star">★ ${(+b.difficulty_rating || 0).toFixed(2)}</span><span class="chip">${esc(b.version)}</span>${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('')}${rp ? '' : '<span class="chip">kein Replay</span>'}</div></div><div class="end"><b style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</b><small>${(s.accuracy * 100).toFixed(2)}%${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small><small>${rel(s.ended_at || s.created_at)}</small></div><span class="play" aria-hidden="true">${ICON.play}</span></div>`;
 }
 function paint() {
   const q = $('#q').value.trim().toLowerCase(), only = $('#onlyRp').checked;
@@ -833,10 +835,10 @@ $('#usrch').onsubmit = async e => {
     if (!r.ok) throw 0;
     const us = ((await r.json()).user || {}).data || [];
     window._us = us.slice(0, 8);
-    box.innerHTML = window._us.map((u, i) => `<button type="button" data-u="${i}"><img src="${esc(u.avatar_url)}" alt=""><span>${esc(u.username)}</span></button>`).join('') || '<div class="msg">Kein Spieler gefunden.</div>';
+    box.innerHTML = window._us.map((u, i) => `<div class="x-user-result"><button type="button" data-u="${i}"><img src="${esc(u.avatar_url)}" alt=""><span>${esc(u.username)}</span></button><button type="button" data-profile="${Number(u.id)||0}" aria-label="Profil ansehen">Profil ↗</button></div>`).join('') || '<div class="msg">Kein Spieler gefunden.</div>';
   } catch { box.innerHTML = '<div class="msg">Suche fehlgeschlagen.</div>'; }
 };
-$('#ures').onclick = e => { const b = e.target.closest('[data-u]'); if (b) setTarget(window._us[b.dataset.u]); };
+$('#ures').onclick = e => { const p = e.target.closest('[data-profile]'); if (p) { e.stopPropagation(); showPlayerProfile(Number(p.dataset.profile)); return; } const b = e.target.closest('[data-u]'); if (b) setTarget(window._us[b.dataset.u]); };
 document.addEventListener('click', e => { if (!e.target.closest('#usrch')) $('#ures').hidden = true; });
 
 // --- Maps aus dem osu!-Account ins Spiel importieren (Bedienung sitzt im Spiel: nicominecith/host-bridge.js) ---
@@ -888,8 +890,54 @@ window.nicoHost = {
 };
 $('#q').oninput = $('#onlyRp').onchange = paint;
 $('#more').onclick = () => load(false);
-$('#list').onclick = e => { const b = e.target.closest('[data-i]'); if (b) openMap(scores[b.dataset.i]); };
+$('#list').onclick = e => { const p = e.target.closest('[data-profile]'); if (p) { e.stopPropagation(); showPlayerProfile(Number(p.dataset.profile)); return; } const b = e.target.closest('[data-i]'); if (b) openMap(scores[b.dataset.i]); };
 $('#list').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); openMap(scores[b.dataset.i]); } } };
+
+
+/* ---------- Spielerprofile im osu!-Stil ---------- */
+function ensureProfilePanel() {
+  let panel = $('#xProfile');
+  if (panel) return panel;
+  panel = el('section', { id: 'xProfile', class: 'x-profile', hidden: '' });
+  panel.innerHTML = `<div class="x-profile-head"><button type="button" data-profile-close>← Zurück</button><button type="button" data-profile-close aria-label="Schließen">✕</button></div><div id="xProfileBody"></div>`;
+  document.body.append(panel);
+  panel.addEventListener('click', e => { if (e.target === panel || e.target.closest('[data-profile-close]')) panel.hidden = true; });
+  return panel;
+}
+async function showPlayerProfile(id, knownUser = null) {
+  if (!id || !Number.isFinite(Number(id))) return;
+  const panel = ensureProfilePanel(), body = $('#xProfileBody');
+  panel.hidden = false; body.innerHTML = '<div class="msg">Lade Spielerprofil…</div>';
+  try {
+    let u = knownUser;
+    const r = await api(`/users/${Number(id)}/osu`);
+    if (r.ok) u = await r.json();
+    if (!u) throw new Error('Profil nicht verfügbar');
+    const st = u.statistics || {}, groups = Array.isArray(u.groups) ? u.groups : [];
+    const badges = Array.isArray(u.badges) ? u.badges : [];
+    const stat = (label, value) => `<div class="x-profile-stat"><b>${esc(value == null || value === '' ? '–' : value)}</b><small>${label}</small></div>`;
+    const rank = st.global_rank ? `#${Number(st.global_rank).toLocaleString('de-DE')}` : '–';
+    const countryRank = st.country_rank ? `#${Number(st.country_rank).toLocaleString('de-DE')}` : '–';
+    const team = groups.filter(g => g.is_probationary || g.has_listing || g.name || g.short_name);
+    body.innerHTML = `<div class="x-profile-hero" style="--profile-bg:url('${esc(cssUrl(u.cover && (u.cover.url || u.cover.custom_url) || ''))}')"><img class="x-profile-avatar" src="${esc(u.avatar_url || '')}" alt=""><div><h2>${esc(u.username || 'Unbekannt')}</h2><p>${esc(u.country && u.country.name || 'Land unbekannt')} · ${esc(u.playmode || 'osu!standard')}</p><a href="https://osu.ppy.sh/users/${Number(u.id)}" target="_blank" rel="noopener">Auf osu! öffnen ↗</a></div></div>
+    <div class="x-profile-stats">${stat('Globaler Rang',rank)}${stat('Landesrang',countryRank)}${stat('PP',st.pp != null ? Math.round(st.pp).toLocaleString('de-DE') : '–')}${stat('Accuracy',st.hit_accuracy != null ? Number(st.hit_accuracy).toFixed(2)+'%' : '–')}${stat('Level',st.level && st.level.current != null ? `${st.level.current}` : '–')}${stat('Spielzeit',st.play_time != null ? `${Math.round(st.play_time/3600)} h` : '–')}</div>
+    <div class="x-profile-section"><h3>Team & Gruppen</h3>${team.length ? team.map(g => `<span class="x-profile-tag">${esc(g.name || g.short_name || 'Gruppe')}${g.short_name ? ` (${esc(g.short_name)})` : ''}</span>`).join('') : '<p>Keine Team- oder Gruppenzugehörigkeit von osu! gemeldet.</p>'}</div>
+    <div class="x-profile-section"><h3>Badges</h3>${badges.length ? `<div class="x-badges">${badges.map(b => `<a href="${esc(b.url || '#')}" target="_blank" rel="noopener" title="${esc(b.description || b.name || 'Badge')}"><img src="${esc(b.image_url || '')}" alt="${esc(b.name || 'Badge')}"></a>`).join('')}</div>` : '<p>Keine Badges vorhanden.</p>'}</div>
+    <div class="x-profile-section"><h3>Über mich</h3><p>${esc((u.profile && u.profile.first_name) || 'Keine weiteren öffentlichen Profilangaben.')}</p><small>Mitglied seit ${u.join_date ? new Date(u.join_date).toLocaleDateString('de-DE') : '–'} · ${Number(u.follower_count || 0).toLocaleString('de-DE')} Follower</small></div>`;
+  } catch (err) { body.innerHTML = `<div class="msg">${esc(err.message || 'Spielerprofil konnte nicht geladen werden.')}</div>`; }
+}
+function addReplayOwner(s) {
+  const title = $('#title'); if (!title) return;
+  title.parentElement.querySelector('.x-replay-owner')?.remove();
+  const owner = s.user || (s.user_id ? { id: s.user_id, username: s.username || 'Spieler' } : null);
+  if (!owner) return;
+  const b = el('button', { type: 'button', class: 'x-replay-owner', 'data-profile': Number(owner.id) || 0 }, `👤 Replay von ${owner.username || 'Spieler'} · Profil ansehen ↗`);
+  title.insertAdjacentElement('afterend', b);
+}
+document.addEventListener('click', e => {
+  const p = e.target.closest('[data-profile]');
+  if (p && !p.closest('#xProfile')) { e.preventDefault(); e.stopPropagation(); showPlayerProfile(Number(p.dataset.profile)); }
+});
 
 /* ---------- Map-Ansicht (erst Infos, dann Replay) ---------- */
 function openMap(s) {
@@ -909,6 +957,11 @@ function openMap(s) {
     <div class="sc"><span class="rk" style="color:${RC[s.rank] || '#fff'}">${lab(s.rank)}</span><div><div class="tot">${Number(total).toLocaleString('de-DE')}</div><small style="color:var(--dim)">${(s.accuracy * 100).toFixed(2)}% · ${s.max_combo || 0}x${s.pp ? ' · ' + Math.round(s.pp) + 'pp' : ''}</small></div></div>
     <div class="chips" style="margin-top:10px">${mods.map(m => `<span class="chip mod">${esc(m)}</span>`).join('') || '<span class="chip">Keine Mods</span>'}<span class="chip">${rel(s.ended_at || s.created_at)}</span></div>
     <div class="hits"><div><b style="color:#6ea8ff">${n('great', 'count_300')}</b><small>300</small></div><div><b style="color:#7de3d0">${n('ok', 'count_100')}</b><small>100</small></div><div><b style="color:#ffd166">${n('meh', 'count_50')}</b><small>50</small></div><div><b style="color:#ff4d6d">${n('miss', 'count_miss')}</b><small>Miss</small></div></div></div>`;
+  const owner = s.user || (s.user_id ? { id: s.user_id, username: s.username || 'Spieler' } : null);
+  let ownerBox = $('#mv-owner');
+  if (!ownerBox) { ownerBox = el('div', { id: 'mv-owner', class: 'x-owner-card' }); $('#mvb').prepend(ownerBox); }
+  ownerBox.innerHTML = owner ? `<img src="${esc(owner.avatar_url || '')}" alt=""><div><small>Replay von</small><b>${esc(owner.username || 'Spieler')}</b></div><button type="button" data-profile="${Number(owner.id)||0}">Profil ansehen ↗</button>` : `<div><small>Replay-Spieler</small><b>${me && target && target.id === me.id ? esc(me.username) : 'Spielerinformationen nicht verfügbar'}</b></div>`;
+  if (!s.user && s.user_id) hydrateScoreOwner(s).then(u => { if (u && curScore === s && ownerBox.isConnected) ownerBox.innerHTML = `<img src="${esc(u.avatar_url || '')}" alt=""><div><small>Replay von</small><b>${esc(u.username || 'Spieler')}</b></div><button type="button" data-profile="${Number(u.id)||0}">Profil ansehen ↗</button>`; });
   const pb = $('#mvplay'); pb.disabled = !rp; pb.querySelector('span').textContent = rp ? (me || s._osrBuf ? 'Replay ansehen' : 'Replay ansehen (Anmeldung nötig)') : 'Kein Replay verfügbar'; $('#mvlogin').hidden = true;
   $('#mapview').hidden = false; $('#mapview').scrollTop = 0;
 }
@@ -1075,11 +1128,21 @@ vIcons();
 
 let osrBuf = null;
 
+async function hydrateScoreOwner(s) {
+  if (!s || s.user || !s.user_id) return s && s.user;
+  try {
+    const r = await api(`/users/${Number(s.user_id)}/osu`);
+    if (r.ok) s.user = await r.json();
+  } catch {}
+  if (!s.user && s.user_id) s.user = { id: s.user_id, username: `Spieler #${s.user_id}` };
+  return s.user;
+}
 async function openReplay(s) {
-  curScore = s; $('#spd').value = S.speed || 1; spdUpd(); $('#viewer').hidden = false; playing = false; M = null;
+  curScore = s; await hydrateScoreOwner(s); $('#spd').value = S.speed || 1; spdUpd(); $('#viewer').hidden = false; playing = false; M = null;
   if (audio) { audio.pause(); audio = null; }
   resetVideo(); tcCache.clear(); audioErr = false; cv.hidden = false; $('#ctl').hidden = false; osrBuf = null; bgImg = null; sT = -1e9;
   $('#title').textContent = `${s.beatmapset.artist} – ${s.beatmapset.title} [${s.beatmap.version}]`;
+  addReplayOwner(s);
   const ml = (s.mods || []).map(m => m.acronym || m).join(''); if (ml) $('#title').textContent += ' +' + ml;
   const msg = x => ($('#msg').textContent = x);
   try {

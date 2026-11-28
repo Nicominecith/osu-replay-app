@@ -88,6 +88,7 @@ const MODES = new Set(['osu', 'taiko', 'fruits', 'mania']);
 const OSU_ROUTES = [
   { re: /^\/me\/osu$/, params: {} },
   { guest: true, re: /^\/search$/, params: { mode: v => (v === 'user' ? v : null), query: v => (typeof v === 'string' && v.length >= 1 && v.length <= 60 ? v : null), page: v => { const n = int(v, 1, 20); return Number.isNaN(n) ? null : String(n); } } },
+  { guest: true, re: /^\/users\/\d{1,10}\/osu$/, params: {} },
   { guest: true, re: /^\/users\/\d{1,10}\/beatmaps\/most_played$/, params: { limit: v => lim(v, 50), offset: v => off(v) } },
   { guest: true, re: /^\/users\/\d{1,10}\/scores\/(recent|best)$/, params: { mode: v => (MODES.has(v) ? v : null), limit: v => lim(v, 100), offset: v => off(v), include_fails: v => (v === '0' || v === '1' ? v : null) } },
   { re: /^\/scores\/([a-z]{3,8}\/)?\d{1,12}\/download$/, params: {} }

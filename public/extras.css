@@ -154,3 +154,26 @@ body.x-cine #xStrip{display:none!important}
 #xLang .xl-ic{font-size:56px}#xLang h2{margin:0;font-size:1.6rem}#xLang p{margin:0 0 10px;color:var(--dim)}
 #xLang .btn{min-height:60px;font-size:1.15rem;width:100%}
 #xLang .btn.alt{background:transparent;color:var(--tx);border:2px solid var(--pink)}
+
+
+/* osu!-artige Spielerprofile und Replay-Attribution */
+.x-score-owner{display:inline-flex;align-items:center;gap:6px;margin:5px 0 2px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.07);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+.x-owner-card{display:flex;align-items:center;gap:12px;padding:12px;margin:0 0 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.045)}
+.x-owner-card>img{width:44px;height:44px;border-radius:12px;object-fit:cover;background:#292333}
+.x-owner-card>div{display:grid;gap:3px;flex:1}.x-owner-card small{color:var(--dim)}.x-owner-card b{font-size:15px}
+.x-owner-card button,.x-user-result>button:last-child{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:rgba(255,255,255,.08);color:var(--text);cursor:pointer}
+.x-user-result{display:flex;align-items:center;gap:8px}.x-user-result>button:first-child{flex:1}
+.x-replay-owner{display:inline-flex;align-items:center;margin:5px 0 8px;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.08);color:var(--text);cursor:pointer;font:inherit;font-size:13px}
+.x-profile{position:fixed;inset:0;z-index:10020;overflow:auto;background:var(--bg,#17131f);color:var(--text,#fff);padding:clamp(12px,3vw,28px);box-sizing:border-box}
+.x-profile-head{display:flex;justify-content:space-between;max-width:980px;margin:0 auto 14px}
+.x-profile-head button{border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:rgba(255,255,255,.08);color:inherit;cursor:pointer}
+#xProfileBody{max-width:980px;margin:auto}
+.x-profile-hero{display:flex;align-items:end;gap:18px;min-height:180px;padding:22px;border-radius:18px;background:linear-gradient(90deg,rgba(18,14,27,.95),rgba(18,14,27,.55)),var(--profile-bg) center/cover,#30243c}
+.x-profile-avatar{width:104px;height:104px;object-fit:cover;border-radius:16px;border:3px solid rgba(255,255,255,.4)}
+.x-profile-hero h2{margin:0 0 5px;font-size:clamp(24px,5vw,36px)}.x-profile-hero p{margin:4px 0 10px;color:#ddd}.x-profile-hero a{color:#ffd166}
+.x-profile-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.x-profile-stat,.x-profile-section{padding:15px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.045)}
+.x-profile-stat{display:grid;gap:5px}.x-profile-stat b{font-size:22px}.x-profile-stat small,.x-profile-section p,.x-profile-section small{color:var(--dim)}
+.x-profile-section{margin:12px 0}.x-profile-section h3{margin:0 0 12px}.x-profile-tag{display:inline-block;margin:3px;padding:7px 10px;border-radius:999px;background:rgba(255,120,190,.13);border:1px solid rgba(255,120,190,.25)}
+.x-badges{display:flex;flex-wrap:wrap;gap:12px}.x-badges img{width:86px;height:86px;object-fit:contain;border-radius:8px}
+@media(max-width:560px){.x-profile-hero{align-items:center;min-height:130px;padding:14px;gap:12px}.x-profile-avatar{width:76px;height:76px}.x-owner-card{flex-wrap:wrap}.x-owner-card button{width:100%}}
