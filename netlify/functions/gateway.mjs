@@ -87,6 +87,7 @@ const MODES = new Set(['osu', 'taiko', 'fruits', 'mania']);
 // Erlaubte osu!-Pfade + exakt erlaubte Parameter je Pfad
 const OSU_ROUTES = [
   { re: /^\/me\/osu$/, params: {} },
+  { guest: true, re: /^\/rankings\/(osu|taiko|fruits|mania)\/(performance|score)$/, params: { 'cursor[page]': v => { const n = int(v, 1, 2); return Number.isNaN(n) || n == null ? null : String(n); } } },
   { guest: true, re: /^\/search$/, params: { mode: v => (v === 'user' ? v : null), query: v => (typeof v === 'string' && v.length >= 1 && v.length <= 60 ? v : null), page: v => { const n = int(v, 1, 20); return Number.isNaN(n) ? null : String(n); } } },
   { guest: true, re: /^\/users\/\d{1,10}\/osu$/, params: {} },
   { guest: true, re: /^\/users\/\d{1,10}\/beatmaps\/most_played$/, params: { limit: v => lim(v, 50), offset: v => off(v) } },
@@ -126,7 +127,7 @@ async function routeOsu(req, token, ip) {
   if (!r.ok) return fail(r.status === 401 || r.status === 403 || r.status === 404 || r.status === 429 ? r.status : 502, 'osu!-Anfrage fehlgeschlagen');
   const ct = (r.headers.get('content-type') || '').toLowerCase();
   const type = ct.startsWith('application/json') ? 'application/json; charset=utf-8' : 'application/octet-stream';
-  return new Response(buf, { status: 200, headers: { ...BASE_HEADERS, 'Content-Type': type } });
+  return new Response(buf, { status: 200, headers: { ...BASE_HEADERS, ...(path.startsWith('/rankings/') ? { 'Cache-Control': 'public, max-age=300' } : {}), 'Content-Type': type } });
 }
 
 async function routeBeatmap(req) {
