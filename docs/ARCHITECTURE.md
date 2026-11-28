@@ -1,4 +1,6 @@
 # Architektur
+## extras.js (v46)
+Zusatzfunktionen liegen bewusst in `public/extras.js` (+ `extras.css`) und nutzen die globalen Variablen des Hauptskripts (`t`, `M`, `F`, `rate`, `end`, `audio`, `S`, `curScore`, `osrBuf`, `openReplay`, `openLocalReplay`). Blöcke: Diagnose/Toasts, Replay-Speicher (IndexedDB), Spiel-Anbindung (.osz per Drop-Ereignis), Schnell-Import, Player-Leiste und Overlays, Statistik, Menü, Übersetzung (`EN`-Tabelle), Online-Prüfung. Neue Player-Features dort ergänzen statt im Inline-Skript.
 
 ```mermaid
 flowchart LR

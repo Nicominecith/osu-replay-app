@@ -1,6 +1,6 @@
 {
   "name": "osu-replay-app",
-  "version": "0.45.0",
+  "version": "0.46.0",
   "private": true,
   "description": "osu!-Replay-Viewer als PWA mit Netlify Functions (Login, API-Proxy, Gastmodus)",
   "engines": { "node": ">=20" },

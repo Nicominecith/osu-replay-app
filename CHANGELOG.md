@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.46 (v46)
+- Neues Modul `public/extras.js` + `extras.css` (siehe docs/ARCHITECTURE.md).
+- Player: Frame-für-Frame (, .), Timeline mit Miss/50/100-Markern, Breaks und Notizen, Sprung zu Misses (auch 10 s davor), Neustart, Hit-Error-Bar mit UR, Input-Overlay (K1/K2/M1/M2, KPS), Statistik-Panel (300/100/50/Miss, Combo, Acc, UR, Ø-Fehler, Accuracy-/HP-Verlauf, Klick-Heatmap, Cursor-Tempo), Zoom auf den Cursor, Ton-Modi (alles/Musik/Hitsounds/stumm), Screenshot, 10-s-Clip (.webm), .osr speichern, teilbarer Link mit Zeitmarke, Notizen, Kino-Modus, FPS-Anzeige.
+- Gespeicherte Replays (IndexedDB, max. 12 + Favoriten), „Zurück zum letzten Replay“, Wechsel zum vorigen Replay, Zufalls-Replay, Demo-Modus.
+- Schnell-Import per Link/ID (osu!-Score, .osr-Link, Beatmap-Set), Drag & Drop auf der ganzen Seite (.osr, .osz, .osk), Beispiel-Map beim ersten Start von nicominecith osu!.
+- Menü (☰): Hilfe mit Tastenkürzeln, Dateiformaten und Modus-Status, Neu/Roadmap, Über, Diagnose + Feedback, Speicherverwaltung, Einstellungen-Code (Export/Import/Reset), Energiesparmodus, Deutsch/Englisch.
+- Fehlerhilfe mit Wiederholen-Knopf, Lade-Fortschritt, Modus-Erkennung (taiko/catch/mania erkannt, noch nicht abspielbar), sauberere Offline-Erkennung, Browser-Zurück schließt den Player.
+
 ## 0.45 (v45)
 - Zusammengeführt: Spiel-Menüeinträge (Account-Import, Spiel schließen), Datei-Dialog-Fix, Exit und Zurück-Taste aus v44, plus WebGL-Umstellung gegen den schwarzen Bildschirm auf Handys.
 - Skin-Download repariert: Große Skins (bis 25 MB) kommen jetzt als Stream über den Proxy (vorher Abbruch bei über 4,5 MB). Vorab-Laden beim Antippen am Handy entfernt, das hat das Anfragelimit aufgebraucht. Bei "zu viele Anfragen" und Verbindungsfehlern wird bis zu 3x neu versucht, Fehlermeldungen sind lesbar.
